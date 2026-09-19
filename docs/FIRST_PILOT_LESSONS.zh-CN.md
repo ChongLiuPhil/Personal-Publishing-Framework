@@ -2,7 +2,8 @@
 
 **日期：** 2026-09-19  
 **Pilot：** `ChongLiuPhil/epistemology-textbook`  
-**PPF base：** v0.1.0-draft @ `9326920e1920d18f0a71eac26d4068da9d6bdffe`
+**PPF base：** v0.1.0-draft @ `9326920e1920d18f0a71eac26d4068da9d6bdffe`  
+**Current pilot evidence status：** Cloudflare staging/runtime VERIFIED；canonical production 仍为 GitHub Pages；production cutover 未完成。
 
 ## 1. Pilot 目的
 
@@ -188,7 +189,9 @@ Cloudflare MCP = optional agent-side account automation
 GitHub Actions + scoped token = fallback
 ```
 
-这一阶段仍然**没有**声称 Cloudflare account-side deployment 已完成。Worker/account/GitHub App connection、第一次 Cloudflare preview、Custom Domain 与 production cutover 仍需要后续真实账户验证。
+> **Historical stage note:** 上述结论只描述当时的 repository-side integration 阶段。它随后已被第 11 节的真实 account-side staging/runtime evidence **supersede**。当前状态不得再解释为 account-side unverified。
+
+这一阶段当时仍然**没有**声称 Cloudflare account-side deployment 已完成；后续真实账户验证已经补齐 GitHub App / repository connection、main build、preview 与 workers.dev runtime，但 Custom Domain 与 canonical production cutover 仍未完成。
 
 
 ## 11. Cloudflare account-side staging 与安全 profile
@@ -212,8 +215,8 @@ GitHub Actions + scoped token = fallback
 PPF 因而定义三个 Cloudflare reference security profiles：
 
 1. **Workers Builds Native** — 当前 reference default，低人工成本、原生 Git integration，但 managed user token scope 较宽；
-2. **Hardened External CI** — GitHub Actions + account-owned individual-Worker `Editor` token，实现真正 per-Worker least privilege；
-3. **Future Native Granular** — 等 Workers Builds 支持 account-owned token 后的理想组合。
+2. **Hardened External CI** — GitHub Actions + account-owned individual-Worker `Editor` token 的 hardened candidate；当前 pilot 只验证到 repository/build **candidate / validate-only PASS**，credential / preview / production deployment steps 在 PR 场景均为 skipped，因此不得描述为 production-tested；
+3. **Future Native Granular** — 等 Workers Builds 支持 account-owned token 后的理想组合；当前记录为 unavailable，而不是伪造支持。
 
 详细见：
 
@@ -222,3 +225,33 @@ PPF 因而定义三个 Cloudflare reference security profiles：
 这不是 PPF 的 Cloudflare-only 规范，而是一个更一般的经验：
 
 > 当 provider-native integration 无法同时满足便利性与目标 credential scope 时，框架应显式记录 trade-off，并提供可审计的 hardened alternative，而不是把较宽权限静默描述成 least privilege。
+
+
+## 12. 当前 reconciled pilot state
+
+截至 2026-09-19，本 pilot 的持久证据应解释为：
+
+- Cloudflare account connection：VERIFIED；
+- GitHub App / repository connection：VERIFIED；
+- main Workers Build：PASS；
+- non-production preview：PASS；
+- main workers.dev HTTP/content runtime：PASS；
+- preview workers.dev HTTP/content runtime：PASS；
+- Profile A — Workers Builds Native：operationally verified，但 managed user token scope 比纯 static Worker routine deploy 所需更宽，不是 per-Worker least privilege；
+- Profile B — Hardened External CI：candidate / validate-only PASS，**不是 production-tested**；
+- Profile C — Future Native Granular：当前 unavailable，受 provider product capability 阻塞；
+- current canonical production：GitHub Pages；
+- Cloudflare workers.dev：staging/runtime evidence，不等于 canonical production；
+- Custom Domain / canonical URL migration：NOT DONE；
+- GitHub Pages legacy URL policy：UNRESOLVED；
+- production security profile：WAITING HUMAN DECISION。
+
+因此：
+
+```text
+provider build verified
++ preview/runtime verified
+!= canonical production cutover
+```
+
+Cloudflare staging/runtime verification 不得写成 production cutover。
