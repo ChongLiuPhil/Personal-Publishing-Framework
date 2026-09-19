@@ -130,13 +130,15 @@ Validating manuscript files while ignoring the publication contract or provider-
 From this pilot:
 
 1. continuous Web build is separated from Cloudflare deployment activation;
-2. template deployment defaults to staged;
-3. `WEB_DEPLOY_ENABLED=true` is an explicit activation;
-4. missing production URL blocks partial activation;
-5. on-demand workflows verify the requested artifact;
-6. the schema models deployment enabled/status and release semantics;
-7. documentation adds provisioning vs recurring-deployment least-privilege guidance;
-8. the first runtime pilot becomes evidence for the reference implementation.
+2. continuous Web validation is separated from provider-deployment activation;
+3. repository-owned `make web-publish-check` becomes the canonical gate shared by GitHub Actions and Cloudflare;
+4. Cloudflare Workers Builds + the GitHub App becomes the default reference delivery integration;
+5. `cloudflare-builds.yaml` records intended Git connection / build / deploy / preview / readiness without pretending to be provider-account truth;
+6. Node / Wrangler / Quarto are pinned in the reference implementation and exercised by non-deploying contract CI;
+7. on-demand workflows verify the requested artifact;
+8. the schema models deployment integration/readiness and release semantics;
+9. documentation adds OAuth/MCP, GitHub App, provisioning, and recurring-deployment security boundaries;
+10. root-level PPF CI continuously validates the reference template instead of relying only on one pilot.
 
 ## 9. Not yet validated by this pilot
 
@@ -150,3 +152,31 @@ This pilot did **not** validate:
 - formal release archive conventions.
 
 Those remain later v0.1 pilot areas.
+
+
+## 10. Subsequent Cloudflare ↔ GitHub reference validation
+
+The same downstream pilot later validated the repository-side Cloudflare integration contract.
+
+Real `epistemology-textbook` runs validated:
+
+- GitHub Actions invoking the shared `make web-publish-check`: PASS;
+- Node 24 pin: PASS;
+- Wrangler 4.135.0 installation and version check: PASS;
+- Quarto 1.10.18 downloaded on a clean runner with SHA-256 verification: PASS;
+- `make cloudflare-build`: PASS;
+- rendered Web-artifact validation: PASS;
+- GitHub Pages production deployment after merge: PASS;
+- no Cloudflare token / Wrangler deploy / Cloudflare deploy action in active GitHub workflows: PASS.
+
+The reference implementation therefore now defaults to:
+
+```text
+GitHub Actions = independent validation
+repository-owned gate = shared build/validation logic
+Workers Builds = preferred Cloudflare Git delivery
+Cloudflare MCP = optional agent-side account automation
+GitHub Actions + scoped token = fallback
+```
+
+This stage still does **not** claim account-side Cloudflare deployment is complete. Worker/account/GitHub App connection, first Cloudflare preview, Custom Domain, and production cutover remain subject to later real account validation.
