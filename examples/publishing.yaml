@@ -38,6 +38,8 @@ publication:
 deployment:
   web:
     provider: cloudflare-workers
+    enabled: false
+    status: staged
     output_directory: _book
     production_url: null
 
