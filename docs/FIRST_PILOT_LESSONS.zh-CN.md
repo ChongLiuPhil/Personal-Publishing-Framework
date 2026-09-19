@@ -130,13 +130,15 @@ Pilot 第一次 CI 失败并不是 Quarto 或 PPF 问题，而是迁移过程误
 根据此次 pilot：
 
 1. continuous Web build 与 Cloudflare deployment activation 分离；
-2. template deployment 默认 staged；
-3. `WEB_DEPLOY_ENABLED=true` 成为显式 activation；
-4. production URL 未配置时禁止进入半激活状态；
-5. on-demand workflow 验证请求格式的 artifact；
-6. schema 增加 deployment enabled/status 与 release semantics；
-7. 文档加入 provisioning / recurring deploy 最小权限模型；
-8. 首个 runtime pilot 成为 reference implementation 的实证基础。
+2. continuous Web validation 与 provider deployment activation 分离；
+3. repository-owned `make web-publish-check` 成为 GitHub Actions 与 Cloudflare 共用的 canonical gate；
+4. Cloudflare Workers Builds + GitHub App 成为默认参考 delivery integration；
+5. `cloudflare-builds.yaml` 记录期望的 Git connection / build / deploy / preview / readiness，但不冒充 provider account 的真实状态；
+6. Node / Wrangler / Quarto 在 reference implementation 中固定版本，并通过非部署 contract CI 验证；
+7. on-demand workflow 验证请求格式的 artifact；
+8. schema 增加 deployment integration / readiness 与 release semantics；
+9. 文档加入 OAuth/MCP、GitHub App、provisioning / recurring deployment 的安全边界；
+10. PPF 根级 CI 持续验证 reference template，而不只依赖一次 pilot。
 
 ## 9. 尚未由 Pilot 验证的内容
 
@@ -150,3 +152,31 @@ Pilot 第一次 CI 失败并不是 Quarto 或 PPF 问题，而是迁移过程误
 - formal release archive convention。
 
 这些仍属于后续 v0.1 pilot 范围。
+
+
+## 10. 后续 Cloudflare ↔ GitHub 范本验证
+
+同一 downstream pilot 随后继续验证 repository-side Cloudflare integration contract。
+
+在 `epistemology-textbook` 中实际验证：
+
+- GitHub Actions 调用统一 `make web-publish-check`：PASS；
+- Node 24 pin：PASS；
+- Wrangler 4.135.0 安装与版本检查：PASS；
+- Quarto 1.10.18 从空白 runner 下载并进行 SHA-256 校验：PASS；
+- `make cloudflare-build`：PASS；
+- rendered Web artifact validation：PASS；
+- merge 后 GitHub Pages production deployment：PASS；
+- active GitHub workflows 中没有 Cloudflare token / Wrangler deploy / Cloudflare deploy action：PASS。
+
+因此当前 reference implementation 的默认模型升级为：
+
+```text
+GitHub Actions = independent validation
+repository-owned gate = shared build/validation logic
+Workers Builds = preferred Cloudflare Git delivery
+Cloudflare MCP = optional agent-side account automation
+GitHub Actions + scoped token = fallback
+```
+
+这一阶段仍然**没有**声称 Cloudflare account-side deployment 已完成。Worker/account/GitHub App connection、第一次 Cloudflare preview、Custom Domain 与 production cutover 仍需要后续真实账户验证。
