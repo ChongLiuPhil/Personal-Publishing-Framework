@@ -46,6 +46,7 @@ deployment:
 release:
   versioning: semver
   require_explicit_release: true
+  continuous_web_is_release: false
 
 archive:
   preserve_source: true
