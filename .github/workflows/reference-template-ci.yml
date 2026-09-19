@@ -7,6 +7,8 @@ on:
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
+      - "docs/FIRST_PILOT_LESSONS*.md"
+      - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - ".github/workflows/reference-template-ci.yml"
   push:
     branches:
@@ -16,6 +18,8 @@ on:
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
+      - "docs/FIRST_PILOT_LESSONS*.md"
+      - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - ".github/workflows/reference-template-ci.yml"
 
 permissions:
@@ -73,6 +77,13 @@ jobs:
 
       - name: Validate reference publication contract
         run: make check
+
+      - name: Validate pilot evidence reconciliation markers
+        run: |
+          grep -q "Current reconciled pilot state" ../../docs/FIRST_PILOT_LESSONS.md
+          grep -q "not production-tested" ../../docs/FIRST_PILOT_LESSONS.md
+          grep -q "Current Cloudflare staging/runtime evidence" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
+          grep -q "GitHub Pages = current canonical production" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
 
       - name: Compile runtime verification helper
         run: python -m py_compile scripts/verify_public_site.py
