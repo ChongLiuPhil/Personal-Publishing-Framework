@@ -81,7 +81,15 @@ GitHub Actions
 
 PPF 标记：
 
-`supported-hardened-alternative`
+`supported-hardened-alternative / pilot-candidate-validate-only`
+
+当前真实 pilot 的证据边界：
+
+- candidate workflow 的 repository/build validation：PASS；
+- PR 场景中的 credential / preview / production deployment steps：SKIPPED；
+- account-owned per-Worker token：未配置；
+- Profile B production deployment：未执行；
+- 因此 **不得** 把 Profile B 描述为 production-tested。
 
 ## 4. Profile C — Future Native Granular
 
