@@ -108,9 +108,25 @@ Cloudflare
 
 其余 Worker / Builds / trigger / preview 配置应尽量由 AI 根据机器契约完成。
 
+## Cloudflare security profiles
+
+Workers Builds 的原生 Git integration 与真正 per-Worker least privilege 在当前 Cloudflare 产品上不是完全同一个路径。
+
+PPF reference 提供：
+
+- **Profile A — Workers Builds Native**：默认参考路线，最低人工成本，但 managed user build token scope 比纯 static Worker 所需更宽；
+- **Profile B — Hardened External CI**：GitHub Actions + account-owned individual-Worker `Editor` token；
+- **Profile C — Future Native Granular**：等待 Workers Builds 支持 account-owned per-Worker token。
+
+详见：
+
+`docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
+
+正式 production cutover 前，应由项目责任人明确采用的 security profile。
+
 ## 外部 CI fallback
 
-如果项目不能使用 Workers Builds Git integration，可以采用：
+如果项目不能使用 Workers Builds Git integration，或项目明确要求 per-Worker least privilege，可以采用：
 
 `GitHub Actions + Wrangler + scoped Cloudflare token`
 

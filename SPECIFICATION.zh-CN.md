@@ -132,7 +132,9 @@ PPF 本身不重新定义作者身份、主体性或责任。
 
 在 provider 支持权限范围划分时，reference implementation SHOULD 把一次性 infrastructure provisioning 与长期 recurring deployment credential 分离，并为持续部署使用满足任务所需的最小权限。
 
-支持 MCP/OAuth 的 AI Agent MAY 帮助完成 provider-side configuration；这属于可选自动化，不是 PPF 合规要求。账户所有者必须保留对身份授权、权限范围与生产 cutover 的控制。
+如果 provider-native integration 当前无法满足项目要求的 credential scope，项目 SHOULD 明确记录这种 trade-off，而不是把较宽权限静默描述为 least privilege。项目 MAY 提供一个 hardened external-CI profile，使用更细粒度的 deployment credential，直到 provider-native integration 能满足同等安全要求。
+
+支持 MCP/OAuth 的 AI Agent MAY 帮助完成 provider-side configuration；这属于可选自动化，不是 PPF 合规要求。账户所有者必须保留对身份授权、权限范围、production security profile 与生产 cutover 的控制。
 
 ## 11. 版本
 

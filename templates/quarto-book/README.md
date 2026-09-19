@@ -108,9 +108,25 @@ When the AI client supports Cloudflare MCP, the ideal human role is reduced to:
 
 The AI should then configure Worker / Builds / triggers / preview state from the machine contract where its client exposes the required Cloudflare tools.
 
+## Cloudflare security profiles
+
+Native Workers Builds Git integration and true per-Worker least privilege are not currently the same Cloudflare path.
+
+The PPF reference provides:
+
+- **Profile A — Workers Builds Native**: reference default with minimal manual setup, but a broader managed user-token scope than a pure static Worker needs;
+- **Profile B — Hardened External CI**: GitHub Actions + account-owned individual-Worker `Editor` token;
+- **Profile C — Future Native Granular**: the preferred native combination once Workers Builds supports account-owned per-Worker tokens.
+
+See:
+
+`docs/CLOUDFLARE_SECURITY_PROFILES.md`
+
+The project owner should explicitly select the production security profile before final cutover.
+
 ## External-CI fallback
 
-If a project cannot use Workers Builds Git integration, it may use:
+If a project cannot use Workers Builds Git integration, or explicitly requires per-Worker least privilege, it may use:
 
 `GitHub Actions + Wrangler + scoped Cloudflare token`
 
