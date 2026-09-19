@@ -27,7 +27,7 @@ Cloudflare 不原生读取 PPF 的 machine contract。UI 中显示的值也不�
 | Build command | `bash scripts/cloudflare_build.sh` | 以当前 repository machine contract 为准 |
 | Deploy command | `npm run cloudflare:deploy` | 以当前 repository machine contract 为准 |
 | Builds for non-production branches | enabled | 用于 preview/non-production build |
-| Protect with Cloudflare Access | off for a public reference publication | 只有项目明确要求受限访问时才开启 |
+| Protect with Cloudflare Access | `publication.web.visibility` + `publication.web.access` | `public + none` 可关闭；`restricted/private` 先读取 access policy；不得从 source visibility 推断 |
 | Advanced settings → Non-production branch deploy command | `npm run cloudflare:preview` | 以当前 repository machine contract 为准 |
 | Advanced settings → Path | `/` for repository-root build | monorepo 必须使用真实项目路径 |
 | API token | provider-managed/selected Workers Builds user token in Profile A | secret 不进入 Git、machine contract 或聊天 |
@@ -35,7 +35,39 @@ Cloudflare 不原生读取 PPF 的 machine contract。UI 中显示的值也不�
 
 具体 Node / Wrangler / Quarto 等版本 MUST 从当前 repository machine contract / package pins 读取，不能从本 dated note 硬编码为未来项目真值。
 
-## 3. Production branch observation
+## 3. Access control observation
+
+2026-09-19 复核 Cloudflare current official documentation 后，Cloudflare Access 的 Worker 集成能力不应只理解为创建页面中的一个 checkbox。
+
+当前官方文档说明可以：
+
+- 直接保护单个 Worker；
+- 只保护 preview deployments；
+- 同时保护 production + preview；
+- 保护特定 `workers.dev` hostname、Custom Domain 或 path。
+
+因此 human/operator 应先读取 PPF publication contract：
+
+~~~text
+source.visibility
+publication.web.authorization_state
+publication.web.visibility
+publication.web.access
+~~~
+
+再决定是否启用 Cloudflare Access。
+
+以下推断无效：
+
+~~~text
+private repository => enable Access
+public repository => disable Access
+Worker deployed => public publication
+~~~
+
+具体 mapping 见 `docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`。
+
+## 4. Production branch observation
 
 真实 pilot 的创建 UI 中，**Production branch 不一定作为独立字段显示**。
 
@@ -50,7 +82,7 @@ Cloudflare 不原生读取 PPF 的 machine contract。UI 中显示的值也不�
 5. 必要时读取 Builds trigger settings 与 current official docs；
 6. 把确认结果写回 downstream repository readiness/evidence state。
 
-## 4. UI drift rule
+## 5. UI drift rule
 
 如果实时 Cloudflare UI 与本文件、runbook 或旧截图不同：
 

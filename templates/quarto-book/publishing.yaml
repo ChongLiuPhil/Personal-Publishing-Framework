@@ -8,12 +8,19 @@ project:
 source:
   canonical: git
   branch: main
+  visibility: public
 
 publication:
   web:
     format: html
     mode: continuous
     enabled: true
+    authorization_state: authorized
+    visibility: public
+    access:
+      mode: none
+      implementation: null
+      policy_ref: null
 
   epub:
     format: epub
@@ -45,6 +52,10 @@ deployment:
     status: staged
     output_directory: _book
     production_url: null
+    provider_url: null
+    canonical_identity:
+      type: null
+      url: null
     readiness:
       cloudflare_account: unverified
       github_app: unverified

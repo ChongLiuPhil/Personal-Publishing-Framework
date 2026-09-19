@@ -115,7 +115,34 @@ PPF 标记：
 
 `future-preferred / currently-unavailable`
 
-## 5. Custom Domain 与 daily deployment 分离
+## 5. Deployment credential security 与 publication access 分离
+
+Profile A / B / C 只回答：
+
+> “什么身份和权限可以修改 / deploy Worker？”
+
+它们不回答：
+
+> “哪些读者可以访问已经部署的 publication？”
+
+后者属于 PPF `publication.web.visibility` 与 `publication.web.access`，在 Cloudflare reference 中可以映射到 Cloudflare Access。
+
+因此这些组合都可能成立：
+
+~~~text
+Profile A deployment credential + public publication
+Profile A deployment credential + restricted publication
+Profile B deployment credential + public publication
+Profile B deployment credential + restricted publication
+~~~
+
+Deployment credential least privilege 与 reader access control 是两条正交安全轴。
+
+具体 reader-access mapping 见：
+
+`docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`
+
+## 6. Custom Domain 与 daily deployment 分离
 
 无论使用 A 或 B：
 
@@ -135,7 +162,7 @@ routine deployment identity
 -> no zone-route write unless deployment actually changes routing
 ```
 
-## 6. PPF 安全原则
+## 7. PPF 安全原则
 
 Cloudflare reference implementation SHOULD：
 
@@ -146,7 +173,7 @@ Cloudflare reference implementation SHOULD：
 5. 当 provider-native integration 无法满足所需 credential scope 时，明确提供 external-CI hardened alternative；
 6. provider 产品能力变化后重新评估 profile。
 
-## 7. 选择规则
+## 8. 选择规则
 
 默认采用 **Profile A** 只表示 reference convenience default，不代表它在所有安全环境中最优。
 

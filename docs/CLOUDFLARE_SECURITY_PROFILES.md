@@ -102,7 +102,36 @@ PPF label:
 
 `future-preferred / currently-unavailable`
 
-## 5. Separate Custom Domain provisioning from routine deployment
+## 5. Separate deployment-credential security from publication access
+
+Profiles A / B / C answer:
+
+> “Which identity and permission scope can modify / deploy the Worker?”
+
+They do not answer:
+
+> “Which readers may access the publication after deployment?”
+
+The latter belongs to PPF `publication.web.visibility` and `publication.web.access`, which the Cloudflare reference can map to Cloudflare Access.
+
+All of these combinations may therefore be valid:
+
+~~~text
+Profile A deployment credential + public publication
+Profile A deployment credential + restricted publication
+Profile B deployment credential + public publication
+Profile B deployment credential + restricted publication
+~~~
+
+Deployment-credential least privilege and reader access control are orthogonal security axes.
+
+See:
+
+`docs/CLOUDFLARE_ACCESS_PROFILE.md`
+
+for reader-access mapping.
+
+## 6. Separate Custom Domain provisioning from routine deployment
 
 For either Profile A or B, route/domain provisioning should not become permanent routine-deployment authority.
 
@@ -120,7 +149,7 @@ routine deployment identity
 -> no zone-route write unless a deployment actually changes routing
 ```
 
-## 6. PPF security principles
+## 7. PPF security principles
 
 The Cloudflare reference implementation SHOULD:
 
@@ -131,7 +160,7 @@ The Cloudflare reference implementation SHOULD:
 5. provide an external-CI hardened alternative when provider-native integration cannot satisfy the required credential scope;
 6. re-evaluate the profile when provider capabilities change.
 
-## 7. Selection rule
+## 8. Selection rule
 
 Profile A is the reference convenience default, not a claim that it is optimal for every security environment.
 
