@@ -55,6 +55,10 @@ Artifacts are derived unless a project explicitly declares otherwise.
 
 When a deployment provider requires target resources, credentials, domains, or other prerequisites, a project MUST confirm those prerequisites before activating automatic deployment. Deployment activation SHOULD be explicit and auditable rather than inferred merely from the existence of a workflow file.
 
+When validation and deployment run in different CI/provider environments, a project SHOULD keep a repository-owned, provider-independent canonical build/validation gate so those environments invoke the same logic rather than copying validation rules that can drift.
+
+A project MAY maintain a separate provider-integration machine contract describing intended repository connection, branch, build/deploy commands, and readiness. That contract MUST NOT be confused with real provider-account state. If the provider does not natively consume the contract, the project MUST say so explicitly.
+
 ## 4. Lifecycle
 
 PPF distinguishes:
@@ -90,11 +94,10 @@ A reference continuous pipeline is:
 
 ```text
 accepted source change
--> source validation
--> HTML build
--> output validation
--> deployment readiness gate
--> deployment
+-> repository-owned validation/build gate
+-> independent CI validation
+-> provider readiness
+-> provider build/deploy
 -> production verification
 ```
 
@@ -130,9 +133,15 @@ PPF does not redefine authorship, agency, or responsibility.
 
 ## 10. Reference stack
 
-The initial reference stack MAY use Git, Quarto/Pandoc, GitHub Actions, and Cloudflare Workers Static Assets. These implementations are not normative requirements.
+The initial reference stack MAY use Git, Quarto/Pandoc, GitHub Actions, Cloudflare Workers Builds, Wrangler, and Cloudflare Workers Static Assets. These implementations are not normative requirements.
+
+Where provider-native Git integration is available, the reference implementation MAY use GitHub Actions for independent validation while the hosting provider's native build system owns delivery; both SHOULD invoke the same repository-owned publication gate.
+
+If provider-native Git integration is unavailable, a project MAY use external CI such as GitHub Actions with a scoped deployment credential.
 
 Where a provider supports scoped permissions, the reference implementation SHOULD separate one-time infrastructure provisioning from long-lived recurring deployment credentials and use the least privilege sufficient for recurring deployment.
+
+AI agents with MCP/OAuth support MAY assist with provider-side configuration. This is optional automation, not a PPF conformance requirement. The account owner retains control over identity authorization, permission scope, and production cutover.
 
 ## 11. Versioning
 
