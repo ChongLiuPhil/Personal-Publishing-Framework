@@ -1,0 +1,42 @@
+schema_version: 1
+profile: hardened-external-ci
+status: reference-candidate
+
+purpose:
+  routine_deployment: existing-worker-only
+  least_privilege: true
+
+authentication:
+  token_type: account-owned-api-token
+  cloudflare_scope:
+    product: workers
+    resource: replace-with-worker-name
+    role: editor
+  github:
+    token_secret: CLOUDFLARE_API_TOKEN
+    account_id_variable: CLOUDFLARE_ACCOUNT_ID
+  required_for_validate_only: false
+  required_for_preview_or_production: true
+
+workflow:
+  path: .github/workflows/cloudflare-external-ci.yml
+  automatic_events:
+    pull_request: validate-only
+  manual_modes:
+    - validate
+    - preview
+    - production
+  automatic_production_deploy: false
+  automatic_preview_deploy: false
+  production_requires_main: true
+
+commands:
+  validate_build: "make cloudflare-build"
+  preview: "npx wrangler versions upload --preview-alias <alias>"
+  production: "npm run cloudflare:deploy"
+
+migration:
+  current_profile: workers-builds-native
+  coexistence_during_validation: true
+  disable_workers_builds_before_external_ci_becomes_authoritative: required
+  retire_old_build_token_after_migration: required
