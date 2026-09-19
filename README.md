@@ -133,4 +133,4 @@ The reference implementation is intentionally separate from the normative specif
 
 **Working version: v0.1.0-draft**
 
-The project is in its initial specification and reference-implementation phase.
+The project now includes the initial specification, an executable Quarto reference implementation, and feedback from its first real downstream runtime pilot. See `docs/FIRST_PILOT_LESSONS.md`.
