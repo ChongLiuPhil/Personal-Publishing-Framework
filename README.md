@@ -110,6 +110,25 @@ PPF v0.1 will define:
 - reference workflows for Quarto, GitHub Actions, and Cloudflare;
 - compatibility guidance for other tools and platforms.
 
+## Reference implementation
+
+The first executable reference implementation is available at [`templates/quarto-book/`](templates/quarto-book/README.md).
+
+It implements the PPF model as:
+
+```text
+Git canonical source
+-> Quarto profiles
+-> automatic validated HTML
+-> Cloudflare Workers Static Assets
+
+explicit request
+-> EPUB / PDF / DOCX / LaTeX
+-> GitHub Actions artifact
+```
+
+The reference implementation is intentionally separate from the normative specification so that other toolchains can implement the same PPF lifecycle.
+
 ## Status
 
 **Working version: v0.1.0-draft**

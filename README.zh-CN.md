@@ -108,6 +108,25 @@ PPF v0.1 将定义：
 - Quarto、GitHub Actions、Cloudflare 的参考工作流；
 - 与其他工具和平台兼容的实现指南。
 
+## 参考实现
+
+第一套可执行 reference implementation 位于 [`templates/quarto-book/`](templates/quarto-book/README.zh-CN.md)。
+
+它把 PPF 模型实现为：
+
+```text
+Git canonical source
+-> Quarto profiles
+-> 自动验证 HTML
+-> Cloudflare Workers Static Assets
+
+明确请求
+-> EPUB / PDF / DOCX / LaTeX
+-> GitHub Actions artifact
+```
+
+参考实现与规范本身保持分离，因此未来可以用其他技术栈实现相同的 PPF 生命周期。
+
 ## 状态
 
 **Working version: v0.1.0-draft**

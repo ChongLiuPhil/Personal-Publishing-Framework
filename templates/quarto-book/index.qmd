@@ -1,0 +1,9 @@
+# Preface {.unnumbered}
+
+This is a minimal Personal Publishing Framework reference book.
+
+Edit the canonical QMD source. The default build is the continuously published Web edition. Generate EPUB, PDF, DOCX, or LaTeX only when explicitly requested.
+
+## Source-first principle
+
+The QMD files, bibliography, metadata, and original assets are the durable source. Rendered outputs are derived artifacts.

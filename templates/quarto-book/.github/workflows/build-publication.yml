@@ -1,0 +1,42 @@
+name: Build Publication Artifact
+
+on:
+  workflow_dispatch:
+    inputs:
+      format:
+        description: Publication format to build
+        required: true
+        type: choice
+        options:
+          - epub
+          - pdf
+          - docx
+          - latex
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+
+      - name: Install TinyTeX for PDF
+        if: inputs.format == 'pdf'
+        run: quarto install tinytex --no-prompt
+
+      - name: Render requested profile
+        run: quarto render --profile "${{ inputs.format }}"
+
+      - name: Upload publication artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "publication-${{ inputs.format }}-${{ github.sha }}"
+          path: "_publication/${{ inputs.format }}/"
+          if-no-files-found: error

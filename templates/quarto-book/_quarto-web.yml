@@ -1,0 +1,7 @@
+project:
+  output-dir: _book
+
+format:
+  html:
+    toc: true
+    code-copy: true
