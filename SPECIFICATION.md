@@ -141,7 +141,9 @@ If provider-native Git integration is unavailable, a project MAY use external CI
 
 Where a provider supports scoped permissions, the reference implementation SHOULD separate one-time infrastructure provisioning from long-lived recurring deployment credentials and use the least privilege sufficient for recurring deployment.
 
-AI agents with MCP/OAuth support MAY assist with provider-side configuration. This is optional automation, not a PPF conformance requirement. The account owner retains control over identity authorization, permission scope, and production cutover.
+If a provider-native integration cannot currently satisfy the credential scope required by the project, the project SHOULD record that trade-off explicitly rather than silently describing broader permissions as least privilege. A project MAY provide a hardened external-CI profile with a more narrowly scoped deployment credential until the provider-native integration can meet the same security requirement.
+
+AI agents with MCP/OAuth support MAY assist with provider-side configuration. This is optional automation, not a PPF conformance requirement. The account owner retains control over identity authorization, permission scope, the production security profile, and production cutover.
 
 ## 11. Versioning
 
