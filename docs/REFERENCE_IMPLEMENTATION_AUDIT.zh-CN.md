@@ -2,7 +2,9 @@
 
 **日期：** 2026-09-19  
 **分支：** `reference-implementation-v0.1`  
-**状态：** PASS — static reference-template audit
+**状态：** PASS — initial static reference-template audit
+
+> 本文件记录最初 reference implementation 分支的静态审计。此后真实 downstream pilot 已完成，并对当前 `main` 模板产生改进；见 `FIRST_PILOT_LESSONS.zh-CN.md`。
 
 ## 审计对象
 
@@ -93,3 +95,26 @@ PPF 仓库自身没有该模板的 GitHub Actions run。
 **PASS。**
 
 PPF v0.1 Quarto reference implementation 可以合并，并进入真实项目 pilot 阶段。
+
+
+## 7. 后续 Runtime Pilot
+
+最初审计提出的 downstream runtime validation 已由 `ChongLiuPhil/epistemology-textbook` 完成。
+
+真实运行验证了：
+
+- Web profile：PASS；
+- rendered HTML integrity：PASS；
+- EPUB / PDF / DOCX / LaTeX：全部 PASS；
+- production-path GitHub Pages deployment：PASS。
+
+Pilot 同时促成当前模板的后续修订：
+
+- continuous Web build 与 provider deployment activation 分离；
+- Cloudflare deployment 默认 staged；
+- one-format-per-request artifact verification；
+- provider provisioning 与 recurring deploy credential 分离。
+
+详细记录见：
+
+`docs/FIRST_PILOT_LESSONS.zh-CN.md`
