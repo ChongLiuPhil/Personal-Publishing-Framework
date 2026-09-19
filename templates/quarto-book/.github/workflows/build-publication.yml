@@ -19,6 +19,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Check out repository
@@ -34,9 +35,28 @@ jobs:
       - name: Render requested profile
         run: quarto render --profile "${{ inputs.format }}"
 
+      - name: Verify requested artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          format="${{ inputs.format }}"
+          output="_publication/$format"
+
+          case "$format" in
+            epub) extension="epub" ;;
+            pdf) extension="pdf" ;;
+            docx) extension="docx" ;;
+            latex) extension="tex" ;;
+            *) echo "Unsupported format: $format" >&2; exit 1 ;;
+          esac
+
+          test -d "$output"
+          test -n "$(find "$output" -type f -name "*.$extension" -print -quit)"
+
       - name: Upload publication artifact
         uses: actions/upload-artifact@v4
         with:
           name: "publication-${{ inputs.format }}-${{ github.sha }}"
           path: "_publication/${{ inputs.format }}/"
           if-no-files-found: error
+          retention-days: 30

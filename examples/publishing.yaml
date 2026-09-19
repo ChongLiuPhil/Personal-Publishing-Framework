@@ -38,12 +38,15 @@ publication:
 deployment:
   web:
     provider: cloudflare-workers
+    enabled: false
+    status: staged
     output_directory: _book
     production_url: null
 
 release:
   versioning: semver
   require_explicit_release: true
+  continuous_web_is_release: false
 
 archive:
   preserve_source: true

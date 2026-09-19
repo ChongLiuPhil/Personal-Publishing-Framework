@@ -14,7 +14,9 @@ Canonical source
           |
           +--> continuous Web artifact
           |       |
-          |       +--> deployment provider
+          |       +--> deployment-readiness gate
+          |               |
+          |               +--> deployment provider
           |
           +--> on-demand artifacts
                   |
@@ -57,6 +59,10 @@ GitHub repository
 For a Quarto implementation, a Web profile may be the default while other formats are explicitly selected. Quarto supports profile-specific project configuration and a default profile.
 
 For a Cloudflare implementation, the generated static directory can be declared as the Worker static-assets directory in Wrangler configuration.
+
+A reference implementation should distinguish **continuous Web build/validation** from **deployment activation**. A project may keep the continuous Web build healthy while a provider is still staged or unconfigured.
+
+Provider provisioning should also be separated from recurring deployment where practical. For example, creating a Worker or attaching a domain may require broader one-time authority than repeatedly deploying validated static assets to an already-provisioned Worker.
 
 ## Boundary with AHICP
 

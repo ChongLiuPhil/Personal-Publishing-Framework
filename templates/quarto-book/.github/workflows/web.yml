@@ -13,6 +13,7 @@ permissions:
 jobs:
   build-web:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
@@ -27,8 +28,14 @@ jobs:
       - name: Verify rendered Web artifact
         run: test -f _book/index.html
 
+      - name: Reject incomplete deployment activation
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true' && vars.PRODUCTION_URL == ''
+        run: |
+          echo "WEB_DEPLOY_ENABLED=true requires PRODUCTION_URL to be configured." >&2
+          exit 1
+
       - name: Deploy validated Web artifact to Cloudflare
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true' && vars.PRODUCTION_URL != ''
         uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -36,5 +43,5 @@ jobs:
           command: deploy
 
       - name: Verify production URL
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.PRODUCTION_URL != ''
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true' && vars.PRODUCTION_URL != ''
         run: curl --fail --location --retry 3 "${{ vars.PRODUCTION_URL }}"
