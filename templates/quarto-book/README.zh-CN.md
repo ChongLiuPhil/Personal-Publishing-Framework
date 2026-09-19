@@ -101,6 +101,12 @@ Cloudflare
 
 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`
 
+真实 UI 字段只是 dated implementation observation。2026-09-19 pilot 的 Observed UI Mapping 见：
+
+`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.zh-CN.md`
+
+如果 provider UI 与该映射不同，不得猜；应重新读取当前 UI、official docs 与 downstream machine contract，并通过实际 build/runtime state 反向验证。
+
 当 AI 客户端支持 Cloudflare MCP 时，理想的人类动作只剩：
 
 1. 授权 AI ↔ Cloudflare；
@@ -123,6 +129,30 @@ PPF reference 提供：
 `docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
 
 正式 production cutover 前，应由项目责任人明确采用的 security profile。
+
+其中 Profile B 在首个真实 pilot 中仅验证到 **candidate / validate-only PASS**；没有配置 account-owned deployment credential，也没有执行 Profile B production deployment，因此不得写成 production-tested。
+
+## Runtime verification reference
+
+Build success 不等于 runtime success。Provider integration 完成后，可以使用只读 helper：
+
+~~~bash
+python scripts/verify_public_site.py https://example.invalid \
+  --path / \
+  --path /representative-page.html \
+  --expect "Expected visible text"
+~~~
+
+该 helper 验证 HTTP 200、UTF-8 页面、代表性 paths、可选内容 marker 和有限数量的本地 assets。
+
+它**不**替代：
+
+- provider build metadata 中的 expected Git/source revision 核对；
+- 项目专用 navigation/content assertions；
+- migration 期间对 incumbent production health 的验证；
+- explicit canonical production cutover。
+
+这些 gate 应由 downstream 项目根据实际结构补充。
 
 ## 外部 CI fallback
 
