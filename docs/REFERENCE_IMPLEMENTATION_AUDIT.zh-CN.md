@@ -193,7 +193,7 @@ legacy Pages policy = unresolved
 Cloudflare reference security profiles 的证据边界必须按真实 pilot 解释：
 
 - **Profile A — Workers Builds Native**：operationally verified；managed user token scope 比纯 static Worker routine deploy 所需更宽，不能称为 per-Worker least privilege；
-- **Profile B — Hardened External CI**：candidate workflow / repository-build validation PASS；credential、preview、production deployment steps 未执行，**不是 production-tested**；
+- **Profile B — Hardened External CI**：**candidate / validate-only PASS**；candidate workflow 的 repository/build validation 已通过，但 credential、preview、production deployment steps 未执行，**不是 production-tested**；
 - **Profile C — Future Native Granular**：当前 provider product capability 不支持所需组合，因此记录为 unavailable。
 
 Production security profile 的最终选择仍属于 human-governed security decision。
