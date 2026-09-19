@@ -1,0 +1,14 @@
+project:
+  type: book
+
+profile:
+  default: web
+
+book:
+  title: "Replace with Book Title"
+  author: "Replace with Author"
+  chapters:
+    - index.qmd
+    - chapter-01.qmd
+
+bibliography: references.bib
