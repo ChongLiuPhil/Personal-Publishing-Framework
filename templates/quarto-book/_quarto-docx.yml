@@ -1,0 +1,5 @@
+project:
+  output-dir: _publication/docx
+
+format:
+  docx: default
