@@ -2,7 +2,7 @@
 
 **日期：** 2026-09-19  
 **分支：** `reference-implementation-v0.1`  
-**状态：** PASS — initial static audit + downstream runtime validation + verified Cloudflare staging/runtime evidence + current root-level template CI
+**状态：** PASS — initial static audit + downstream runtime validation + verified Cloudflare canonical production cutover + current root-level template CI
 
 > 本文件记录最初 reference implementation 分支的静态审计。此后真实 downstream pilot 已完成，并对当前 `main` 模板产生改进；见 `FIRST_PILOT_LESSONS.zh-CN.md`。
 
@@ -176,16 +176,15 @@ PPF root-level `Reference Template CI` 已实际执行通过。
 - provider action 后 write-back；
 - provider production branch 与 canonical production 分离。
 
-但它们**不**证明 Cloudflare 已成为 canonical production。
+这些 staging/runtime 证据在当时并不自动证明 canonical cutover；后续项目本地又完成了人类 security-profile 选择、workers.dev canonical identity migration、post-cutover runtime verification 与 legacy Pages retirement。
 
-当前 publication state 仍是：
+当前 publication state 已更新为：
 
 ```text
-GitHub Pages = current canonical production
-Cloudflare workers.dev = verified staging/runtime target
-Custom Domain = not cut over
-canonical URL migration = not done
-legacy Pages policy = unresolved
+Cloudflare workers.dev = current canonical production
+GitHub Pages = legacy retired / owner-confirmed unpublished
+Custom Domain = not applicable to this pilot
+DNS migration = not required
 ```
 
 ## 10. Security-profile evidence boundary
@@ -196,24 +195,31 @@ Cloudflare reference security profiles 的证据边界必须按真实 pilot 解�
 - **Profile B — Hardened External CI**：**candidate / validate-only PASS**；candidate workflow 的 repository/build validation 已通过，但 credential、preview、production deployment steps 未执行，**不是 production-tested**；
 - **Profile C — Future Native Granular**：当前 provider product capability 不支持所需组合，因此记录为 unavailable。
 
-Production security profile 的最终选择仍属于 human-governed security decision。
+Production security profile 的最终选择仍属于 human-governed security decision。第一个真实 pilot 最终由项目责任人选择 **Profile A — Workers Builds Native**；这不把 Profile A 提升为所有 PPF 项目的强制选择。
 
 ## 11. 当前审计结论
 
-当前 reference implementation 已拥有四层真实 evidence：
+当前 reference implementation 已拥有五层真实 evidence：
 
 1. initial static audit；
 2. downstream source/build/multi-format runtime validation；
 3. downstream Cloudflare account/build/preview/workers.dev runtime validation；
-4. upstream continuous Reference Template CI。
+4. downstream workers.dev canonical production cutover + post-cutover verification；
+5. upstream continuous Reference Template CI。
 
-仍未验证、不得提前声称完成的项目包括：
+第一个 pilot 已完成：
 
-- Cloudflare Custom Domain cutover；
-- canonical URL migration；
-- legacy GitHub Pages policy execution；
+- production security profile = Profile A；
+- canonical production = workers.dev；
+- post-cutover runtime verification = PASS；
+- GitHub Pages legacy policy = RETIRE；
+- repository owner confirmed `Unpublish site` on 2026-09-20。
+
+仍未由该 pilot 验证或采用：
+
+- Cloudflare Custom Domain / DNS migration — 本 pilot 不需要；
 - Profile B production deployment；
 - Profile C native granular credential support；
 - Amazon KDP / Kindle 与 external publisher delivery。
 
-因此 reference implementation 当前可以被描述为 **real-pilot-backed staging/runtime reference**，但不能被描述为已经完成 Cloudflare canonical production cutover。
+因此当前 reference implementation 可以被描述为 **real-pilot-backed canonical-production reference**。这仍不意味着所有 PPF 项目必须采用 Cloudflare、workers.dev 或 Profile A。
