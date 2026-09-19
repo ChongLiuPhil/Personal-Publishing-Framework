@@ -140,13 +140,22 @@ From this pilot:
 9. documentation adds OAuth/MCP, GitHub App, provisioning, and recurring-deployment security boundaries;
 10. root-level PPF CI continuously validates the reference template instead of relying only on one pilot.
 
-## 9. Not yet validated by this pilot
+## 9. What remains unvalidated
 
-This pilot did **not** validate:
+The account-side pilot continued after the earlier repository-only phase. The following are now validated in a real project:
 
-- account-side Cloudflare deployment;
+- Cloudflare GitHub App connection;
+- Workers Builds main build;
+- non-production preview build;
+- main workers.dev runtime;
+- preview workers.dev runtime;
+- another automatic Workers Build after a later main push.
+
+Still unvalidated:
+
 - Workers Custom Domain cutover;
 - DNS migration;
+- final production security profile;
 - Amazon KDP / Kindle delivery;
 - external-publisher DOCX workflows;
 - formal release archive conventions.
@@ -180,3 +189,36 @@ GitHub Actions + scoped token = fallback
 ```
 
 This stage still does **not** claim account-side Cloudflare deployment is complete. Worker/account/GitHub App connection, first Cloudflare preview, Custom Domain, and production cutover remain subject to later real account validation.
+
+
+## 11. Cloudflare account-side staging and security profiles
+
+The later real account-side pilot completed:
+
+- Cloudflare GitHub App: PASS;
+- repository connection: PASS;
+- main Workers Build: PASS;
+- non-production preview: PASS;
+- main workers.dev HTTP/content verification: PASS;
+- preview workers.dev HTTP/content verification: PASS;
+- Cloudflare-managed build token: operationally verified.
+
+The pilot also exposed an important product constraint:
+
+- Workers Builds currently supports **user tokens** only;
+- Cloudflare's newer granular Workers authorization supports **account-owned token + individual Worker + Editor**;
+- therefore the native Workers Builds experience and true per-Worker least privilege cannot currently be fully combined.
+
+PPF therefore defines three Cloudflare reference security profiles:
+
+1. **Workers Builds Native** — current reference default with low manual setup and native Git integration, but a broader managed user-token scope;
+2. **Hardened External CI** — GitHub Actions + account-owned individual-Worker `Editor` token for true per-Worker least privilege;
+3. **Future Native Granular** — the ideal combination once Workers Builds supports account-owned tokens.
+
+See:
+
+`docs/CLOUDFLARE_SECURITY_PROFILES.md`
+
+The general PPF lesson is not Cloudflare-specific:
+
+> when provider-native integration cannot simultaneously satisfy convenience and the required credential scope, the framework should record that trade-off explicitly and provide an auditable hardened alternative rather than silently describing broad permissions as least privilege.
