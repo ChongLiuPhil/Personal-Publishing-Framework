@@ -20,6 +20,8 @@ PPF 不限制作品主题。兼容项目可以是知识作品、教学材料、�
 
 PPF 项目必须标识 canonical source。
 
+项目 MAY 记录 source visibility，例如 `public`、`private` 或 `restricted`。Source visibility 只描述源材料的可见范围，不得自动决定 publication authorization、publication visibility 或 Web access policy。
+
 源内容应尽可能：
 - 便于人直接阅读；
 - 受版本控制；
@@ -153,6 +155,58 @@ Production cutover **MUST** 是显式 gate。项目至少必须能够区分：
 
 Legacy URL 决策与 target provider readiness 是不同问题；新的 provider runtime 验证通过，不自动授权关闭旧站点。
 
+### 3.11 Publication visibility 与 access policy
+
+PPF MUST 区分：
+
+- **Publication Authorization** — 某个 artifact / channel 是否已获准发布；
+- **Publication Visibility** — 已发布 artifact 的目标可见范围；
+- **Access Policy** — 已发布 artifact 实际允许哪些访问者进入、需要何种 authentication / audience rule。
+
+Publication visibility 的通用语义至少包括：
+
+- `public` — 面向公开互联网访问；
+- `restricted` — 已发布，但只有满足 access policy 的访问者可以进入；
+- `private` — 不面向一般受众开放，访问范围由项目定义。
+
+一个项目 MAY 使用 `authenticated`、`selected-audience` 或其他 provider-neutral access mode。具体 identity provider、password/OTP、SSO、allowlist、provider access product 等属于 implementation detail，PPF normative core 不要求某一种技术。
+
+以下推断均无效：
+
+~~~text
+public source => public publication
+private source => private publication
+deployed runtime => public publication
+publication authorized => unrestricted access
+~~~
+
+如果 publication visibility 为 `restricted` 或 `private`，项目 SHOULD 记录相应 access policy 或明确记录该 policy 仍 unresolved。
+
+Access policy 中不得保存 password、token、private key、recovery code 或其他 secret。
+
+### 3.12 Canonical publication identity 与 delivery provider
+
+PPF MUST 区分：
+
+- **Provider URL / Endpoint** — 当前 delivery provider 分配或承载的实际 endpoint；
+- **Canonical Publication Identity** — 项目希望读者、引用、索引或其他长期引用使用的 canonical URL identity。
+
+Canonical identity MAY 使用 provider-native URL，也 MAY 使用 custom domain 或其他独立命名方式。
+
+当长期 URL portability 重要时，项目 **SHOULD** 优先采用不依赖单一 delivery provider 的 canonical identity；但 PPF 不要求项目必须购买或配置 custom domain。
+
+Provider-native endpoint 成功部署，不自动使其成为 canonical identity。Canonical identity 的建立、迁移或替换仍属于显式 cutover / authorization 决定。
+
+在迁移期间，项目 MAY 同时存在：
+
+~~~text
+provider endpoint
++ incumbent canonical URL
++ future canonical URL
+~~~
+
+这些地址的角色 MUST 被明确记录，不得仅凭“哪个 URL 当前可访问”推断 canonical identity。
+
 ## 4. 生命周期
 
 PPF 区分：
@@ -173,7 +227,7 @@ SOURCE -> BUILD -> PUBLISH -> RELEASE -> ARCHIVE
 
 ## 5. Continuous Web publication
 
-当项目希望存在持续可阅读的公共版本时，PPF 推荐把 HTML/Web 作为默认 continuous publication mode。
+当项目希望存在持续可阅读的 Web 版本时，PPF 推荐把 HTML/Web 作为默认 continuous publication mode。该 Web publication 可以是 `public`、`restricted` 或 `private`；continuous mode 本身不决定 publication visibility。
 
 参考流水线：
 
@@ -202,11 +256,25 @@ canonical content 应尽量减少会不必要地阻止其他支持格式转换�
 
 可以存在平台专用增强，但核心意义应在没有这些增强时仍可恢复。
 
-## 8. 授权
+## 8. 授权、可见性与访问边界
 
-仓库可见性与发布授权是两个不同概念。
+PPF 项目 MUST 将以下概念分别建模，不得互相自动推断：
 
-源仓库公开不得自动解释为所有输出和发行渠道都已经获得发布授权。
+1. **Source / Repository Visibility** — 源材料或源仓库谁可以看；
+2. **Publication Authorization** — 某个 artifact / channel 是否被允许发布；
+3. **Publication Visibility** — 已发布 artifact 面向 public / restricted / private 中哪类受众；
+4. **Access Policy** — 哪些访问者实际可以进入，以及需要何种认证或 audience rule；
+5. **Canonical Publication Identity** — 长期应被读者或引用使用的 URL identity。
+
+因此：
+
+- 源仓库公开不得自动解释为所有输出和发行渠道均已获发布授权；
+- 源仓库 private 不得自动解释为 Web publication 必须 private；
+- publication authorized 不得自动解释为 unrestricted public access；
+- provider runtime 可访问不得自动解释为该 endpoint 已成为 canonical URL；
+- access-controlled publication 仍然可以是正式、已授权的 publication。
+
+项目 SHOULD 在 publication contract 中记录足以区分这些状态的 metadata，而不把 provider 产品限制写成 PPF 核心规则。
 
 ## 9. AI 中立
 
