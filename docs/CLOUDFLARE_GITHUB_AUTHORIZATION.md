@@ -109,9 +109,31 @@ This allows non-production branches to produce preview builds.
 
 ### Protect with Cloudflare Access
 
-For a public PPF Web publication, leave it off by default.
+Do not decide this from repository public/private status.
 
-Enable it only when the project intentionally requires restricted access.
+Read the publication contract first:
+
+~~~text
+publication.web.authorization_state
+publication.web.visibility
+publication.web.access
+~~~
+
+Reference mapping:
+
+- `visibility: public` + `access.mode: none`: normally remain public;
+- `visibility: restricted`: enable Cloudflare Access according to the project's access policy;
+- `visibility: private`: first define the private audience / route policy, then configure Access or keep the public route disabled/staged.
+
+Current Cloudflare Workers documentation also supports configuring Access after creation for one Worker, production+preview, or a specific hostname/path. The creation-page checkbox is therefore not the sole source of access-policy truth.
+
+See:
+
+`docs/CLOUDFLARE_ACCESS_PROFILE.md`
+
+for the provider mapping.
+
+Do not put passwords, OTPs, tokens, or other secrets in `publishing.yaml` or chat.
 
 ### Advanced settings → Non-production branch deploy command
 
