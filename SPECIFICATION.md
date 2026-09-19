@@ -49,6 +49,12 @@ A generated output is a publication artifact. Artifacts MAY include HTML, EPUB, 
 
 Artifacts are derived unless a project explicitly declares otherwise.
 
+### 3.5 Deployment readiness
+
+`continuous` describes the publication intent that an output should be rebuilt as accepted source changes. It does **not** mean an external provider must be invoked unconditionally before that provider is configured.
+
+When a deployment provider requires target resources, credentials, domains, or other prerequisites, a project MUST confirm those prerequisites before activating automatic deployment. Deployment activation SHOULD be explicit and auditable rather than inferred merely from the existence of a workflow file.
+
 ## 4. Lifecycle
 
 PPF distinguishes:
@@ -87,15 +93,20 @@ accepted source change
 -> source validation
 -> HTML build
 -> output validation
+-> deployment readiness gate
 -> deployment
 -> production verification
 ```
 
 A failed validation MUST stop publication.
 
+While a deployment provider is not ready, continuous Web **build / validation** MAY remain active while provider deployment remains staged or disabled.
+
 ## 6. On-demand formats
 
 Formats such as EPUB, PDF, DOCX, LaTeX, and print-ready files SHOULD default to on-demand generation unless the project has a documented reason to build them continuously.
+
+Where practical, one explicit on-demand request SHOULD select and build one target format so that unrelated toolchains, fonts, TeX dependencies, or platform requirements do not become coupled to every publication build.
 
 ## 7. Portability
 
@@ -121,10 +132,12 @@ PPF does not redefine authorship, agency, or responsibility.
 
 The initial reference stack MAY use Git, Quarto/Pandoc, GitHub Actions, and Cloudflare Workers Static Assets. These implementations are not normative requirements.
 
+Where a provider supports scoped permissions, the reference implementation SHOULD separate one-time infrastructure provisioning from long-lived recurring deployment credentials and use the least privilege sufficient for recurring deployment.
+
 ## 11. Versioning
 
 The specification itself uses semantic versioning while under active development. Project editions MAY use another documented versioning scheme.
 
 ## 12. Conformance status
 
-This draft defines the conceptual minimum. Schema validation, reference workflows, release conventions, and conformance tests will be developed in later v0.1 revisions.
+This draft now includes an initial schema, reference workflows, and feedback from the first real downstream runtime pilot. More complete conformance tests, release conventions, and provider-migration guides will continue to develop in later v0.1 revisions.
