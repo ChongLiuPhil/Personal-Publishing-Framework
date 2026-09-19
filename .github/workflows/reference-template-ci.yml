@@ -1,0 +1,50 @@
+name: Reference Template CI
+
+on:
+  pull_request:
+    paths:
+      - "templates/quarto-book/**"
+      - ".github/workflows/reference-template-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "templates/quarto-book/**"
+      - ".github/workflows/reference-template-ci.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate-quarto-workers-builds-reference:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: templates/quarto-book
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node from template pin
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: "templates/quarto-book/.nvmrc"
+
+      - name: Install pinned Wrangler
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Verify Wrangler version
+        run: test "$(npx wrangler --version | tail -n 1)" = "4.135.0"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Validate reference publication contract
+        run: make check
+
+      - name: Simulate Workers Builds Web build
+        run: make cloudflare-build
