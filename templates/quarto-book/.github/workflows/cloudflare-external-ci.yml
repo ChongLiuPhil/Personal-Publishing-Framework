@@ -1,0 +1,97 @@
+name: Cloudflare Hardened External CI Candidate
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/cloudflare-external-ci.yml"
+      - "cloudflare-external-ci.yaml"
+      - "package.json"
+      - ".nvmrc"
+      - "wrangler.jsonc"
+      - "scripts/cloudflare_build.sh"
+      - "scripts/ensure_quarto.sh"
+      - "Makefile"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "validate = no Cloudflare credential; preview/production require configured credentials"
+        required: true
+        default: validate
+        type: choice
+        options:
+          - validate
+          - preview
+          - production
+      preview_alias:
+        description: "Preview alias for preview mode"
+        required: false
+        default: hardened-ci-probe
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  hardened-external-ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node from .nvmrc
+        uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - name: Install pinned Wrangler
+        run: npm install --ignore-scripts --no-audit --no-fund
+
+      - name: Verify Wrangler version
+        run: test "$(npx wrangler --version | tail -n 1)" = "4.135.0"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Run canonical Cloudflare build gate
+        run: make cloudflare-build
+
+      - name: Validate deployment credentials are present
+        if: github.event_name == 'workflow_dispatch' && inputs.mode != 'validate'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_API_TOKEN"
+          test -n "$CLOUDFLARE_ACCOUNT_ID"
+
+      - name: Validate preview alias
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'preview'
+        env:
+          PREVIEW_ALIAS: ${{ inputs.preview_alias }}
+        run: |
+          set -euo pipefail
+          [[ "$PREVIEW_ALIAS" =~ ^[a-z][a-z0-9-]*$ ]]
+
+      - name: Upload preview version
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'preview'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          PREVIEW_ALIAS: ${{ inputs.preview_alias }}
+        run: npx wrangler versions upload --preview-alias "$PREVIEW_ALIAS"
+
+      - name: Require main for production deployment
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'production'
+        run: test "$GITHUB_REF" = "refs/heads/main"
+
+      - name: Deploy production Worker
+        if: github.event_name == 'workflow_dispatch' && inputs.mode == 'production'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run cloudflare:deploy
