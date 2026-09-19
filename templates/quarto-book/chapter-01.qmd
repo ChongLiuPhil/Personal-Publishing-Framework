@@ -1,0 +1,7 @@
+# First Chapter
+
+Replace this chapter with your own work.
+
+## Keep meaning portable
+
+Prefer semantic headings, citations, cross-references, equations, figures, and structured content over Web-only HTML when the same material may later become an ebook, document, or print edition.
