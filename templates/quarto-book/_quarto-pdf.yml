@@ -1,0 +1,7 @@
+project:
+  output-dir: _publication/pdf
+
+format:
+  pdf:
+    documentclass: scrbook
+    toc: true
