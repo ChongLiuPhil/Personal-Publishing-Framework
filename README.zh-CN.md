@@ -81,7 +81,9 @@ PPF 规范人的作品如何被持续维护、发展、分享和出版。它**�
 - Git 作为 canonical versioned source；
 - Quarto / Pandoc 进行多格式转换；
 - HTML 作为默认持续发布格式；
-- GitHub Actions 作为验证与发布门；
+- GitHub Actions 作为独立 validation gate；
+- repository-owned `make web-publish-check` 作为统一 Web publication gate；
+- Cloudflare Workers Builds + GitHub App 作为默认参考 delivery integration；
 - Cloudflare Workers Static Assets 作为 Web delivery layer；
 - EPUB、PDF、DOCX、LaTeX 作为按需生成的 publication artifacts。
 
@@ -117,9 +119,9 @@ PPF v0.1 将定义：
 
 ```text
 Git canonical source
--> Quarto profiles
--> 自动验证 HTML
--> deployment readiness gate
+-> repository-owned Web gate
+-> GitHub Actions independent validation
+-> Cloudflare Workers Builds
 -> Cloudflare Workers Static Assets
 
 明确请求
@@ -133,4 +135,4 @@ Git canonical source
 
 **Working version: v0.1.0-draft**
 
-当前已完成初始规范、Quarto reference implementation，以及第一个真实 downstream runtime pilot。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`。
+当前已完成初始规范、Quarto reference implementation、第一个真实 downstream runtime pilot，以及从该 pilot 提炼出的 Workers Builds ↔ GitHub 可复用集成范本。PPF 自身现已用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`，账户授权说明见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`。
