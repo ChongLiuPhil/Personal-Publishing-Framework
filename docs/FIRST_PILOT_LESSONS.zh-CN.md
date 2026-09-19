@@ -3,7 +3,7 @@
 **日期：** 2026-09-19  
 **Pilot：** `ChongLiuPhil/epistemology-textbook`  
 **PPF base：** v0.1.0-draft @ `9326920e1920d18f0a71eac26d4068da9d6bdffe`  
-**Current pilot evidence status：** Cloudflare staging/runtime VERIFIED；canonical production 仍为 GitHub Pages；production cutover 未完成。
+**Current pilot evidence status：** Cloudflare Workers Builds production VERIFIED；workers.dev 已成为 canonical production；GitHub Pages legacy site 已由 repository owner 确认 Unpublish。
 
 ## 1. Pilot 目的
 
@@ -152,11 +152,12 @@ Pilot 第一次 CI 失败并不是 Quarto 或 PPF 问题，而是迁移过程误
 - workers.dev preview runtime；
 - post-merge main push 再次自动 Workers Build。
 
-仍未验证：
+仍未由本 pilot 验证或采用：
 
-- Workers Custom Domain cutover；
-- DNS migration；
-- 最终 production security profile；
+- Workers Custom Domain cutover — 本 pilot 选择 workers.dev 作为 canonical，因此不适用；
+- DNS migration — 本 pilot 不需要；
+- Profile B production deployment — 只到 validate-only candidate；
+- Profile C native granular credential — provider 当前不支持；
 - Amazon KDP / Kindle delivery；
 - external publisher DOCX workflow；
 - formal release archive convention。
@@ -191,7 +192,7 @@ GitHub Actions + scoped token = fallback
 
 > **Historical stage note:** 上述结论只描述当时的 repository-side integration 阶段。它随后已被第 11 节的真实 account-side staging/runtime evidence **supersede**。当前状态不得再解释为 account-side unverified。
 
-这一阶段当时仍然**没有**声称 Cloudflare account-side deployment 已完成；后续真实账户验证已经补齐 GitHub App / repository connection、main build、preview 与 workers.dev runtime，但 Custom Domain 与 canonical production cutover 仍未完成。
+这一阶段当时仍然**没有**声称 Cloudflare account-side deployment 已完成；后续真实账户验证不仅补齐 GitHub App / repository connection、main build、preview 与 workers.dev runtime，也完成了 workers.dev canonical cutover。Custom Domain 未被采用。
 
 
 ## 11. Cloudflare account-side staging 与安全 profile
@@ -229,7 +230,7 @@ PPF 因而定义三个 Cloudflare reference security profiles：
 
 ## 12. 当前 reconciled pilot state
 
-截至 2026-09-19，本 pilot 的持久证据应解释为：
+截至 2026-09-20，本 pilot 的持久证据应解释为：
 
 - Cloudflare account connection：VERIFIED；
 - GitHub App / repository connection：VERIFIED；
@@ -237,21 +238,28 @@ PPF 因而定义三个 Cloudflare reference security profiles：
 - non-production preview：PASS；
 - main workers.dev HTTP/content runtime：PASS；
 - preview workers.dev HTTP/content runtime：PASS；
-- Profile A — Workers Builds Native：operationally verified，但 managed user token scope 比纯 static Worker routine deploy 所需更宽，不是 per-Worker least privilege；
+- production security profile：**Profile A — Workers Builds Native**，已由项目责任人选择；
+- Profile A：operationally verified，但 managed user token scope 比纯 static Worker routine deploy 所需更宽，不是 per-Worker least privilege；
 - Profile B — Hardened External CI：candidate / validate-only PASS，**不是 production-tested**；
 - Profile C — Future Native Granular：当前 unavailable，受 provider product capability 阻塞；
-- current canonical production：GitHub Pages；
-- Cloudflare workers.dev：staging/runtime evidence，不等于 canonical production；
-- Custom Domain / canonical URL migration：NOT DONE；
-- GitHub Pages legacy URL policy：UNRESOLVED；
-- production security profile：WAITING HUMAN DECISION。
+- current canonical production：`https://epistemology-textbook.philosophy-research.workers.dev/`；
+- Cloudflare workers.dev production/runtime verification：PASS；
+- Custom Domain：NOT APPLICABLE for this pilot；
+- DNS migration：NOT REQUIRED；
+- GitHub Pages legacy policy：**RETIRE**；
+- GitHub Pages `Unpublish site`：repository owner human-confirmed complete on 2026-09-20；
+- independent hosted-URL unreachability probe：当前工具环境未单独验证，因此不伪造该证据。
 
-因此：
+因此最终 pilot 证明的是：
 
 ```text
-provider build verified
-+ preview/runtime verified
-!= canonical production cutover
+repository contract
++ provider build
++ preview/runtime verification
++ human-governed security choice
++ canonical identity migration
++ post-cutover verification
+= completed canonical production cutover
 ```
 
-Cloudflare staging/runtime verification 不得写成 production cutover。
+这个最终结论 supersedes 本文件较早章节中“GitHub Pages 仍是 canonical production”或“cutover 尚未完成”的历史阶段描述。

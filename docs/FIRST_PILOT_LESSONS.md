@@ -152,11 +152,12 @@ The account-side pilot continued after the earlier repository-only phase. The fo
 - preview workers.dev runtime;
 - another automatic Workers Build after a later main push.
 
-Still unvalidated:
+Still unvalidated or not adopted by this pilot:
 
-- Workers Custom Domain cutover;
-- DNS migration;
-- final production security profile;
+- Workers Custom Domain cutover — not applicable because this pilot selected workers.dev as canonical;
+- DNS migration — not required by this pilot;
+- Profile B production deployment — validate-only candidate only;
+- Profile C native granular credential — currently unsupported by the provider;
 - Amazon KDP / Kindle delivery;
 - external-publisher DOCX workflows;
 - formal release archive conventions.
@@ -191,7 +192,7 @@ GitHub Actions + scoped token = fallback
 
 > **Historical stage note:** The statement above describes the earlier repository-side integration stage only. It was later **superseded** by the real account-side staging/runtime evidence in section 11. Current state must not be interpreted as account-side unverified.
 
-At that stage, account-side Cloudflare deployment had not yet been claimed. Later real account validation established the GitHub App / repository connection, main build, preview, and workers.dev runtime; Custom Domain and canonical production cutover remain incomplete.
+At that stage, account-side Cloudflare deployment had not yet been claimed. Later real account validation established the GitHub App / repository connection, main build, preview, workers.dev runtime, and the workers.dev canonical production cutover. A Custom Domain was not adopted.
 
 
 ## 11. Cloudflare account-side staging and security profiles
@@ -229,7 +230,7 @@ The general PPF lesson is not Cloudflare-specific:
 
 ## 12. Current reconciled pilot state
 
-As of 2026-09-19, the durable pilot evidence should be read as:
+As of 2026-09-20, the durable pilot evidence should be read as:
 
 - Cloudflare account connection: VERIFIED;
 - GitHub App / repository connection: VERIFIED;
@@ -237,21 +238,28 @@ As of 2026-09-19, the durable pilot evidence should be read as:
 - non-production preview: PASS;
 - main workers.dev HTTP/content runtime: PASS;
 - preview workers.dev HTTP/content runtime: PASS;
-- Profile A — Workers Builds Native: operationally verified, but the managed user-token scope is broader than the routine needs of a pure static Worker and is not per-Worker least privilege;
+- production security profile: **Profile A — Workers Builds Native**, selected by the project owner;
+- Profile A: operationally verified, while the managed user-token scope remains broader than the routine needs of a pure static Worker and is not per-Worker least privilege;
 - Profile B — Hardened External CI: candidate / validate-only PASS, **not production-tested**;
 - Profile C — Future Native Granular: currently unavailable because of provider product capability;
-- current canonical production: GitHub Pages;
-- Cloudflare workers.dev: staging/runtime evidence, not canonical production;
-- Custom Domain / canonical URL migration: NOT DONE;
-- GitHub Pages legacy URL policy: UNRESOLVED;
-- production security profile: WAITING HUMAN DECISION.
+- current canonical production: `https://epistemology-textbook.philosophy-research.workers.dev/`;
+- Cloudflare workers.dev production/runtime verification: PASS;
+- Custom Domain: NOT APPLICABLE for this pilot;
+- DNS migration: NOT REQUIRED;
+- GitHub Pages legacy policy: **RETIRE**;
+- GitHub Pages `Unpublish site`: human-confirmed complete by the repository owner on 2026-09-20;
+- independent hosted-URL unreachability probe: not separately available in the current tool environment, so no such evidence is fabricated.
 
-Therefore:
+The final pilot result is therefore:
 
 ```text
-provider build verified
-+ preview/runtime verified
-!= canonical production cutover
+repository contract
++ provider build
++ preview/runtime verification
++ human-governed security choice
++ canonical identity migration
++ post-cutover verification
+= completed canonical production cutover
 ```
 
-Cloudflare staging/runtime verification must not be reported as production cutover.
+This final conclusion supersedes earlier historical-stage statements in this file that GitHub Pages remained canonical production or that cutover was incomplete.

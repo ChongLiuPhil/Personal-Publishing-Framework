@@ -158,7 +158,7 @@ jobs:
           grep -q "Current reconciled pilot state" ../../docs/FIRST_PILOT_LESSONS.md
           grep -q "not production-tested" ../../docs/FIRST_PILOT_LESSONS.md
           grep -q "Current Cloudflare staging/runtime evidence" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
-          grep -q "GitHub Pages = current canonical production" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
+          grep -q "Cloudflare workers.dev = current canonical production" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
 
       - name: Compile runtime verification helper
         run: python -m py_compile scripts/verify_public_site.py

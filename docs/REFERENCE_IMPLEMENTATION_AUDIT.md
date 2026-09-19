@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-19  
 **Branch:** `reference-implementation-v0.1`  
-**Status:** PASS — initial static audit + downstream runtime validation + verified Cloudflare staging/runtime evidence + current root-level template CI
+**Status:** PASS — initial static audit + downstream runtime validation + verified Cloudflare canonical production cutover + current root-level template CI
 
 > This file records the static audit of the initial reference-implementation branch. A real downstream runtime pilot has since been completed and fed improvements into the current `main` template; see `FIRST_PILOT_LESSONS.md`.
 
@@ -176,16 +176,15 @@ This evidence supports the reference implementation's separation of:
 - provider action from repository write-back;
 - provider production branch from canonical production.
 
-It does **not** establish Cloudflare as canonical production.
+Those staging/runtime results did not by themselves establish canonical cutover at that earlier stage. The project later completed the human security-profile decision, workers.dev canonical-identity migration, post-cutover runtime verification, and legacy Pages retirement.
 
-Current publication state remains:
+Current publication state is now:
 
 ```text
-GitHub Pages = current canonical production
-Cloudflare workers.dev = verified staging/runtime target
-Custom Domain = not cut over
-canonical URL migration = not done
-legacy Pages policy = unresolved
+Cloudflare workers.dev = current canonical production
+GitHub Pages = legacy retired / owner-confirmed unpublished
+Custom Domain = not applicable to this pilot
+DNS migration = not required
 ```
 
 ## 10. Security-profile evidence boundary
@@ -196,24 +195,31 @@ The Cloudflare reference security profiles must be interpreted according to real
 - **Profile B — Hardened External CI**: **candidate / validate-only PASS**; repository/build validation passed in the candidate workflow, while credential, preview, and production deployment steps were not executed, so it is **not production-tested**;
 - **Profile C — Future Native Granular**: the required combination is currently unavailable because of provider product capability.
 
-Final production-security-profile selection remains a human-governed security decision.
+Final production-security-profile selection remains a human-governed security decision. The first real pilot ultimately selected **Profile A — Workers Builds Native**. That pilot choice does not make Profile A mandatory for other PPF projects.
 
 ## 11. Current audit conclusion
 
-The current reference implementation now has four layers of real evidence:
+The current reference implementation now has five layers of real evidence:
 
 1. initial static audit;
 2. downstream source/build/multi-format runtime validation;
 3. downstream Cloudflare account/build/preview/workers.dev runtime validation;
-4. upstream continuous Reference Template CI.
+4. downstream workers.dev canonical production cutover plus post-cutover verification;
+5. upstream continuous Reference Template CI.
 
-Still unvalidated and therefore not to be claimed as complete:
+The first pilot completed:
 
-- Cloudflare Custom Domain cutover;
-- canonical URL migration;
-- execution of the legacy GitHub Pages policy;
+- production security profile = Profile A;
+- canonical production = workers.dev;
+- post-cutover runtime verification = PASS;
+- GitHub Pages legacy policy = RETIRE;
+- repository-owner confirmation of `Unpublish site` on 2026-09-20.
+
+Still unvalidated or not adopted by this pilot:
+
+- Cloudflare Custom Domain / DNS migration — not required by this pilot;
 - Profile B production deployment;
 - Profile C native granular credential support;
 - Amazon KDP / Kindle and external-publisher delivery.
 
-The reference implementation can therefore be described as a **real-pilot-backed staging/runtime reference**, but not as having completed Cloudflare canonical production cutover.
+The reference implementation can therefore be described as a **real-pilot-backed canonical-production reference**. This does not require every PPF project to use Cloudflare, workers.dev, or Profile A.
