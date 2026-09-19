@@ -79,6 +79,48 @@ This workflow also does **not** deploy. It proves that the template can build fr
 
 It is a PPF machine contract that an AI agent or human operator applies to Cloudflare Workers Builds.
 
+## Source visibility / publication visibility / access / canonical identity
+
+The reference template now demonstrates four independent state layers:
+
+~~~yaml
+source:
+  visibility: public
+
+publication:
+  web:
+    authorization_state: authorized
+    visibility: public
+    access:
+      mode: none
+
+deployment:
+  web:
+    provider_url: null
+    canonical_identity:
+      type: null
+      url: null
+~~~
+
+These defaults describe a public reference book; they are not mandatory PPF defaults.
+
+Valid downstream combinations include:
+
+~~~text
+private source + public Web
+private source + restricted Web
+public source + restricted Web
+restricted Web + authenticated access
+~~~
+
+Do not make a Web publication private merely because the repository is private, and do not make a reachable Worker endpoint canonical merely because it exists.
+
+When restricted/private Web access is needed, the Cloudflare reference may use Cloudflare Access. See:
+
+`docs/CLOUDFLARE_ACCESS_PROFILE.md`
+
+That file is a dated provider reference, not a PPF conformance requirement.
+
 ## Recommended account connection
 
 The default reference route is:
@@ -202,7 +244,9 @@ Before adopting the template:
 7. pass the GitHub reference contract CI;
 8. complete Cloudflare OAuth / GitHub App account authorization;
 9. validate preview / workers.dev first;
-10. only then decide Custom Domain, canonical URL, and production cutover.
+10. explicitly choose source visibility, publication authorization / visibility, and access policy;
+11. distinguish provider URL from canonical identity;
+12. only then decide Custom Domain, canonical URL, and production cutover.
 
 ## Output directories
 
