@@ -35,6 +35,11 @@ def main() -> None:
     require("Makefile", "python3 scripts/verify_web_output.py")
     require("scripts/cloudflare_build.sh", "make web-publish-check")
     require("scripts/ensure_quarto.sh", "sha256sum --check --status")
+    require("cloudflare-builds.yaml", "production_profile: human-selection-required")
+    require("cloudflare-builds.yaml", "workers_builds_native:")
+    require("cloudflare-builds.yaml", "hardened_external_ci:")
+    require("cloudflare-builds.yaml", "future_native_granular:")
+    require("cloudflare-builds.yaml", "workers-builds-account-owned-token-not-yet-supported")
 
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     if package.get("devDependencies", {}).get("wrangler") != "4.135.0":
