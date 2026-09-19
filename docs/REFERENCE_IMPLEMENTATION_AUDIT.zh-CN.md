@@ -2,7 +2,7 @@
 
 **日期：** 2026-09-19  
 **分支：** `reference-implementation-v0.1`  
-**状态：** PASS — initial static reference-template audit
+**状态：** PASS — initial static audit + downstream runtime validation + current root-level template CI
 
 > 本文件记录最初 reference implementation 分支的静态审计。此后真实 downstream pilot 已完成，并对当前 `main` 模板产生改进；见 `FIRST_PILOT_LESSONS.zh-CN.md`。
 
@@ -33,9 +33,16 @@ PASS。
 - EPUB/PDF/DOCX/LaTeX = `on-demand`。
 
 `web.yml`：
-- PR / push 构建 Web；
-- 检查 `_book/index.html`；
-- 只有 main push 才执行 Cloudflare deploy。
+- PR / push 运行统一 `make web-publish-check`；
+- GitHub Actions 只负责独立 Web validation；
+- 不持有 Cloudflare deployment credential；
+- 不执行 Cloudflare production deploy。
+
+`cloudflare-contract-ci.yml`：
+- 固定 Node / Wrangler；
+- 从空白 runner 安装并校验固定 Quarto；
+- 运行 `make cloudflare-build`；
+- 模拟 Workers Builds 环境，但不部署。
 
 `build-publication.yml`：
 - 仅 `workflow_dispatch`；
@@ -82,13 +89,16 @@ PASS。
 
 ## 6. Workflow execution status
 
-PPF 仓库自身没有该模板的 GitHub Actions run。
+历史上，本模板只有静态审计，因为 workflow 位于 `templates/quarto-book/.github/workflows/`。
 
-原因：workflow 位于 `templates/quarto-book/.github/workflows/`，它是**下游项目模板**，不是 PPF 根目录 workflow。
+随后：
 
-因此本审计结论是 **static template validation**，不是声称模板已经在 PPF 仓库内执行通过。
-
-实际执行验证应在第一个 downstream pilot（`epistemology-textbook`）中完成。
+1. downstream pilot `epistemology-textbook` 完成真实 runtime validation；
+2. PPF 新增根级 `.github/workflows/reference-template-ci.yml`；
+3. root-level CI 会进入 `templates/quarto-book/`，安装固定 Wrangler，并执行：
+   - `make check`
+   - `make cloudflare-build`
+4. 因此当前 reference template 不再只依赖静态审计，而是拥有持续 upstream execution validation。
 
 ## 结论
 
@@ -110,10 +120,14 @@ PPF v0.1 Quarto reference implementation 可以合并，并进入真实项目 pi
 
 Pilot 同时促成当前模板的后续修订：
 
-- continuous Web build 与 provider deployment activation 分离；
-- Cloudflare deployment 默认 staged；
+- continuous Web validation 与 provider deployment activation 分离；
+- repository-owned `make web-publish-check` 成为统一 gate；
+- Workers Builds + GitHub App 成为默认 Cloudflare Git integration reference；
+- `cloudflare-builds.yaml` 成为 PPF machine contract；
+- Node / Wrangler / Quarto 工具链固定并由 contract CI 执行验证；
 - one-format-per-request artifact verification；
-- provider provisioning 与 recurring deploy credential 分离。
+- provider provisioning 与 recurring deploy credential 分离；
+- Cloudflare MCP/OAuth 作为可选 AI account automation，而不是 PPF 必需条件。
 
 详细记录见：
 
