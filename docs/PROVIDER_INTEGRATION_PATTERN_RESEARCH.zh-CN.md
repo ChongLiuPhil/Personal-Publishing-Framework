@@ -1,7 +1,7 @@
 # Provider Integration Pattern — Research Note
 
 **Status:** `AI-PROPOSED / NON-NORMATIVE / RESEARCH NOTE`  
-**Reviewed:** 2026-09-19  
+**Research date:** 2026-09-19  
 **Scope:** PPF reference implementation / cross-layer architecture research
 
 > 本文件记录一个尚未 Promotion 为 PPF 规范的人机协作基础设施模式。它不是人类已确认的 PPF Core 决定，不改变现有 Cloudflare production security profile，也不创建新的独立项目。
@@ -383,3 +383,16 @@ Human Authorization Boundary 横切整个 loop，但只在需要 human authority
 - Academic Vault 的职责边界。
 
 它只提供下一阶段架构研究的可审计起点。
+
+
+## 11. 外部参考锚点
+
+本 note 的概念比较基于以下公开工程规范/文档作为参照，而不是把它们当作 PPF 的规范来源：
+
+- OpenGitOps Principles — <https://opengitops.dev/>
+- Kubernetes Controllers — <https://kubernetes.io/docs/concepts/architecture/controller/>
+- Terraform provisioning workflow — <https://developer.hashicorp.com/terraform/cli/run>
+- OAuth 2.0 Authorization Framework (RFC 6749) — <https://www.rfc-editor.org/rfc/rfc6749>
+- Model Context Protocol 2026-07-28 release overview — <https://blog.modelcontextprotocol.io/posts/2026-07-28/>
+
+这些来源用于说明 desired/actual reconciliation、plan/apply、delegated authorization 与 agent-tool authorization 的既有技术背景；PPF 的具体术语与边界仍由 PPF 自己定义。
