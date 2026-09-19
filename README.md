@@ -39,6 +39,7 @@ source update
 -> validate
 -> build HTML
 -> validate output
+-> deployment readiness gate
 -> deploy
 -> verify
 ```
@@ -120,6 +121,7 @@ It implements the PPF model as:
 Git canonical source
 -> Quarto profiles
 -> automatic validated HTML
+-> deployment readiness gate
 -> Cloudflare Workers Static Assets
 
 explicit request
