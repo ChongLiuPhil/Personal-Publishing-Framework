@@ -109,9 +109,29 @@ PPF reference 建议：
 
 ### Protect with Cloudflare Access
 
-对于公开 PPF Web publication，默认保持关闭。
+不要根据 repository public/private 来决定这一项。
 
-只有项目明确需要受限访问时才开启。
+先读取当前 publication contract：
+
+~~~text
+publication.web.authorization_state
+publication.web.visibility
+publication.web.access
+~~~
+
+Reference mapping：
+
+- `visibility: public` + `access.mode: none`：通常保持公开；
+- `visibility: restricted`：按项目 access policy 启用 Cloudflare Access；
+- `visibility: private`：先确认项目定义的 private audience / route policy，再配置 Access 或保持公开 route disabled/staged。
+
+Cloudflare current Workers documentation 还支持在创建后对单个 Worker、production+preview、或指定 hostname/path 配置 Access。因此创建页面中的 checkbox 不是 access policy 的唯一真值源。
+
+具体 provider mapping 见：
+
+`docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`
+
+不要把 password、OTP、token 或其他 secret 写进 `publishing.yaml` 或聊天。
 
 ### Advanced settings → Non-production branch deploy command
 
