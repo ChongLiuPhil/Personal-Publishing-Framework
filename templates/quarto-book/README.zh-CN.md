@@ -47,9 +47,8 @@ quarto render --profile latex
 
 `.github/workflows/web.yml`：
 
-- pull request 和 `main` push 都会构建 Web profile；
+- pull request 和 `main` push 都会构建并验证 Web profile；
 - 检查 `_book/index.html` 是否存在；
-- pull request 和 `main` push 始终可以构建并验证 Web profile；
 - provider deployment 默认保持 staged；
 - 只有 `WEB_DEPLOY_ENABLED=true` 且配置了 `PRODUCTION_URL` 时，验证通过的 `main` push 才部署到 Cloudflare；
 - deployment 后执行 production verification。
