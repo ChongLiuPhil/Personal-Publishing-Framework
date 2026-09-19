@@ -41,5 +41,22 @@ validation:
 security:
   credentials_in_repository: prohibited
   github_app_repository_scope: selected-repositories-only
-  build_token_policy: restricted-token-preferred
-  broad_default_token_requires_review: true
+  production_profile: human-selection-required
+  profiles:
+    workers_builds_native:
+      status: reference-default
+      token_type: user-token
+      least_privilege: false
+      caveat: workers-builds-currently-supports-user-tokens-only
+    hardened_external_ci:
+      status: supported-alternative
+      token_type: account-owned-api-token
+      desired_scope: individual-worker
+      desired_role: editor
+      least_privilege: true
+    future_native_granular:
+      status: currently-unavailable
+      desired_token_type: account-owned-api-token
+      desired_scope: individual-worker
+      desired_role: editor
+      blocker: workers-builds-account-owned-token-not-yet-supported
