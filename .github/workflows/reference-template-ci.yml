@@ -7,6 +7,7 @@ on:
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
+      - "docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
       - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - ".github/workflows/reference-template-ci.yml"
@@ -18,6 +19,7 @@ on:
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
+      - "docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
       - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - ".github/workflows/reference-template-ci.yml"
@@ -75,8 +77,61 @@ jobs:
           print("Reference publishing.yaml validates against PPF schema.")
           PY
 
+      - name: Validate publication visibility/access schema semantics
+        run: |
+          python - <<'PY'
+          import copy
+          import json
+          from pathlib import Path
+          import yaml
+          from jsonschema import Draft202012Validator
+
+          schema = json.loads(Path("../../schema/publishing.schema.json").read_text(encoding="utf-8"))
+          validator = Draft202012Validator(schema)
+          base = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
+
+          restricted = copy.deepcopy(base)
+          restricted["source"]["visibility"] = "private"
+          restricted["publication"]["web"]["authorization_state"] = "authorized"
+          restricted["publication"]["web"]["visibility"] = "restricted"
+          restricted["publication"]["web"]["access"] = {
+              "mode": "authenticated",
+              "implementation": "example-access-layer",
+              "policy_ref": "docs/access-policy.md",
+          }
+          restricted["deployment"]["web"]["provider_url"] = "https://provider.example.invalid"
+          restricted["deployment"]["web"]["canonical_identity"] = {
+              "type": "provider-native",
+              "url": "https://provider.example.invalid",
+          }
+          errors = list(validator.iter_errors(restricted))
+          if errors:
+              for error in errors:
+                  print(error.message)
+              raise SystemExit("restricted-publication example should validate")
+
+          invalid = copy.deepcopy(restricted)
+          invalid["publication"]["web"]["visibility"] = "world-readable"
+          if not list(validator.iter_errors(invalid)):
+              raise SystemExit("invalid publication visibility unexpectedly validated")
+
+          invalid = copy.deepcopy(restricted)
+          invalid["publication"]["web"]["access"]["mode"] = "password"
+          if not list(validator.iter_errors(invalid)):
+              raise SystemExit("provider-specific access mode unexpectedly validated")
+
+          print("Publication visibility/access/canonical-identity schema semantics passed.")
+          PY
+
       - name: Validate reference publication contract
         run: make check
+
+      - name: Validate normative visibility/access migration markers
+        run: |
+          grep -q "Publication visibility and access policy" ../../SPECIFICATION.md
+          grep -q "Canonical publication identity and delivery provider" ../../SPECIFICATION.md
+          grep -q "private source => private publication" ../../docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION.md
+          grep -q "GitHub Free / paid Pages product limitations" ../../docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION.md
 
       - name: Validate pilot evidence reconciliation markers
         run: |
