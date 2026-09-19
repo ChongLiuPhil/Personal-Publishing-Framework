@@ -132,3 +132,21 @@ The pilot also drove later revisions to the current template:
 See:
 
 `docs/FIRST_PILOT_LESSONS.md`
+
+
+## 8. Upstream continuous template CI
+
+The root-level PPF `Reference Template CI` has now executed successfully.
+
+- run: `35428973528`
+- exact Wrangler installation/version check: PASS
+- publication-contract validation: PASS
+- clean-runner pinned Quarto installation + SHA-256 verification: PASS
+- `make cloudflare-build`: PASS
+- rendered Web-artifact validation: PASS
+
+The current reference implementation therefore has all three forms of evidence:
+
+1. initial static audit;
+2. downstream real-project runtime evidence;
+3. upstream continuous template execution validation.
