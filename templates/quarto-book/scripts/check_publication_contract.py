@@ -1,0 +1,49 @@
+#!/usr/bin/env python3
+"""Validate the generic PPF Quarto + Workers Builds reference contract."""
+
+from __future__ import annotations
+
+import json
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def fail(message: str) -> None:
+    print(f"ERROR: {message}", file=sys.stderr)
+    raise SystemExit(1)
+
+
+def require(path: str, marker: str) -> None:
+    target = ROOT / path
+    if not target.is_file():
+        fail(f"missing required file: {path}")
+    if marker not in target.read_text(encoding="utf-8"):
+        fail(f"{path} is missing required marker: {marker}")
+
+
+def main() -> None:
+    require("publishing.yaml", "integration_mode: workers-builds-git")
+    require("publishing.yaml", 'canonical_publish_gate: "make web-publish-check"')
+    require("cloudflare-builds.yaml", "mode: workers-builds-git")
+    require("cloudflare-builds.yaml", 'build: "bash scripts/cloudflare_build.sh"')
+    require("cloudflare-builds.yaml", 'deploy: "npm run cloudflare:deploy"')
+    require("cloudflare-builds.yaml", 'preview_deploy: "npm run cloudflare:preview"')
+    require("Makefile", "web-publish-check:")
+    require("Makefile", "$(QUARTO) render --profile web")
+    require("Makefile", "python3 scripts/verify_web_output.py")
+    require("scripts/cloudflare_build.sh", "make web-publish-check")
+    require("scripts/ensure_quarto.sh", "sha256sum --check --status")
+
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    if package.get("devDependencies", {}).get("wrangler") != "4.135.0":
+        fail("package.json must pin Wrangler 4.135.0")
+    if (ROOT / ".nvmrc").read_text(encoding="utf-8").strip() != "24":
+        fail(".nvmrc must pin Node 24")
+
+    print("PPF Workers Builds reference contract validation passed.")
+
+
+if __name__ == "__main__":
+    main()

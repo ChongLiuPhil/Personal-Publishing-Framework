@@ -110,6 +110,59 @@
                 "string",
                 "null"
               ]
+            },
+            "integration_mode": {
+              "type": "string",
+              "enum": [
+                "workers-builds-git",
+                "github-actions-wrangler",
+                "other"
+              ]
+            },
+            "build_contract": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "canonical_publish_gate": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "readiness": {
+              "type": "object",
+              "properties": {
+                "cloudflare_account": {
+                  "type": "string"
+                },
+                "github_app": {
+                  "type": "string"
+                },
+                "repository_connection": {
+                  "type": "string"
+                },
+                "worker_target": {
+                  "type": "string"
+                },
+                "production_trigger": {
+                  "type": "string"
+                },
+                "preview_trigger": {
+                  "type": "string"
+                },
+                "build_token": {
+                  "type": "string"
+                },
+                "first_preview_build": {
+                  "type": "string"
+                },
+                "production_cutover": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": true
             }
           },
           "additionalProperties": true

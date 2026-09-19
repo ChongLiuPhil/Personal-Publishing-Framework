@@ -1,100 +1,166 @@
 # PPF Quarto Book 参考模板
 
-本目录是 **Personal Publishing Framework（PPF）** 的第一套可执行 reference implementation。
+本目录是 **Personal Publishing Framework（PPF）** 的可执行 Quarto reference implementation。
 
-它演示一套具体技术栈：
+它演示：
 
 ```text
 QMD / Markdown / BibTeX
         |
-      Quarto
+        +--> GitHub Actions
+        |      make web-publish-check
+        |      (独立质量验证)
         |
-   +----+------------------+
-   |                       |
-   v                       v
-HTML / Web            按需格式
-   |                   EPUB / PDF
-GitHub Actions         DOCX / LaTeX
+        +--> Cloudflare Workers Builds
+        |      bash scripts/cloudflare_build.sh
+        |        -> pinned Quarto
+        |        -> make web-publish-check
+        |      preview -> wrangler versions upload
+        |      main    -> wrangler deploy
+        |
+        +--> 明确请求
+               EPUB / PDF / DOCX / LaTeX
+```
+
+这些技术只是 reference implementation，不是 PPF 的规范性要求。
+
+## 唯一 Web publication gate
+
+仓库把 Web 构建和质量验证集中在：
+
+`make web-publish-check`
+
+它执行：
+
+1. publication contract validation；
+2. Quarto Web render；
+3. rendered Web artifact validation。
+
+GitHub Actions 与 Cloudflare Workers Builds 都调用这一 gate，避免维护两套容易漂移的验证逻辑。
+
+## GitHub Actions 的职责
+
+`.github/workflows/web.yml` 只做独立 validation：
+
+- checkout；
+- Python；
+- Quarto；
+- `make web-publish-check`。
+
+它**不**持有 Cloudflare token，也不负责 Cloudflare production deployment。
+
+`.github/workflows/cloudflare-contract-ci.yml` 进一步模拟 Workers Builds 环境：
+
+- Node 24；
+- Wrangler 4.135.0；
+- Python；
+- checksum-verified Quarto 1.10.18；
+- `make cloudflare-build`。
+
+这个 workflow 仍然**不会部署**；它证明模板从空白 runner 能够构建。
+
+## Workers Builds 机器契约
+
+`cloudflare-builds.yaml` 记录 PPF reference implementation 期望的 account-side 配置：
+
+- Git repository；
+- production branch；
+- non-production branch builds；
+- root directory；
+- build command；
+- deploy command；
+- preview deploy command；
+- Worker name；
+- 工具链版本；
+- connection/readiness 状态；
+- security policy。
+
+**Cloudflare 不会自动读取这个 YAML。**
+
+它是 PPF 的 machine contract，供 AI Agent 或人类操作者把参数配置到 Cloudflare Workers Builds。
+
+## 推荐账户接入
+
+默认参考路线：
+
+```text
+AI Agent
    |
-Cloudflare Workers
-Static Assets
+   +--> Cloudflare OAuth / MCP
+
+Cloudflare
+   |
+   +--> Workers Builds
+            |
+            +--> Cloudflare GitHub App
+                    |
+                    +--> selected repository
 ```
 
-这些技术只是参考实现，不是 PPF 的规范性要求。PPF 本身不强制使用 GitHub、Quarto 或 Cloudflare。
+详细无技术背景操作说明：
 
-## 默认行为
+`docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`
 
-`_quarto.yml` 把 `web` 声明为默认 profile。
+当 AI 客户端支持 Cloudflare MCP 时，理想的人类动作只剩：
 
-因此：
+1. 授权 AI ↔ Cloudflare；
+2. 授权 Cloudflare ↔ 指定 GitHub repository。
 
-```bash
-quarto render
-```
+其余 Worker / Builds / trigger / preview 配置应尽量由 AI 根据机器契约完成。
 
-只渲染 Web Edition。
+## 外部 CI fallback
 
-只有明确要求其他出版格式时才使用：
+如果项目不能使用 Workers Builds Git integration，可以采用：
 
-```bash
-quarto render --profile epub
-quarto render --profile pdf
-quarto render --profile docx
-quarto render --profile latex
-```
+`GitHub Actions + Wrangler + scoped Cloudflare token`
 
-## 持续 Web 发布
+这仍然是支持的实现，但不是本模板的默认路径。
 
-`.github/workflows/web.yml`：
+任何 token：
 
-- pull request 和 `main` push 都会构建并验证 Web profile；
-- 检查 `_book/index.html` 是否存在；
-- provider deployment 默认保持 staged；
-- 只有 `WEB_DEPLOY_ENABLED=true` 且配置了 `PRODUCTION_URL` 时，验证通过的 `main` push 才部署到 Cloudflare；
-- deployment 后执行 production verification。
+- 不得进入 Git；
+- 不得写进聊天或 README；
+- 应采用满足任务所需的最小权限；
+- 一次性 provisioning 权限应与长期 deployment 权限分离。
 
-启用生产部署前，需要先确认 Worker / deployment target 已准备好，然后在 GitHub repository secrets 中配置：
+## 固定工具链
 
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
+本模板固定：
 
-repository variables：
+- Node 24：`.nvmrc`
+- Wrangler 4.135.0：`package.json`
+- Quarto 1.10.18：`scripts/ensure_quarto.sh`
 
-- `PRODUCTION_URL`
-- `WEB_DEPLOY_ENABLED=true`
-
-在 `PRODUCTION_URL` 尚未配置时把 `WEB_DEPLOY_ENABLED` 设为 `true` 会让 workflow 主动失败，而不是静默进入半配置状态。
-
-Cloudflare API token 应尽量采用最小权限范围。对于已经存在的 Worker，长期 CI credential 应优先只授予该 Worker 的部署/编辑权限；创建 Worker 或修改 Custom Domain/Route 等一次性 provisioning 权限不应无期限保留在日常内容发布 credential 中。
+Cloudflare build wrapper 不假设 provider 预装 Quarto。它下载固定 release，并在使用前验证 SHA-256。
 
 ## 按需格式
 
-`.github/workflows/build-publication.yml` 只通过 `workflow_dispatch` 手工启动。
+`.github/workflows/build-publication.yml` 只通过 `workflow_dispatch` 启动。
 
-用户明确选择 EPUB、PDF、DOCX 或 LaTeX 中的一种格式。workflow 会验证对应输出扩展名确实存在，再把生成文件上传为 GitHub Actions artifact。
+用户一次明确选择 EPUB、PDF、DOCX 或 LaTeX 中一种格式；workflow 验证对应 artifact 存在后上传 GitHub Actions artifact。
 
-PDF 等格式可能需要项目专用字体、TeX packages 或其他依赖；这些应由具体项目在 workflow 中增加，而不是强迫所有 PPF 项目共同安装。
+重型格式需要的字体、TeX packages 或其他项目专用依赖，应由 downstream 项目按需增加。
 
 **Build 不等于 Release，也不等于外部 Publish。**
 
-## 使用前需要修改
+## 采用模板前必须修改
 
-在真实项目采用本模板前：
-
-1. 修改 `_quarto.yml` 中的书名和作者；
-2. 修改 `publishing.yaml` 中的 project id、title 和 deployment 信息；
-3. 修改 `wrangler.jsonc` 中的 Worker 名称；
-4. 先完成 provider staging / readiness，再填写 canonical production URL；
-5. 只有 deployment target、secrets 与生产 URL 都准备好后，才设置 `WEB_DEPLOY_ENABLED=true`；
-6. 替换示例 QMD；
-7. 添加 bibliography 和原始 assets；
-8. 根据真实项目需要，在 deploy 前增加更严格的 source/output validation。
+1. 替换 `_quarto.yml` 中的书名和作者；
+2. 替换 `publishing.yaml` 中的 project id / title；
+3. 替换 `cloudflare-builds.yaml` 中的 `OWNER/REPOSITORY` 与 Worker name；
+4. 替换 `wrangler.jsonc` 中的 Worker name；
+5. 根据项目增加 source/output validation；
+6. 替换示例 QMD、bibliography 与 assets；
+7. 运行 GitHub reference contract CI；
+8. 完成 Cloudflare OAuth / GitHub App account authorization；
+9. 先通过 preview / workers.dev 验证；
+10. 最后才决定 Custom Domain、canonical URL 与 production cutover。
 
 ## 输出目录
 
 ```text
 _book/
-  持续发布的 HTML
+  continuous Web artifact
 
 _publication/
   epub/
@@ -103,12 +169,13 @@ _publication/
   latex/
 ```
 
-这些目录都是派生成果，因此默认不进入 Git 历史。
+这些都是派生输出，默认不进入 Git 历史。
 
-## Publication contract 与实现配置分离
+## Publication contract 与 provider implementation 分离
 
-`publishing.yaml` 声明的是**发布意图**。
+- `publishing.yaml`：发布意图；
+- `cloudflare-builds.yaml`：PPF 的 provider integration machine contract；
+- `wrangler.jsonc`：Cloudflare Wrangler 原生实现配置；
+- Cloudflare account settings：真实 provider-side state。
 
-`wrangler.jsonc` 声明的是 Web delivery 的一种 **Cloudflare 实现**。
-
-把二者分开，未来即使替换 Cloudflare，也不需要重新定义 PPF 的出版模型。
+四者不应被混成同一真值源。

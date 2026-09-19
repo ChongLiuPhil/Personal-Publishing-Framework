@@ -55,6 +55,10 @@ PPF 定义两种主要模式：
 
 如果某个 deployment provider 需要目标资源、凭据、域名或其他前置条件，项目 MUST 在启用自动 deployment 前确认这些条件。项目 SHOULD 让 deployment activation 成为显式、可审计的状态，而不是由“仓库存在某个 workflow”隐式推断。
 
+当 validation 与 deployment 由不同 CI / provider 执行时，项目 SHOULD 保留一个 repository-owned、provider-independent 的 canonical build/validation gate，使不同执行环境调用同一逻辑，而不是复制两套容易漂移的验证规则。
+
+项目 MAY 维护独立的 provider-integration machine contract，用于描述期望的 repository connection、branch、build/deploy commands 与 readiness。该 contract 不得与 provider 账户中的真实状态混为一谈；如果 provider 不会原生读取该 contract，项目必须明确这一点。
+
 ## 4. 生命周期
 
 PPF 区分：
@@ -81,11 +85,10 @@ SOURCE -> BUILD -> PUBLISH -> RELEASE -> ARCHIVE
 
 ```text
 accepted source change
--> source validation
--> HTML build
--> output validation
--> deployment readiness gate
--> deployment
+-> repository-owned validation/build gate
+-> independent CI validation
+-> provider readiness
+-> provider build/deploy
 -> production verification
 ```
 
@@ -121,9 +124,15 @@ PPF 本身不重新定义作者身份、主体性或责任。
 
 ## 10. 参考技术栈
 
-首个 reference stack 可以使用 Git、Quarto/Pandoc、GitHub Actions 和 Cloudflare Workers Static Assets；这些实现不是规范性要求。
+首个 reference stack 可以使用 Git、Quarto/Pandoc、GitHub Actions、Cloudflare Workers Builds、Wrangler 与 Cloudflare Workers Static Assets；这些实现不是规范性要求。
+
+在 GitHub/GitLab 等 provider-native Git integration 可用时，reference implementation MAY 让 GitHub Actions 负责独立 validation，而让 hosting provider 的原生 build system 负责 delivery；二者 SHOULD 调用同一个 repository-owned publication gate。
+
+如果 provider-native Git integration 不可用，项目 MAY 使用 GitHub Actions 等 external CI 配合 scoped deployment credential。
 
 在 provider 支持权限范围划分时，reference implementation SHOULD 把一次性 infrastructure provisioning 与长期 recurring deployment credential 分离，并为持续部署使用满足任务所需的最小权限。
+
+支持 MCP/OAuth 的 AI Agent MAY 帮助完成 provider-side configuration；这属于可选自动化，不是 PPF 合规要求。账户所有者必须保留对身份授权、权限范围与生产 cutover 的控制。
 
 ## 11. 版本
 
