@@ -38,10 +38,23 @@ publication:
 deployment:
   web:
     provider: cloudflare-workers
+    integration_mode: workers-builds-git
+    build_contract: cloudflare-builds.yaml
+    canonical_publish_gate: "make web-publish-check"
     enabled: false
     status: staged
     output_directory: _book
     production_url: null
+    readiness:
+      cloudflare_account: unverified
+      github_app: unverified
+      repository_connection: unverified
+      worker_target: unverified
+      production_trigger: unverified
+      preview_trigger: unverified
+      build_token: unverified
+      first_preview_build: not-run
+      production_cutover: blocked
 
 release:
   require_explicit_release: true
