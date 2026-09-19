@@ -132,3 +132,21 @@ Pilot 同时促成当前模板的后续修订：
 详细记录见：
 
 `docs/FIRST_PILOT_LESSONS.zh-CN.md`
+
+
+## 8. Upstream Continuous Template CI
+
+PPF root-level `Reference Template CI` 已实际执行通过。
+
+- run：`35428973528`
+- exact Wrangler install/version check：PASS
+- publication contract validation：PASS
+- clean-runner pinned Quarto install + SHA-256 verification：PASS
+- `make cloudflare-build`：PASS
+- rendered Web artifact validation：PASS
+
+因此当前 reference implementation 同时拥有：
+
+1. initial static audit；
+2. downstream real-project runtime evidence；
+3. upstream continuous template execution validation。
