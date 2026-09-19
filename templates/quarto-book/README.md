@@ -101,6 +101,12 @@ See the nontechnical authorization guide:
 
 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`
 
+Live UI fields are only dated implementation observations. The Observed UI Mapping from the 2026-09-19 pilot is documented in:
+
+`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md`
+
+If provider UI differs, do not guess. Re-read the current UI, official documentation, and downstream machine contract, then verify through actual build/runtime state.
+
 When the AI client supports Cloudflare MCP, the ideal human role is reduced to:
 
 1. authorize AI ↔ Cloudflare;
@@ -123,6 +129,30 @@ See:
 `docs/CLOUDFLARE_SECURITY_PROFILES.md`
 
 The project owner should explicitly select the production security profile before final cutover.
+
+In the first real pilot, Profile B was validated only as a **candidate / validate-only PASS**. No account-owned deployment credential was configured and no Profile B production deployment was executed, so it must not be described as production-tested.
+
+## Runtime verification reference
+
+Build success is not runtime success. After provider integration, a project can use the read-only helper:
+
+~~~bash
+python scripts/verify_public_site.py https://example.invalid \
+  --path / \
+  --path /representative-page.html \
+  --expect "Expected visible text"
+~~~
+
+The helper verifies HTTP 200, UTF-8 pages, representative paths, optional content markers, and a bounded sample of local assets.
+
+It does **not** replace:
+
+- expected Git/source revision checks against provider build metadata;
+- project-specific navigation/content assertions;
+- incumbent-production health checks during migration;
+- explicit canonical production cutover.
+
+Downstream projects should add those gates for their actual structure.
 
 ## External-CI fallback
 
