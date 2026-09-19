@@ -38,7 +38,7 @@ It does not require a specific AI assistant, Git provider, build engine, or host
 
 ## Reference implementation layer
 
-The initial reference implementation uses:
+The current reference implementation uses:
 
 ```text
 GitHub repository
@@ -46,23 +46,33 @@ GitHub repository
       +--> QMD / Markdown / BibTeX / assets
       |
       +--> publishing.yaml
+      +--> cloudflare-builds.yaml   (PPF machine contract)
+      +--> wrangler.jsonc           (provider-native config)
       |
-      +--> Quarto profiles
+      +--> repository-owned Web gate
+      |       make web-publish-check
+      |              |
+      |              +--> GitHub Actions validation
+      |              |
+      |              +--> Cloudflare Workers Builds
+      |                        |
+      |                        +--> preview: wrangler versions upload
+      |                        +--> main:    wrangler deploy
       |
-      +--> GitHub Actions
-              |
-              +--> HTML --> Cloudflare Workers Static Assets
-              |
-              +--> explicit request --> EPUB / PDF / DOCX / LaTeX
+      +--> explicit request --> EPUB / PDF / DOCX / LaTeX
 ```
 
 For a Quarto implementation, a Web profile may be the default while other formats are explicitly selected. Quarto supports profile-specific project configuration and a default profile.
 
 For a Cloudflare implementation, the generated static directory can be declared as the Worker static-assets directory in Wrangler configuration.
 
+The repository-owned Web gate is intentionally provider-independent. GitHub Actions can prove that accepted source renders correctly even when Cloudflare account access is absent, while Workers Builds can rerun the same gate before delivery.
+
+`cloudflare-builds.yaml` is a PPF machine contract, not a Cloudflare-native configuration file. It declares the intended Git connection, commands, toolchain pins, and readiness state so an AI agent or human operator can configure Cloudflare consistently. The provider account remains the authority for actual provider-side state.
+
 A reference implementation should distinguish **continuous Web build/validation** from **deployment activation**. A project may keep the continuous Web build healthy while a provider is still staged or unconfigured.
 
-Provider provisioning should also be separated from recurring deployment where practical. For example, creating a Worker or attaching a domain may require broader one-time authority than repeatedly deploying validated static assets to an already-provisioned Worker.
+Provider provisioning should also be separated from recurring deployment where practical. When OAuth/MCP or a provider Git App is available, those interfaces may reduce manual secret handling, but they do not eliminate the need for explicit account-owner authorization and least-privilege review.
 
 ## Boundary with AHICP
 
