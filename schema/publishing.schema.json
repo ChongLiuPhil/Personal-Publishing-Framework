@@ -163,6 +163,98 @@
                 }
               },
               "additionalProperties": true
+            },
+            "current_provider": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "target_provider": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "current_production_url": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "target_production_url": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "migration_status": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "integration_state": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                null,
+                "DECLARED",
+                "REPOSITORY_VALIDATED",
+                "ACCOUNT_CONNECTED",
+                "PROVIDER_BUILD_VERIFIED",
+                "PREVIEW_RUNTIME_VERIFIED",
+                "CUTOVER_READY",
+                "PRODUCTION_ACTIVE"
+              ]
+            },
+            "authorization_state": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                null,
+                "UNRESOLVED",
+                "HUMAN_AUTHORIZATION_REQUIRED",
+                "AUTHORIZED",
+                "NOT_APPLICABLE"
+              ]
+            },
+            "cutover_state": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                null,
+                "BLOCKED",
+                "PENDING",
+                "READY",
+                "ACTIVE"
+              ]
+            },
+            "legacy_url_policy": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                null,
+                "unresolved",
+                "mirror",
+                "legacy-with-canonical",
+                "redirect",
+                "retire"
+              ]
+            },
+            "observed_state_path": {
+              "type": [
+                "string",
+                "null"
+              ]
             }
           },
           "additionalProperties": true
@@ -187,6 +279,52 @@
     },
     "archive": {
       "type": "object",
+      "additionalProperties": true
+    },
+    "framework": {
+      "type": "object",
+      "required": [
+        "source",
+        "adopted_version",
+        "adopted_commit"
+      ],
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adopted_version": {
+          "type": "string",
+          "minLength": 1
+        },
+        "adopted_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-fA-F]{7,40}$"
+        },
+        "reference_implementation": {
+          "type": "object",
+          "properties": {
+            "profile": {
+              "type": "string",
+              "minLength": 1
+            },
+            "adopted_version": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "adopted_commit": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "pattern": "^[0-9a-fA-F]{7,40}$"
+            }
+          },
+          "additionalProperties": true
+        }
+      },
       "additionalProperties": true
     }
   },

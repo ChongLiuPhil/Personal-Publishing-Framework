@@ -59,6 +59,100 @@ PPF 定义两种主要模式：
 
 项目 MAY 维护独立的 provider-integration machine contract，用于描述期望的 repository connection、branch、build/deploy commands 与 readiness。该 contract 不得与 provider 账户中的真实状态混为一谈；如果 provider 不会原生读取该 contract，项目必须明确这一点。
 
+### 3.6 Provider integration 的三类状态
+
+PPF MUST 区分至少三类彼此独立的状态：
+
+1. **Repository Integration Intent** — repository 中声明“希望 provider 如何连接与运行”的期望状态，例如 repository、branch、build/deploy commands、resource name、validation gate 与 readiness intent；
+2. **Provider Actual State** — provider account 当前真实的连接、resource、build、deployment、runtime 与 credential/integration 状态；
+3. **Human Authorization State** — 身份授权、账户所有者 consent、权限授予、production security profile、canonical/public cutover 等必须由人类承担或明确确认的状态。
+
+这三类状态不得因为某一个文件、workflow 或 provider UI 看起来“已配置”而被合并解释。
+
+Provider 所称的 **production branch** 只是 provider trigger / delivery configuration。某个 production branch build 或 deploy 成功，**MUST NOT** 自动解释为：
+
+- canonical URL 已切换；
+- PPF 意义上的正式 production 已切换；
+- publication authorization 已完成；
+- 原有 production 可以停用。
+
+### 3.7 Readiness vocabulary
+
+PPF 定义一组可复用的 provider-integration readiness 语义标签：
+
+~~~text
+DECLARED
+REPOSITORY_VALIDATED
+ACCOUNT_CONNECTED
+PROVIDER_BUILD_VERIFIED
+PREVIEW_RUNTIME_VERIFIED
+CUTOVER_READY
+PRODUCTION_ACTIVE
+~~~
+
+这些标签描述可观察的 readiness milestone，**不是必须按单一路径依次推进的刚性 state machine**。Provider-specific implementation MAY 映射、合并、并行验证或增加更细的内部状态，但 MUST 保留这些标签之间的语义区别，尤其不得把 build verification、staging/runtime verification 与 canonical production activation 混为一谈。
+
+### 3.8 Runtime verification
+
+**Build success does not equal deployment/runtime success.**
+
+在把新 provider 视为 cutover-ready 之前，项目 MUST 对目标 runtime 执行与 artifact 类型相适应的真实验证。对于 Web publication，验证 SHOULD 在适用时覆盖：
+
+- 运行内容对应预期 Git revision / source revision；
+- HTTP success；
+- 代表性页面；
+- 本地 CSS / JavaScript / images / fonts 等资产；
+- 主要 navigation / TOC / internal links；
+- content encoding 与主要语言文本完整性；
+- 不应公开的 PDF / EPUB / DOCX / LaTeX 或其他 artifact 没有意外暴露；
+- provider migration 期间，旧 production 仍然健康，直到显式 cutover。
+
+Reference implementation MAY 使用 provider-specific probes，但 PPF normative core 不规定具体 URL、命令或 UI。
+
+### 3.9 Provider reconciliation、write-back 与 production cutover
+
+当外部 provider action 改变会影响后续发布工作的状态时，项目 SHOULD 执行：
+
+~~~text
+repository intent
+-> inspect provider actual state
+-> act if authorized
+-> verify runtime / provider result
+-> write verified state back to repository
+~~~
+
+Repository durable state SHOULD 按需要保存：
+
+- observed provider state；
+- verification evidence 或 evidence pointer；
+- 有用的 build / deployment identifier；
+- 当前 blocker；
+- 当前 readiness / cutover state。
+
+不得把 secret 写入这些记录。
+
+Production cutover **MUST** 是显式 gate。项目至少必须能够区分：
+
+- provider build/deployment pipeline active；
+- staging/runtime active and verified；
+- canonical production active。
+
+只要 canonical/public cutover 尚未明确完成，provider staging 或成功 build 不得被描述为 PRODUCTION_ACTIVE。
+
+### 3.10 Legacy URL policy
+
+如果迁移前已经存在公开 production URL，项目在停用或替换该 URL 前 MUST 明确记录 legacy URL policy。
+
+通用策略可以包括：
+
+- mirror；
+- legacy-with-canonical；
+- redirect；
+- retire；
+- 或一个被项目明确说明的 provider-specific alternative。
+
+Legacy URL 决策与 target provider readiness 是不同问题；新的 provider runtime 验证通过，不自动授权关闭旧站点。
+
 ## 4. 生命周期
 
 PPF 区分：
@@ -136,9 +230,18 @@ PPF 本身不重新定义作者身份、主体性或责任。
 
 支持 MCP/OAuth 的 AI Agent MAY 帮助完成 provider-side configuration；这属于可选自动化，不是 PPF 合规要求。账户所有者必须保留对身份授权、权限范围、production security profile 与生产 cutover 的控制。
 
-## 11. 版本
+## 11. 版本与 adoption pinning
 
 规范自身在积极开发阶段使用语义版本。具体作品的 edition 可以采用其他明确记录的版本规则。
+
+采用 PPF 的 downstream project SHOULD 记录：
+
+- upstream framework source；
+- adopted version/tag；
+- 一个不可变 adopted commit（或等价不可变 revision）；
+- 如需要，单独记录 reference implementation/profile 的 adopted revision。
+
+后续 upstream PPF 更新 **MUST NOT** 被静默视为 downstream 已经采用。只有项目明确更新 adoption metadata 并完成适用验证后，新的 upstream revision 才成为该项目的 adopted framework state。
 
 ## 12. 当前合规状态
 

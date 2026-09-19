@@ -59,6 +59,100 @@ When validation and deployment run in different CI/provider environments, a proj
 
 A project MAY maintain a separate provider-integration machine contract describing intended repository connection, branch, build/deploy commands, and readiness. That contract MUST NOT be confused with real provider-account state. If the provider does not natively consume the contract, the project MUST say so explicitly.
 
+### 3.6 Three classes of provider-integration state
+
+PPF MUST distinguish at least three independent state classes:
+
+1. **Repository Integration Intent** — the repository-declared desired integration, such as repository, branch, build/deploy commands, resource name, validation gate, and readiness intent;
+2. **Provider Actual State** — the provider account's real current connection, resource, build, deployment, runtime, and credential/integration state;
+3. **Human Authorization State** — identity authorization, account-owner consent, permission grants, production security profile, canonical/public cutover, and other states that require human authority or explicit confirmation.
+
+These classes MUST NOT be collapsed merely because a file, workflow, or provider UI appears to be configured.
+
+A provider's **production branch** is only a provider trigger / delivery configuration. A successful production-branch build or deployment **MUST NOT** automatically mean that:
+
+- the canonical URL has changed;
+- formal PPF production has moved;
+- publication authorization is complete;
+- the incumbent production can be retired.
+
+### 3.7 Readiness vocabulary
+
+PPF defines reusable provider-integration readiness labels:
+
+~~~text
+DECLARED
+REPOSITORY_VALIDATED
+ACCOUNT_CONNECTED
+PROVIDER_BUILD_VERIFIED
+PREVIEW_RUNTIME_VERIFIED
+CUTOVER_READY
+PRODUCTION_ACTIVE
+~~~
+
+These labels describe observable readiness milestones; they are **not a mandatory single linear state machine**. Provider-specific implementations MAY map, combine, validate in parallel, or add finer internal states, but they MUST preserve the semantic distinctions among the labels, especially the difference between build verification, staging/runtime verification, and canonical production activation.
+
+### 3.8 Runtime verification
+
+**Build success does not equal deployment/runtime success.**
+
+Before a new provider is treated as cutover-ready, the project MUST perform real runtime verification appropriate to the artifact type. For Web publication, verification SHOULD cover, where applicable:
+
+- the expected Git/source revision;
+- HTTP success;
+- representative pages;
+- local CSS / JavaScript / images / fonts and other assets;
+- primary navigation / TOC / internal links;
+- content encoding and integrity of primary-language text;
+- absence of unintended PDF / EPUB / DOCX / LaTeX or other publication artifacts;
+- health of the incumbent production during provider migration until explicit cutover.
+
+A reference implementation MAY use provider-specific probes, but the PPF normative core does not prescribe concrete URLs, commands, or UI.
+
+### 3.9 Provider reconciliation, write-back, and production cutover
+
+When an external provider action changes state that affects future publication work, the project SHOULD perform:
+
+~~~text
+repository intent
+-> inspect provider actual state
+-> act if authorized
+-> verify runtime / provider result
+-> write verified state back to repository
+~~~
+
+Repository durable state SHOULD record as needed:
+
+- observed provider state;
+- verification evidence or an evidence pointer;
+- useful build / deployment identifiers;
+- current blockers;
+- current readiness / cutover state.
+
+Secrets MUST NOT be stored in these records.
+
+Production cutover **MUST** be an explicit gate. A project must at least be able to distinguish:
+
+- provider build/deployment pipeline active;
+- staging/runtime active and verified;
+- canonical production active.
+
+Until canonical/public cutover has explicitly completed, provider staging or a successful build MUST NOT be described as PRODUCTION_ACTIVE.
+
+### 3.10 Legacy URL policy
+
+If a public production URL already exists before migration, the project MUST record a legacy URL policy before retiring or replacing that URL.
+
+General strategies may include:
+
+- mirror;
+- legacy-with-canonical;
+- redirect;
+- retire;
+- or a documented provider-specific alternative.
+
+Legacy URL policy is distinct from target-provider readiness. Successful runtime verification on the new provider does not automatically authorize shutting down the old site.
+
 ## 4. Lifecycle
 
 PPF distinguishes:
@@ -145,9 +239,18 @@ If a provider-native integration cannot currently satisfy the credential scope r
 
 AI agents with MCP/OAuth support MAY assist with provider-side configuration. This is optional automation, not a PPF conformance requirement. The account owner retains control over identity authorization, permission scope, the production security profile, and production cutover.
 
-## 11. Versioning
+## 11. Versioning and adoption pinning
 
 The specification itself uses semantic versioning while under active development. Project editions MAY use another documented versioning scheme.
+
+A downstream project adopting PPF SHOULD record:
+
+- the upstream framework source;
+- the adopted version/tag;
+- an immutable adopted commit (or equivalent immutable revision);
+- when relevant, the separately adopted reference-implementation/profile revision.
+
+Later upstream PPF changes **MUST NOT** be silently treated as already adopted downstream. A new upstream revision becomes adopted project state only after the project explicitly updates its adoption metadata and completes the applicable validation.
 
 ## 12. Conformance status
 
