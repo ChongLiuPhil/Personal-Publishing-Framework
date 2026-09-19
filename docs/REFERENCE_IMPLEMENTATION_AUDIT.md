@@ -193,7 +193,7 @@ legacy Pages policy = unresolved
 The Cloudflare reference security profiles must be interpreted according to real pilot evidence:
 
 - **Profile A — Workers Builds Native**: operationally verified; the managed user-token scope is broader than the routine needs of a pure static Worker and is not per-Worker least privilege;
-- **Profile B — Hardened External CI**: candidate workflow / repository-build validation PASS; credential, preview, and production deployment steps were not executed, so it is **not production-tested**;
+- **Profile B — Hardened External CI**: **candidate / validate-only PASS**; repository/build validation passed in the candidate workflow, while credential, preview, and production deployment steps were not executed, so it is **not production-tested**;
 - **Profile C — Future Native Granular**: the required combination is currently unavailable because of provider product capability.
 
 Final production-security-profile selection remains a human-governed security decision.
