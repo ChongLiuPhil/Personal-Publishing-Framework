@@ -143,3 +143,8 @@ The project now includes the initial specification, an executable Quarto referen
 For Cloudflare reference-implementation production credential profiles, see:
 
 `docs/CLOUDFLARE_SECURITY_PROFILES.md`
+
+For the non-normative architecture research on generalizing the real Cloudflare pilot into a provider-integration pattern, see:
+
+`docs/PROVIDER_INTEGRATION_PATTERN_RESEARCH.md`
+

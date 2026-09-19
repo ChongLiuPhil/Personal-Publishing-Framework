@@ -141,3 +141,8 @@ Git canonical source
 Cloudflare reference implementation 的 production credential 选择见：
 
 `docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
+
+关于从真实 Cloudflare pilot 提炼出的 provider integration 通用模式、概念边界及是否应进一步规范化，见非规范研究 note：
+
+`docs/PROVIDER_INTEGRATION_PATTERN_RESEARCH.zh-CN.md`
+

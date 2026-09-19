@@ -197,3 +197,10 @@ These are derived outputs and are ignored by Git by default.
 - Cloudflare account settings: real provider-side state.
 
 These should not be collapsed into a single source of truth.
+
+For the higher-level provider-integration architecture research, see:
+
+`../../docs/PROVIDER_INTEGRATION_PATTERN_RESEARCH.md`
+
+That file is currently `AI-PROPOSED / NON-NORMATIVE` and does not change this template's active contract.
+

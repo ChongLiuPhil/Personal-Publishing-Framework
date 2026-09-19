@@ -195,3 +195,10 @@ _publication/
 - Cloudflare account settings：真实 provider-side state。
 
 四者不应被混成同一真值源。
+
+更高层的 provider-integration 架构研究见：
+
+`../../docs/PROVIDER_INTEGRATION_PATTERN_RESEARCH.zh-CN.md`
+
+该文件当前是 `AI-PROPOSED / NON-NORMATIVE`，不会改变本模板的现行 contract。
+
