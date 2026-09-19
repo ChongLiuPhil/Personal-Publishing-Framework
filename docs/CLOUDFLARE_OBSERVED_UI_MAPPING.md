@@ -27,7 +27,7 @@ Cloudflare does not natively consume the PPF machine contract. Values displayed 
 | Build command | `bash scripts/cloudflare_build.sh` | current repository machine contract governs |
 | Deploy command | `npm run cloudflare:deploy` | current repository machine contract governs |
 | Builds for non-production branches | enabled | supports preview/non-production builds |
-| Protect with Cloudflare Access | off for a public reference publication | enable only when the project explicitly requires restricted access |
+| Protect with Cloudflare Access | `publication.web.visibility` + `publication.web.access` | may be off for `public + none`; read the access policy for `restricted/private`; do not infer from source visibility |
 | Advanced settings → Non-production branch deploy command | `npm run cloudflare:preview` | current repository machine contract governs |
 | Advanced settings → Path | `/` for repository-root build | a monorepo must use the actual project path |
 | API token | provider-managed/selected Workers Builds user token in Profile A | secret never enters Git, machine contract, or chat |
@@ -35,7 +35,39 @@ Cloudflare does not natively consume the PPF machine contract. Values displayed 
 
 Concrete Node / Wrangler / Quarto versions MUST be read from the current repository machine contract / package pins rather than hard-coded from this dated note as future project truth.
 
-## 3. Production branch observation
+## 3. Access-control observation
+
+After review of current Cloudflare official documentation on 2026-09-19, Worker Access should not be understood merely as a checkbox on the creation page.
+
+Current documentation supports:
+
+- protecting one Worker directly;
+- protecting preview deployments only;
+- protecting production + preview together;
+- protecting a specific `workers.dev` hostname, Custom Domain, or path.
+
+The operator should therefore read the PPF publication contract first:
+
+~~~text
+source.visibility
+publication.web.authorization_state
+publication.web.visibility
+publication.web.access
+~~~
+
+and only then decide whether Cloudflare Access should be enabled.
+
+These inferences are invalid:
+
+~~~text
+private repository => enable Access
+public repository => disable Access
+Worker deployed => public publication
+~~~
+
+See `docs/CLOUDFLARE_ACCESS_PROFILE.md` for the reference mapping.
+
+## 4. Production branch observation
 
 In the real pilot creation UI, **Production branch was not guaranteed to appear as a separate field**.
 
@@ -50,7 +82,7 @@ If the current creation UI does not show Production branch:
 5. inspect Builds trigger settings and current official docs when needed;
 6. write the verified result back to downstream repository readiness/evidence state.
 
-## 4. UI drift rule
+## 5. UI drift rule
 
 If the live Cloudflare UI differs from this file, the runbook, or an older screenshot:
 
