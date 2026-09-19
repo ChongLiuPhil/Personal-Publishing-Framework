@@ -1,28 +1,26 @@
-# Cloudflare ↔ GitHub 一次性授权指南（PPF 参考）
+# Cloudflare ↔ GitHub 一次性授权指南（PPF Reference）
 
 本指南面向没有技术背景的操作者。
 
-目标不是让操作者学习 API、Wrangler 或 CI，而是只完成**账户所有者必须亲自确认的授权动作**。完成后，支持 Cloudflare MCP 的 AI Agent 应根据项目仓库中的机器契约继续配置。
+目标不是让操作者学习 API、Wrangler 或 CI，而是只完成账户所有者必须亲自确认的授权动作。完成后，AI Agent 或项目维护者应根据仓库中的 `cloudflare-builds.yaml` 继续配置。
 
-## 推荐路线
-
-PPF reference implementation 推荐：
+## 1. 推荐路线
 
 ```text
 AI Agent
    |
-   +--> Cloudflare OAuth / MCP
-   |
-Cloudflare account
+   +--> Cloudflare OAuth / MCP      (如果客户端支持)
+
+Cloudflare
    |
    +--> Workers Builds
             |
-            +--> GitHub App
+            +--> Cloudflare GitHub App
                     |
                     +--> selected repository only
 ```
 
-Cloudflare 官方 API MCP：
+Cloudflare API MCP：
 
 `https://mcp.cloudflare.com/mcp`
 
@@ -30,88 +28,172 @@ Workers Builds MCP：
 
 `https://builds.mcp.cloudflare.com/mcp`
 
-项目中的 `cloudflare-builds.yaml` 是 **PPF machine contract**。它不是 Cloudflare 原生自动读取的配置文件；AI Agent 或人类操作者需要把里面的参数配置到 Cloudflare Workers Builds。
+`cloudflare-builds.yaml` 是 **PPF machine contract**。Cloudflare 不会自动读取它；AI 或人类需要把其中参数应用到 Cloudflare Workers Builds。
 
-## 授权 1：让 AI Agent 连接 Cloudflare
+## 2. 授权 AI ↔ Cloudflare（可选但推荐）
 
-如果你使用的 AI 客户端支持 MCP：
+如果 AI 客户端支持 MCP：
 
-1. 打开该 AI 客户端的 Plugins / Connectors / MCP / Integrations 设置。
+1. 打开 Plugins / Connectors / MCP / Integrations。
 2. 添加 Cloudflare 官方 MCP。
-3. 浏览器会打开 Cloudflare 登录与授权页面。
-4. 登录你自己的 Cloudflare 账户。
-5. 如果页面允许选择权限，只保留完成 Workers / Workers Builds 管理所需的权限；不要主动增加与项目无关的 DNS、R2、KV、D1 等权限。
-6. 点击允许/授权。
-7. 回到 AI 客户端。
+3. 登录 Cloudflare。
+4. 如果可以选择权限，只保留完成 Workers / Workers Builds 管理所需的权限。
+5. 完成 OAuth 授权。
 
 完成标准：
 
-> AI Agent 能实际读取你的 Cloudflare account、Workers 或 Workers Builds 状态。
+> AI Agent 能实际读取 Cloudflare account、Workers 或 Workers Builds 状态。
 
-如果你的 AI 客户端不支持 Cloudflare MCP，直接使用后面的 **Dashboard fallback**。
+如果客户端不支持 Cloudflare MCP，不影响 PPF 使用；直接用 Dashboard fallback。
 
-## 授权 2：让 Cloudflare 访问指定 GitHub repository
+## 3. 授权 Cloudflare ↔ GitHub
 
 1. 打开 Cloudflare Dashboard。
-2. 进入 Workers & Pages。
-3. 创建 Worker 并选择 **Import a repository**，或者在已有 Worker 的 Builds 设置中选择连接 Git repository。
+2. 进入 **Workers & Pages**。
+3. 选择 **Create application → Import a repository**，或在已有 Worker 的 Builds 设置中连接 Git repository。
 4. 选择 GitHub。
-5. GitHub 会显示 Cloudflare Workers & Pages App 的授权页面。
-6. 如果可以选择 **All repositories** 或 **Only select repositories**，请选择 **Only select repositories**。
-7. 只勾选当前 PPF 项目需要的 repository。
-8. 完成安装/授权并返回 Cloudflare。
+5. GitHub 显示 Cloudflare Workers & Pages App 授权页。
+6. 如果可以选择 **All repositories** 或 **Only select repositories**，选择 **Only select repositories**。
+7. 只选择当前项目需要的 repository。
+8. 返回 Cloudflare。
 
 完成标准：
 
-> Cloudflare 能看到当前项目 repository，但没有获得不相关 repository 的访问权限。
+> Cloudflare 能看到项目 repository，但没有获得不相关 repository 的访问权限。
 
-## 两次授权完成以后
+## 4. “Set up your application” 页面
 
-如果 AI Agent 已经能够调用 Cloudflare MCP，只需要告诉它：
+当前 Cloudflare 创建流程可能显示以下字段。
 
-> “Cloudflare OAuth 和 GitHub App 已授权，请按仓库中的 `cloudflare-builds.yaml` 完成 Workers Builds 配置与第一次 preview 验证。”
+### Project name
 
-AI 应继续完成：
+填项目的 Worker / project name。
 
-- 确认或创建 Worker；
-- 核对 Git repository connection；
-- 配置 production branch；
-- 配置 build / deploy / preview deploy commands；
-- 启用需要的 non-production branch builds；
-- 触发第一次 build；
-- 检查 build log；
-- 验证 preview / workers.dev URL；
-- 把真实状态写回项目的 readiness state。
+示例：
 
-## Dashboard fallback
+`epistemology-textbook`
 
-如果 AI 客户端不能使用 Cloudflare MCP，可以直接在 Cloudflare Dashboard 配置。
+### Build command
 
-从项目的 `cloudflare-builds.yaml` 复制这些字段：
+从 `cloudflare-builds.yaml` 复制。
 
-- Worker name；
-- GitHub repository；
-- production branch；
-- root directory；
-- build command；
-- deploy command；
-- preview deploy command。
+PPF Quarto reference：
 
-不要凭记忆重新输入，也不要自己改这些值。
+`bash scripts/cloudflare_build.sh`
 
-## Token 安全
+不要留空，因为 PPF reference build 需要固定 Quarto + canonical Web gate。
 
-Workers Builds 会使用 Cloudflare 侧的部署凭据。项目模板的原则是：
+### Deploy command
 
-- token 不进入 Git；
-- token 不写入聊天；
-- token 不写进 README；
-- token 不写入 `cloudflare-builds.yaml`；
-- GitHub App 尽量只授权 selected repositories；
-- 如果使用自定义 token，权限应尽量收窄；
-- 一次性 provisioning 权限与长期部署权限应分开。
+从 machine contract 复制。
 
-## 在第一次 preview 验证前不要做
+PPF reference：
+
+`npm run cloudflare:deploy`
+
+它最终调用：
+
+`wrangler deploy`
+
+### Builds for non-production branches
+
+PPF reference 建议：
+
+**开启 / 勾选**
+
+这样非 production branch 可以运行 preview build。
+
+### Protect with Cloudflare Access
+
+对于公开 PPF Web publication，默认保持关闭。
+
+只有项目明确需要受限访问时才开启。
+
+### Advanced settings → Non-production branch deploy command
+
+PPF reference：
+
+`npm run cloudflare:preview`
+
+它最终调用：
+
+`wrangler versions upload`
+
+### Advanced settings → Path
+
+如果项目从 repository 根目录构建：
+
+`/`
+
+如果是 monorepo，则应改成真正的项目目录。
+
+### API token
+
+Workers Builds 可以使用 Cloudflare 自动创建/选择的 **user build token**。
+
+重要：
+
+- 不复制 token secret；
+- 不把 token 写入 Git；
+- 不把 token 发到聊天；
+- 不把 token 写入 `cloudflare-builds.yaml`。
+
+当前 Cloudflare 产品对 Workers Builds 仍是 user-token 模型；详细安全 trade-off 见：
+
+`docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
+
+### Variables
+
+如果 machine contract 没有要求变量：
+
+**留空。**
+
+不要为了“看起来完整”随意创建变量或 secret。
+
+## 5. Production branch 没有显示怎么办
+
+创建页面不一定总会单独显示 production branch 字段。
+
+如果没有显示：
+
+1. 不要因此停止创建；
+2. repository default branch 如果是 `main`，完成后检查 build / deployment 记录；
+3. 确认 Cloudflare 的 build record 显示预期 branch；
+4. 如果需要进一步确认，在 Worker 的 Builds 设置中查看 trigger / branch 配置。
+
+不要为了找一个没显示的字段去改其他无关设置。
+
+## 6. 第一次 Deploy 后验证什么
+
+第一次成功后，不要立刻做 Custom Domain cutover。
+
+先确认：
+
+- Worker 存在；
+- GitHub repository connection 生效；
+- main build PASS；
+- non-production preview PASS；
+- workers.dev / preview URL 可以访问；
+- repository-defined build command 实际执行；
+- GitHub 原 production 仍然正常（如果正在迁移）。
+
+只有这些都通过后，才进入 Custom Domain / canonical URL / legacy-site policy。
+
+## 7. Token 安全与 production profile
+
+Workers Builds 的自动 build token 适合最低人工成本的原生 Git integration，但当前默认权限比纯 static Worker 日常 deploy 所需更宽。
+
+PPF 定义三种 Cloudflare security profile：
+
+- **Profile A — Workers Builds Native**：原生、低人工成本、当前 reference default；
+- **Profile B — Hardened External CI**：GitHub Actions + account-owned per-Worker Editor token；
+- **Profile C — Future Native Granular**：未来 Workers Builds 支持 account-owned per-Worker token 后的理想组合。
+
+详细说明：
+
+`docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
+
+## 8. 在 preview 验证前不要做
 
 - 不绑定正式 Custom Domain；
 - 不改 DNS；
@@ -119,4 +201,4 @@ Workers Builds 会使用 Cloudflare 侧的部署凭据。项目模板的原则�
 - 不修改 canonical URL；
 - 不把 preview 当成正式 production cutover。
 
-如果实际界面与文档不同，不要猜。记录当前页面标题和可见选项，再交给 AI 或项目维护者判断。
+如果实际 Cloudflare UI 与本文档不同，不要猜。记录页面标题和可见字段，再由 AI 或项目维护者核对。
