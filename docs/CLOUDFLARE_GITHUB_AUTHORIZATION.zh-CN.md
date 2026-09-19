@@ -63,6 +63,10 @@ Workers Builds MCP：
 
 ## 4. “Set up your application” 页面
 
+以下 UI 映射是 **2026-09-19 的 dated observation**，不是永久 Cloudflare 规范。完整映射与 UI drift 规则见：
+
+`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.zh-CN.md`
+
 当前 Cloudflare 创建流程可能显示以下字段。
 
 ### Project name
@@ -201,4 +205,4 @@ PPF 定义三种 Cloudflare security profile：
 - 不修改 canonical URL；
 - 不把 preview 当成正式 production cutover。
 
-如果实际 Cloudflare UI 与本文档不同，不要猜。记录页面标题和可见字段，再由 AI 或项目维护者核对。
+如果实际 Cloudflare UI 与本文档不同，不要猜。重新读取当前 provider UI、current official docs 与 repository machine contract，验证真实 build/runtime state，并把新观察反向更新到 dated Observed UI Mapping / runbook。

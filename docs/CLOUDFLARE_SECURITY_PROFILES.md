@@ -72,7 +72,15 @@ Costs:
 
 PPF label:
 
-`supported-hardened-alternative`
+`supported-hardened-alternative / pilot-candidate-validate-only`
+
+Current real-pilot evidence boundary:
+
+- candidate workflow repository/build validation: PASS;
+- credential / preview / production deployment steps in the PR context: SKIPPED;
+- account-owned per-Worker token: not configured;
+- Profile B production deployment: not executed;
+- therefore Profile B **must not** be described as production-tested.
 
 ## 4. Profile C — Future Native Granular
 

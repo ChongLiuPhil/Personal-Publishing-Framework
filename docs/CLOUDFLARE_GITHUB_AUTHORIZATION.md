@@ -63,6 +63,10 @@ Completion criterion:
 
 ## 4. The “Set up your application” page
 
+The UI mapping below is a **dated observation from 2026-09-19**, not a permanent Cloudflare specification. See the full mapping and UI-drift rule in:
+
+`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md`
+
 The current Cloudflare creation flow may show the following fields.
 
 ### Project name
@@ -203,4 +207,4 @@ See:
 - do not change the canonical URL;
 - do not treat preview as production cutover.
 
-If the live Cloudflare UI differs from this guide, do not guess. Record the page title and visible fields and reconcile them with an AI agent or maintainer.
+If the live Cloudflare UI differs from this guide, do not guess. Re-read the current provider UI, current official documentation, and repository machine contract; verify actual build/runtime state; then update the dated Observed UI Mapping / runbook with the new observation.
