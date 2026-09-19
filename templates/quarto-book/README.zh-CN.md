@@ -79,6 +79,48 @@ GitHub Actions 与 Cloudflare Workers Builds 都调用这一 gate，避免维护
 
 它是 PPF 的 machine contract，供 AI Agent 或人类操作者把参数配置到 Cloudflare Workers Builds。
 
+## Source visibility / publication visibility / access / canonical identity
+
+Reference template 现在显式展示四层独立状态：
+
+~~~yaml
+source:
+  visibility: public
+
+publication:
+  web:
+    authorization_state: authorized
+    visibility: public
+    access:
+      mode: none
+
+deployment:
+  web:
+    provider_url: null
+    canonical_identity:
+      type: null
+      url: null
+~~~
+
+默认值只是“公开 reference book”的示例，不是 PPF 强制默认。
+
+合法 downstream 组合包括：
+
+~~~text
+private source + public Web
+private source + restricted Web
+public source + restricted Web
+restricted Web + authenticated access
+~~~
+
+不要因为 repository 是 private 就把 Web 自动设成 private，也不要因为 Worker endpoint 已经可访问就把它自动设成 canonical。
+
+当 Web publication 需要 restricted/private access 时，Cloudflare reference 可以使用 Cloudflare Access；具体 mapping 见：
+
+`docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`
+
+该文件是 dated provider reference，不是 PPF conformance requirement。
+
 ## 推荐账户接入
 
 默认参考路线：
@@ -200,7 +242,9 @@ Cloudflare build wrapper 不假设 provider 预装 Quarto。它下载固定 rele
 7. 运行 GitHub reference contract CI；
 8. 完成 Cloudflare OAuth / GitHub App account authorization；
 9. 先通过 preview / workers.dev 验证；
-10. 最后才决定 Custom Domain、canonical URL 与 production cutover。
+10. 明确 source visibility、publication authorization / visibility 与 access policy；
+11. 区分 provider URL 与 canonical identity；
+12. 最后才决定 Custom Domain、canonical URL 与 production cutover。
 
 ## 输出目录
 
