@@ -138,3 +138,8 @@ The reference implementation is intentionally separate from the normative specif
 **Working version: v0.1.0-draft**
 
 The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, and a reusable Workers Builds ↔ GitHub integration extracted from that pilot. PPF now continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md` and `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`.
+
+
+For Cloudflare reference-implementation production credential profiles, see:
+
+`docs/CLOUDFLARE_SECURITY_PROFILES.md`
