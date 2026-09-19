@@ -136,3 +136,8 @@ Git canonical source
 **Working version: v0.1.0-draft**
 
 当前已完成初始规范、Quarto reference implementation、第一个真实 downstream runtime pilot，以及从该 pilot 提炼出的 Workers Builds ↔ GitHub 可复用集成范本。PPF 自身现已用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`，账户授权说明见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`。
+
+
+Cloudflare reference implementation 的 production credential 选择见：
+
+`docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
