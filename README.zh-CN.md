@@ -39,6 +39,7 @@ source update
 -> validate
 -> build HTML
 -> validate output
+-> deployment readiness gate
 -> deploy
 -> verify
 ```
@@ -118,6 +119,7 @@ PPF v0.1 将定义：
 Git canonical source
 -> Quarto profiles
 -> 自动验证 HTML
+-> deployment readiness gate
 -> Cloudflare Workers Static Assets
 
 明确请求
