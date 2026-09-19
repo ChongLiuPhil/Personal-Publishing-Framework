@@ -1,4 +1,4 @@
-name: Continuous Web Publication
+name: Continuous Web Validation
 
 on:
   pull_request:
@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 jobs:
-  build-web:
+  validate-web:
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -19,29 +19,13 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v6
 
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Render Web profile
-        run: quarto render --profile web
-
-      - name: Verify rendered Web artifact
-        run: test -f _book/index.html
-
-      - name: Reject incomplete deployment activation
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true' && vars.PRODUCTION_URL == ''
-        run: |
-          echo "WEB_DEPLOY_ENABLED=true requires PRODUCTION_URL to be configured." >&2
-          exit 1
-
-      - name: Deploy validated Web artifact to Cloudflare
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true' && vars.PRODUCTION_URL != ''
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: deploy
-
-      - name: Verify production URL
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.WEB_DEPLOY_ENABLED == 'true' && vars.PRODUCTION_URL != ''
-        run: curl --fail --location --retry 3 "${{ vars.PRODUCTION_URL }}"
+      - name: Run canonical Web publication gate
+        run: make web-publish-check
