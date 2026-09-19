@@ -74,5 +74,8 @@ jobs:
       - name: Validate reference publication contract
         run: make check
 
+      - name: Compile runtime verification helper
+        run: python -m py_compile scripts/verify_public_site.py
+
       - name: Simulate Workers Builds Web build
         run: make cloudflare-build
