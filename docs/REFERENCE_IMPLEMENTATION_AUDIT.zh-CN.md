@@ -2,7 +2,7 @@
 
 **日期：** 2026-09-19  
 **分支：** `reference-implementation-v0.1`  
-**状态：** PASS — initial static audit + downstream runtime validation + current root-level template CI
+**状态：** PASS — initial static audit + downstream runtime validation + verified Cloudflare staging/runtime evidence + current root-level template CI
 
 > 本文件记录最初 reference implementation 分支的静态审计。此后真实 downstream pilot 已完成，并对当前 `main` 模板产生改进；见 `FIRST_PILOT_LESSONS.zh-CN.md`。
 
@@ -104,7 +104,7 @@ PASS。
 
 **PASS。**
 
-PPF v0.1 Quarto reference implementation 可以合并，并进入真实项目 pilot 阶段。
+该句是最初审计阶段的历史结论。真实 downstream pilot 随后已经完成；当前 reference implementation 不再处于“等待 pilot”状态。
 
 
 ## 7. 后续 Runtime Pilot
@@ -138,7 +138,8 @@ Pilot 同时促成当前模板的后续修订：
 
 PPF root-level `Reference Template CI` 已实际执行通过。
 
-- run：`35428973528`
+- 首次持续验证记录：run `35428973528`；
+- 当前 main 参考实现验证：run `35444948817` @ `3e884e58db113a3ef5d499a6726784ea27fdd48f`，PASS；
 - exact Wrangler install/version check：PASS
 - publication contract validation：PASS
 - clean-runner pinned Quarto install + SHA-256 verification：PASS
@@ -150,3 +151,69 @@ PPF root-level `Reference Template CI` 已实际执行通过。
 1. initial static audit；
 2. downstream real-project runtime evidence；
 3. upstream continuous template execution validation。
+
+
+## 9. 当前 Cloudflare staging/runtime evidence
+
+后续真实 downstream pilot 已把 reference implementation 从“repository contract 可执行”推进到真实 provider staging/runtime 验证。
+
+`ChongLiuPhil/epistemology-textbook` 当前持久证据记录：
+
+- Cloudflare account connection：VERIFIED；
+- Cloudflare GitHub App / repository connection：VERIFIED；
+- Worker target：VERIFIED；
+- main Workers Build：PASS；
+- non-production preview：PASS；
+- main workers.dev HTTP/content runtime：PASS；
+- preview workers.dev HTTP/content runtime：PASS；
+- post-merge main push 再次触发 Workers Build：PASS。
+
+这些证据支持 reference implementation 中：
+
+- repository intent 与 provider actual state 分离；
+- build success 与 runtime success 分离；
+- preview/runtime verification 作为 cutover 前 gate；
+- provider action 后 write-back；
+- provider production branch 与 canonical production 分离。
+
+但它们**不**证明 Cloudflare 已成为 canonical production。
+
+当前 publication state 仍是：
+
+```text
+GitHub Pages = current canonical production
+Cloudflare workers.dev = verified staging/runtime target
+Custom Domain = not cut over
+canonical URL migration = not done
+legacy Pages policy = unresolved
+```
+
+## 10. Security-profile evidence boundary
+
+Cloudflare reference security profiles 的证据边界必须按真实 pilot 解释：
+
+- **Profile A — Workers Builds Native**：operationally verified；managed user token scope 比纯 static Worker routine deploy 所需更宽，不能称为 per-Worker least privilege；
+- **Profile B — Hardened External CI**：**candidate / validate-only PASS**；candidate workflow 的 repository/build validation 已通过，但 credential、preview、production deployment steps 未执行，**不是 production-tested**；
+- **Profile C — Future Native Granular**：当前 provider product capability 不支持所需组合，因此记录为 unavailable。
+
+Production security profile 的最终选择仍属于 human-governed security decision。
+
+## 11. 当前审计结论
+
+当前 reference implementation 已拥有四层真实 evidence：
+
+1. initial static audit；
+2. downstream source/build/multi-format runtime validation；
+3. downstream Cloudflare account/build/preview/workers.dev runtime validation；
+4. upstream continuous Reference Template CI。
+
+仍未验证、不得提前声称完成的项目包括：
+
+- Cloudflare Custom Domain cutover；
+- canonical URL migration；
+- legacy GitHub Pages policy execution；
+- Profile B production deployment；
+- Profile C native granular credential support；
+- Amazon KDP / Kindle 与 external publisher delivery。
+
+因此 reference implementation 当前可以被描述为 **real-pilot-backed staging/runtime reference**，但不能被描述为已经完成 Cloudflare canonical production cutover。

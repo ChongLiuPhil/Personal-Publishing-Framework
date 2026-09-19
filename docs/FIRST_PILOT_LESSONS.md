@@ -2,7 +2,8 @@
 
 **Date:** 2026-09-19  
 **Pilot:** `ChongLiuPhil/epistemology-textbook`  
-**PPF base:** v0.1.0-draft @ `9326920e1920d18f0a71eac26d4068da9d6bdffe`
+**PPF base:** v0.1.0-draft @ `9326920e1920d18f0a71eac26d4068da9d6bdffe`  
+**Current pilot evidence status:** Cloudflare staging/runtime VERIFIED; canonical production remains GitHub Pages; production cutover is not complete.
 
 ## 1. Purpose
 
@@ -188,7 +189,9 @@ Cloudflare MCP = optional agent-side account automation
 GitHub Actions + scoped token = fallback
 ```
 
-This stage still does **not** claim account-side Cloudflare deployment is complete. Worker/account/GitHub App connection, first Cloudflare preview, Custom Domain, and production cutover remain subject to later real account validation.
+> **Historical stage note:** The statement above describes the earlier repository-side integration stage only. It was later **superseded** by the real account-side staging/runtime evidence in section 11. Current state must not be interpreted as account-side unverified.
+
+At that stage, account-side Cloudflare deployment had not yet been claimed. Later real account validation established the GitHub App / repository connection, main build, preview, and workers.dev runtime; Custom Domain and canonical production cutover remain incomplete.
 
 
 ## 11. Cloudflare account-side staging and security profiles
@@ -212,8 +215,8 @@ The pilot also exposed an important product constraint:
 PPF therefore defines three Cloudflare reference security profiles:
 
 1. **Workers Builds Native** — current reference default with low manual setup and native Git integration, but a broader managed user-token scope;
-2. **Hardened External CI** — GitHub Actions + account-owned individual-Worker `Editor` token for true per-Worker least privilege;
-3. **Future Native Granular** — the ideal combination once Workers Builds supports account-owned tokens.
+2. **Hardened External CI** — a GitHub Actions + account-owned individual-Worker `Editor` hardened candidate; the current pilot reached repository/build **candidate / validate-only PASS** only, while credential / preview / production deployment steps were skipped in the PR context, so it must not be described as production-tested;
+3. **Future Native Granular** — the ideal combination once Workers Builds supports account-owned tokens; it is currently recorded as unavailable rather than falsely supported.
 
 See:
 
@@ -222,3 +225,33 @@ See:
 The general PPF lesson is not Cloudflare-specific:
 
 > when provider-native integration cannot simultaneously satisfy convenience and the required credential scope, the framework should record that trade-off explicitly and provide an auditable hardened alternative rather than silently describing broad permissions as least privilege.
+
+
+## 12. Current reconciled pilot state
+
+As of 2026-09-19, the durable pilot evidence should be read as:
+
+- Cloudflare account connection: VERIFIED;
+- GitHub App / repository connection: VERIFIED;
+- main Workers Build: PASS;
+- non-production preview: PASS;
+- main workers.dev HTTP/content runtime: PASS;
+- preview workers.dev HTTP/content runtime: PASS;
+- Profile A — Workers Builds Native: operationally verified, but the managed user-token scope is broader than the routine needs of a pure static Worker and is not per-Worker least privilege;
+- Profile B — Hardened External CI: candidate / validate-only PASS, **not production-tested**;
+- Profile C — Future Native Granular: currently unavailable because of provider product capability;
+- current canonical production: GitHub Pages;
+- Cloudflare workers.dev: staging/runtime evidence, not canonical production;
+- Custom Domain / canonical URL migration: NOT DONE;
+- GitHub Pages legacy URL policy: UNRESOLVED;
+- production security profile: WAITING HUMAN DECISION.
+
+Therefore:
+
+```text
+provider build verified
++ preview/runtime verified
+!= canonical production cutover
+```
+
+Cloudflare staging/runtime verification must not be reported as production cutover.

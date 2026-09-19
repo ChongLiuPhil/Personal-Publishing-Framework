@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-19  
 **Branch:** `reference-implementation-v0.1`  
-**Status:** PASS — initial static audit + downstream runtime validation + current root-level template CI
+**Status:** PASS — initial static audit + downstream runtime validation + verified Cloudflare staging/runtime evidence + current root-level template CI
 
 > This file records the static audit of the initial reference-implementation branch. A real downstream runtime pilot has since been completed and fed improvements into the current `main` template; see `FIRST_PILOT_LESSONS.md`.
 
@@ -104,7 +104,7 @@ Since then:
 
 **PASS.**
 
-The PPF v0.1 Quarto reference implementation is merge-ready and ready for a real-project pilot.
+That sentence is the historical conclusion of the initial audit stage. The real downstream pilot has since been completed; the current reference implementation is no longer waiting for a pilot.
 
 
 ## 7. Subsequent runtime pilot
@@ -138,7 +138,8 @@ See:
 
 The root-level PPF `Reference Template CI` has now executed successfully.
 
-- run: `35428973528`
+- first continuous-validation record: run `35428973528`;
+- current-main reference validation: run `35444948817` @ `3e884e58db113a3ef5d499a6726784ea27fdd48f`, PASS;
 - exact Wrangler installation/version check: PASS
 - publication-contract validation: PASS
 - clean-runner pinned Quarto installation + SHA-256 verification: PASS
@@ -150,3 +151,69 @@ The current reference implementation therefore has all three forms of evidence:
 1. initial static audit;
 2. downstream real-project runtime evidence;
 3. upstream continuous template execution validation.
+
+
+## 9. Current Cloudflare staging/runtime evidence
+
+The later real downstream pilot advanced the reference implementation from an executable repository contract to real provider staging/runtime verification.
+
+Current durable evidence in `ChongLiuPhil/epistemology-textbook` records:
+
+- Cloudflare account connection: VERIFIED;
+- Cloudflare GitHub App / repository connection: VERIFIED;
+- Worker target: VERIFIED;
+- main Workers Build: PASS;
+- non-production preview: PASS;
+- main workers.dev HTTP/content runtime: PASS;
+- preview workers.dev HTTP/content runtime: PASS;
+- another Workers Build triggered after a later main push: PASS.
+
+This evidence supports the reference implementation's separation of:
+
+- repository intent from provider actual state;
+- build success from runtime success;
+- preview/runtime verification as a pre-cutover gate;
+- provider action from repository write-back;
+- provider production branch from canonical production.
+
+It does **not** establish Cloudflare as canonical production.
+
+Current publication state remains:
+
+```text
+GitHub Pages = current canonical production
+Cloudflare workers.dev = verified staging/runtime target
+Custom Domain = not cut over
+canonical URL migration = not done
+legacy Pages policy = unresolved
+```
+
+## 10. Security-profile evidence boundary
+
+The Cloudflare reference security profiles must be interpreted according to real pilot evidence:
+
+- **Profile A — Workers Builds Native**: operationally verified; the managed user-token scope is broader than the routine needs of a pure static Worker and is not per-Worker least privilege;
+- **Profile B — Hardened External CI**: **candidate / validate-only PASS**; repository/build validation passed in the candidate workflow, while credential, preview, and production deployment steps were not executed, so it is **not production-tested**;
+- **Profile C — Future Native Granular**: the required combination is currently unavailable because of provider product capability.
+
+Final production-security-profile selection remains a human-governed security decision.
+
+## 11. Current audit conclusion
+
+The current reference implementation now has four layers of real evidence:
+
+1. initial static audit;
+2. downstream source/build/multi-format runtime validation;
+3. downstream Cloudflare account/build/preview/workers.dev runtime validation;
+4. upstream continuous Reference Template CI.
+
+Still unvalidated and therefore not to be claimed as complete:
+
+- Cloudflare Custom Domain cutover;
+- canonical URL migration;
+- execution of the legacy GitHub Pages policy;
+- Profile B production deployment;
+- Profile C native granular credential support;
+- Amazon KDP / Kindle and external-publisher delivery.
+
+The reference implementation can therefore be described as a **real-pilot-backed staging/runtime reference**, but not as having completed Cloudflare canonical production cutover.
