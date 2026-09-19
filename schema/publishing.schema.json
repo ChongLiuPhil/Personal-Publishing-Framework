@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/ppf/publishing.schema.json",
+  "title": "Personal Publishing Framework publication contract",
+  "description": "Draft schema for PPF v0.1 publishing.yaml files.",
+  "type": "object",
+  "required": ["schema", "project", "source", "publication"],
+  "properties": {
+    "schema": {
+      "const": "ppf/v0.1"
+    },
+    "project": {
+      "type": "object",
+      "required": ["id", "type", "title"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "type": {"type": "string", "minLength": 1},
+        "title": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": true
+    },
+    "source": {
+      "type": "object",
+      "required": ["canonical"],
+      "properties": {
+        "canonical": {"type": "string", "minLength": 1},
+        "branch": {"type": ["string", "null"]}
+      },
+      "additionalProperties": true
+    },
+    "publication": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["format", "mode", "enabled"],
+        "properties": {
+          "format": {"type": "string", "minLength": 1},
+          "mode": {"enum": ["continuous", "on-demand"]},
+          "enabled": {"type": "boolean"}
+        },
+        "additionalProperties": true
+      }
+    },
+    "deployment": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "archive": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}
