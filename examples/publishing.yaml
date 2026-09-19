@@ -1,0 +1,50 @@
+schema: ppf/v0.1
+
+project:
+  id: example-book
+  type: book
+  title: Example Book
+
+source:
+  canonical: git
+  branch: main
+
+publication:
+  web:
+    format: html
+    mode: continuous
+    enabled: true
+
+  epub:
+    format: epub
+    mode: on-demand
+    enabled: true
+
+  pdf:
+    format: pdf
+    mode: on-demand
+    enabled: true
+
+  docx:
+    format: docx
+    mode: on-demand
+    enabled: true
+
+  latex:
+    format: latex
+    mode: on-demand
+    enabled: true
+
+deployment:
+  web:
+    provider: cloudflare-workers
+    output_directory: _book
+    production_url: null
+
+release:
+  versioning: semver
+  require_explicit_release: true
+
+archive:
+  preserve_source: true
+  preserve_release_artifacts: true
