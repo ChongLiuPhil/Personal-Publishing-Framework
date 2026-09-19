@@ -81,7 +81,9 @@ The first reference implementation is expected to use:
 - Git as the canonical versioned source
 - Quarto / Pandoc for source-to-format transformation
 - HTML as the default continuously published format
-- GitHub Actions as a validation and publication gate
+- GitHub Actions as an independent validation gate
+- a repository-owned `make web-publish-check` as the canonical Web publication gate
+- Cloudflare Workers Builds + the GitHub App as the default reference delivery integration
 - Cloudflare Workers Static Assets as a Web delivery layer
 - EPUB, PDF, DOCX, and LaTeX as on-demand publication artifacts
 
@@ -119,9 +121,9 @@ It implements the PPF model as:
 
 ```text
 Git canonical source
--> Quarto profiles
--> automatic validated HTML
--> deployment readiness gate
+-> repository-owned Web gate
+-> GitHub Actions independent validation
+-> Cloudflare Workers Builds
 -> Cloudflare Workers Static Assets
 
 explicit request
@@ -135,4 +137,4 @@ The reference implementation is intentionally separate from the normative specif
 
 **Working version: v0.1.0-draft**
 
-The project now includes the initial specification, an executable Quarto reference implementation, and feedback from its first real downstream runtime pilot. See `docs/FIRST_PILOT_LESSONS.md`.
+The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, and a reusable Workers Builds ↔ GitHub integration extracted from that pilot. PPF now continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md` and `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`.
