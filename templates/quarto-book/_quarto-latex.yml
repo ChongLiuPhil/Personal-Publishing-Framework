@@ -1,0 +1,7 @@
+project:
+  output-dir: _publication/latex
+
+format:
+  latex:
+    documentclass: scrbook
+    toc: true
