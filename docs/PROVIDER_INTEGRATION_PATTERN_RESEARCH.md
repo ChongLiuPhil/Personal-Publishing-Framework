@@ -1,7 +1,7 @@
 # Provider Integration Pattern — Research Note
 
 **Status:** `AI-PROPOSED / NON-NORMATIVE / RESEARCH NOTE`  
-**Reviewed:** 2026-09-19  
+**Research date:** 2026-09-19  
 **Scope:** PPF reference implementation / cross-layer architecture research
 
 > This file records an infrastructure pattern that has not been promoted into normative PPF. It is not a human-approved PPF Core decision, does not change the current Cloudflare production security profile, and does not create a new standalone project.
@@ -381,3 +381,16 @@ This research note does not change:
 - the Academic Vault responsibility boundary.
 
 It only provides an auditable starting point for the next architecture-research phase.
+
+
+## 11. External reference anchors
+
+This note uses the following public engineering specifications and documentation as comparison points, not as normative PPF sources:
+
+- OpenGitOps Principles — <https://opengitops.dev/>
+- Kubernetes Controllers — <https://kubernetes.io/docs/concepts/architecture/controller/>
+- Terraform provisioning workflow — <https://developer.hashicorp.com/terraform/cli/run>
+- OAuth 2.0 Authorization Framework (RFC 6749) — <https://www.rfc-editor.org/rfc/rfc6749>
+- Model Context Protocol 2026-07-28 release overview — <https://blog.modelcontextprotocol.io/posts/2026-07-28/>
+
+These references establish existing technical background for desired/actual reconciliation, plan/apply workflows, delegated authorization, and agent-tool authorization. PPF terminology and scope remain defined by PPF itself.
