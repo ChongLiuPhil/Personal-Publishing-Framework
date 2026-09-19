@@ -8,6 +8,10 @@ on:
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
       - "docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION*.md"
+      - "docs/CLOUDFLARE_ACCESS_PROFILE*.md"
+      - "docs/CLOUDFLARE_OBSERVED_UI_MAPPING*.md"
+      - "docs/CLOUDFLARE_GITHUB_AUTHORIZATION*.md"
+      - "docs/CLOUDFLARE_SECURITY_PROFILES*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
       - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - ".github/workflows/reference-template-ci.yml"
@@ -20,6 +24,10 @@ on:
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
       - "docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION*.md"
+      - "docs/CLOUDFLARE_ACCESS_PROFILE*.md"
+      - "docs/CLOUDFLARE_OBSERVED_UI_MAPPING*.md"
+      - "docs/CLOUDFLARE_GITHUB_AUTHORIZATION*.md"
+      - "docs/CLOUDFLARE_SECURITY_PROFILES*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
       - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - ".github/workflows/reference-template-ci.yml"
@@ -122,6 +130,18 @@ jobs:
 
           print("Publication visibility/access/canonical-identity schema semantics passed.")
           PY
+
+      - name: Validate reference visibility/access contract markers
+        run: |
+          grep -q "visibility: public" publishing.yaml
+          grep -q "authorization_state: authorized" publishing.yaml
+          grep -q "mode: none" publishing.yaml
+          grep -q "provider_url: null" publishing.yaml
+          grep -q "canonical_identity:" publishing.yaml
+          grep -q "REFERENCE-ONLY / DATED PROVIDER MAPPING" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
+          grep -q "Worker-level" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
+          grep -q "private repository => enable Access" ../../docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md
+          grep -q "deployment-credential security from publication access" ../../docs/CLOUDFLARE_SECURITY_PROFILES.md
 
       - name: Validate reference publication contract
         run: make check
