@@ -52,6 +52,18 @@
             "string",
             "null"
           ]
+        },
+        "visibility": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            null,
+            "public",
+            "private",
+            "restricted"
+          ]
         }
       },
       "additionalProperties": true
@@ -79,6 +91,63 @@
           },
           "enabled": {
             "type": "boolean"
+          },
+          "authorization_state": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null,
+              "unresolved",
+              "authorized",
+              "not-authorized",
+              "not-applicable"
+            ]
+          },
+          "visibility": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              null,
+              "public",
+              "restricted",
+              "private"
+            ]
+          },
+          "access": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "authenticated",
+                  "selected-audience",
+                  "other"
+                ]
+              },
+              "implementation": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              },
+              "policy_ref": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "minLength": 1
+              }
+            },
+            "additionalProperties": true
           }
         },
         "additionalProperties": true
@@ -255,6 +324,41 @@
                 "string",
                 "null"
               ]
+            },
+            "provider_url": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "format": "uri"
+            },
+            "canonical_identity": {
+              "type": [
+                "object",
+                "null"
+              ],
+              "properties": {
+                "type": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    null,
+                    "provider-native",
+                    "custom-domain",
+                    "other"
+                  ]
+                },
+                "url": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uri"
+                }
+              },
+              "additionalProperties": true
             }
           },
           "additionalProperties": true
