@@ -131,4 +131,4 @@ Git canonical source
 
 **Working version: v0.1.0-draft**
 
-当前处于规范与参考实现的初始阶段。
+当前已完成初始规范、Quarto reference implementation，以及第一个真实 downstream runtime pilot。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`。
