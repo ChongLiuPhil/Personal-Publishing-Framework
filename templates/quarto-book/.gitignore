@@ -1,3 +1,7 @@
 /.quarto/
 /_book/
 /_publication/
+
+# Local publishing/deployment tooling
+node_modules/
+.wrangler/
