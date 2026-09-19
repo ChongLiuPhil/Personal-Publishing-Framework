@@ -49,6 +49,12 @@ PPF 定义两种主要模式：
 
 除非项目显式声明，否则 artifact 均视为派生结果。
 
+### 3.5 Deployment readiness
+
+`continuous` 描述的是某个输出应随已接受的源内容变化而持续重建的发布意图；它**不等于**在 provider 尚未配置完成时无条件执行外部部署。
+
+如果某个 deployment provider 需要目标资源、凭据、域名或其他前置条件，项目 MUST 在启用自动 deployment 前确认这些条件。项目 SHOULD 让 deployment activation 成为显式、可审计的状态，而不是由“仓库存在某个 workflow”隐式推断。
+
 ## 4. 生命周期
 
 PPF 区分：
@@ -78,15 +84,20 @@ accepted source change
 -> source validation
 -> HTML build
 -> output validation
+-> deployment readiness gate
 -> deployment
 -> production verification
 ```
 
 验证失败必须阻止发布。
 
+在 deployment provider 尚未 ready 时，continuous Web **build / validation** MAY 保持启用，而 provider deployment 保持 staged / disabled。
+
 ## 6. 按需格式
 
 EPUB、PDF、DOCX、LaTeX 和 print-ready files 等格式，默认应采用 on-demand，除非项目有明确理由持续构建。
+
+在可行时，一次显式 on-demand 请求 SHOULD 只选择并构建一个目标格式，以减少无关工具链、字体、TeX 或平台依赖对其他格式的耦合。
 
 ## 7. 可迁移性
 
@@ -112,10 +123,12 @@ PPF 本身不重新定义作者身份、主体性或责任。
 
 首个 reference stack 可以使用 Git、Quarto/Pandoc、GitHub Actions 和 Cloudflare Workers Static Assets；这些实现不是规范性要求。
 
+在 provider 支持权限范围划分时，reference implementation SHOULD 把一次性 infrastructure provisioning 与长期 recurring deployment credential 分离，并为持续部署使用满足任务所需的最小权限。
+
 ## 11. 版本
 
 规范自身在积极开发阶段使用语义版本。具体作品的 edition 可以采用其他明确记录的版本规则。
 
 ## 12. 当前合规状态
 
-本草案只定义概念最小集。schema validation、reference workflows、release conventions 和 conformance tests 将在后续 v0.1 修订中发展。
+本草案已经包含初始 schema、reference workflows 与首个真实 downstream runtime pilot 的反馈。更完整的 conformance tests、release conventions 与 provider migration guides 仍将在后续 v0.1 修订中发展。
