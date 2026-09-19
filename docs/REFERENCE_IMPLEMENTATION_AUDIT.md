@@ -2,7 +2,9 @@
 
 **Date:** 2026-09-19  
 **Branch:** `reference-implementation-v0.1`  
-**Status:** PASS — static reference-template audit
+**Status:** PASS — initial static reference-template audit
+
+> This file records the static audit of the initial reference-implementation branch. A real downstream runtime pilot has since been completed and fed improvements into the current `main` template; see `FIRST_PILOT_LESSONS.md`.
 
 ## Subject
 
@@ -93,3 +95,26 @@ Runtime validation belongs in the first downstream pilot: `epistemology-textbook
 **PASS.**
 
 The PPF v0.1 Quarto reference implementation is merge-ready and ready for a real-project pilot.
+
+
+## 7. Subsequent runtime pilot
+
+The downstream runtime validation proposed by the initial audit was completed in `ChongLiuPhil/epistemology-textbook`.
+
+Real runs validated:
+
+- Web profile: PASS;
+- rendered HTML integrity: PASS;
+- EPUB / PDF / DOCX / LaTeX: all PASS;
+- production-path GitHub Pages deployment: PASS.
+
+The pilot also drove later revisions to the current template:
+
+- continuous Web build separated from provider-deployment activation;
+- Cloudflare deployment staged by default;
+- one-format-per-request artifact verification;
+- separation of provider provisioning from recurring deployment credentials.
+
+See:
+
+`docs/FIRST_PILOT_LESSONS.md`
