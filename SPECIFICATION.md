@@ -20,6 +20,8 @@ PPF is intentionally neutral about subject matter. A compliant project may conta
 
 A PPF project MUST identify a canonical source.
 
+A project MAY record source visibility such as `public`, `private`, or `restricted`. Source visibility describes who can see source material; it MUST NOT automatically determine publication authorization, publication visibility, or Web access policy.
+
 The source SHOULD be:
 - human-readable where practical;
 - version-controlled;
@@ -153,6 +155,58 @@ General strategies may include:
 
 Legacy URL policy is distinct from target-provider readiness. Successful runtime verification on the new provider does not automatically authorize shutting down the old site.
 
+### 3.11 Publication visibility and access policy
+
+PPF MUST distinguish:
+
+- **Publication Authorization** — whether a particular artifact / channel is approved for publication;
+- **Publication Visibility** — the intended visibility scope of an already published artifact;
+- **Access Policy** — which visitors may actually enter the published artifact and what authentication / audience rule applies.
+
+General publication-visibility semantics include at least:
+
+- `public` — accessible to the public Internet;
+- `restricted` — published, but available only to visitors satisfying an access policy;
+- `private` — not generally available to an audience beyond the project-defined access boundary.
+
+A project MAY use provider-neutral access modes such as `authenticated`, `selected-audience`, or another documented mode. Concrete identity providers, passwords/OTP, SSO, allowlists, or provider access-control products are implementation details; the PPF normative core does not require one technology.
+
+The following inferences are invalid:
+
+~~~text
+public source => public publication
+private source => private publication
+deployed runtime => public publication
+publication authorized => unrestricted access
+~~~
+
+If publication visibility is `restricted` or `private`, a project SHOULD record the applicable access policy or explicitly record that the policy remains unresolved.
+
+Passwords, tokens, private keys, recovery codes, and other secrets MUST NOT be stored in access-policy metadata.
+
+### 3.12 Canonical publication identity and delivery provider
+
+PPF MUST distinguish:
+
+- **Provider URL / Endpoint** — the actual endpoint assigned or hosted by the current delivery provider;
+- **Canonical Publication Identity** — the canonical URL identity that the project intends readers, citations, indexes, or other long-lived references to use.
+
+Canonical identity MAY use a provider-native URL, a custom domain, or another explicitly documented naming form.
+
+When long-term URL portability matters, a project **SHOULD** prefer a canonical identity that does not depend on one delivery provider. PPF does not require a project to purchase or configure a custom domain.
+
+A successfully deployed provider-native endpoint does not automatically become the canonical identity. Establishing, migrating, or replacing canonical identity remains an explicit cutover / authorization decision.
+
+During migration, a project MAY simultaneously have:
+
+~~~text
+provider endpoint
++ incumbent canonical URL
++ future canonical URL
+~~~
+
+The roles of these URLs MUST be recorded explicitly rather than inferred merely from which URL is currently reachable.
+
 ## 4. Lifecycle
 
 PPF distinguishes:
@@ -211,11 +265,25 @@ A PPF project SHOULD minimize format-specific markup in canonical content where 
 
 Platform-specific enhancements MAY exist, but essential meaning SHOULD remain recoverable without them.
 
-## 8. Authorization
+## 8. Authorization, visibility, and access boundaries
 
-Repository visibility and publication authorization are distinct concepts.
+A PPF project MUST model the following concepts separately and MUST NOT infer one automatically from another:
 
-A public source repository MUST NOT by itself be interpreted as authorization to publish every possible output or distribution target.
+1. **Source / Repository Visibility** — who can see the source material or repository;
+2. **Publication Authorization** — whether an artifact / channel is permitted to be published;
+3. **Publication Visibility** — whether the published artifact is intended for a public, restricted, or private audience;
+4. **Access Policy** — which visitors may actually enter and what authentication or audience rule applies;
+5. **Canonical Publication Identity** — the URL identity intended for long-lived reader or citation use.
+
+Therefore:
+
+- a public source repository does not automatically authorize every output or distribution channel;
+- a private source repository does not automatically require a private Web publication;
+- publication authorization does not automatically mean unrestricted public access;
+- a reachable provider runtime does not automatically make that endpoint the canonical URL;
+- an access-controlled publication can still be a formal, authorized publication.
+
+A project SHOULD record enough metadata in its publication contract to distinguish these states without turning provider product limitations into PPF core rules.
 
 ## 9. AI neutrality
 
