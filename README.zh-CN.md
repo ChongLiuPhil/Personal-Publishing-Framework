@@ -2,6 +2,8 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
+**体系与 Agent 入口：** [`docs/ECOSYSTEM.zh-CN.md`](docs/ECOSYSTEM.zh-CN.md) · [`ecosystem.yaml`](ecosystem.yaml) · [Starter 统一指南](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.zh-CN.md)
+
 **Personal Publishing Framework（PPF，个人出版框架）**是一套以源内容为中心、强调可迁移性的框架，用于发展、分享和出版知识与创作成果。
 
 > **格式和平台可以更换；源内容应当长久存在。**
