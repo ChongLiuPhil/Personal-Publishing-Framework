@@ -148,3 +148,12 @@ For the non-normative architecture research on generalizing the real Cloudflare 
 
 `docs/PROVIDER_INTEGRATION_PATTERN_RESEARCH.md`
 
+
+
+## Composite Starter
+
+For projects that need to compose AHICP with PPF and the public Vault Interface, or upgrade an existing GitHub project under explicit version pins, use:
+
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter
+
+The Starter handles composition, revision locking, checks, and upgrade planning only. This repository remains authoritative for its own specification and templates.
