@@ -1,8 +1,8 @@
 **Project links:** [Public homepage](https://chongliuphil.github.io/Personal-Publishing-Framework/) · [GitHub repository](https://github.com/ChongLiuPhil/Personal-Publishing-Framework)
 
-**Related public projects:** [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [Starter homepage](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
+**Related public projects:** [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [Vault Interface homepage](https://chongliuphil.github.io/Vault-interface/) · [Starter homepage](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
 
-**Ecosystem and agent entrypoint:** [`docs/ECOSYSTEM.md`](docs/ECOSYSTEM.md) · [`ecosystem.yaml`](ecosystem.yaml) · [Starter unified guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md)
+**Ecosystem and agent entrypoint:** [`docs/ECOSYSTEM.md`](docs/ECOSYSTEM.md) · [`ecosystem.yaml`](ecosystem.yaml) · [`llms.txt`](docs/llms.txt) · [Starter unified guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md) · [Agent retrieval contract](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md)
 
 # Personal Publishing Framework
 
@@ -33,6 +33,8 @@ Creator-owned source
 ```
 
 The canonical source should remain portable and reconstructable even when publishing tools, hosting providers, or distribution platforms change.
+
+For newly configured original or unpublished work, the reference safety default is a **private canonical source** with Continuous Web kept **restricted and authenticated** until explicit human public-release authorization. Public Web output never implies that the source repository must become public.
 
 ## Two publication modes
 
