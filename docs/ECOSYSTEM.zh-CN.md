@@ -2,6 +2,8 @@
 
 PPF 是以源文件为中心的出版生命周期组件，负责构建、发布、发行、归档和 Continuous Web；它不替代 AHICP 的人类—AI 协作治理。
 
+如果是第一次从人的角度了解整个体系，请先阅读 [AHICP《普通人指南》](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.zh-CN.md)。AHICP 是人类概念入口；Starter 仍然是机器/配置入口。
+
 要完成一个项目的完整配置，请遵循 [Starter 体系入口](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.zh-CN.md)，并连接：
 
 - [AHICP 主页](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [仓库](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol)
