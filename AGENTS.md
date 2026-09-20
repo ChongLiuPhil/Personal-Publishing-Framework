@@ -5,7 +5,7 @@ Before configuring or publishing a project, read:
 1. [`docs/ECOSYSTEM.md`](docs/ECOSYSTEM.md)
 2. [`ecosystem.yaml`](ecosystem.yaml)
 3. the [canonical cross-repository agent retrieval contract](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md)
-4. when Continuous Web or Cloudflare is in scope, [`docs/CONTINUOUS_WEB_CLOUDFLARE.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.md), then the applicable provider-specific PPF runbooks
+4. when Continuous Web or Cloudflare is in scope, [`docs/CONTINUOUS_WEB_CLOUDFLARE.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.md), the Starter minimal-human/Work handoff, then the applicable provider-specific PPF runbooks
 5. the project's AHICP entrypoint and selected Starter profile when this PPF layer participates in the full stack
 
 For new projects containing original or unpublished work, the safe default is a private canonical source plus Continuous Web in a restricted, authenticated state. When used through the full Inquiry Publishing Stack, the default composition is full PPF + full AHICP + Vault Interface; reduced profiles require explicit human selection.
