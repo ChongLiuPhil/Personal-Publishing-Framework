@@ -61,6 +61,34 @@ Workers Builds MCP：
 
 > Cloudflare 能看到项目 repository，但没有获得不相关 repository 的访问权限。
 
+### 完成这次一次性授权以后
+
+人类应停止手工执行常规 build 配置。Cloudflare 当前 Workers Builds API 已支持在 GitHub App 授权存在后，程序化管理 repository connection、trigger、environment variable、build 执行与 build monitoring。
+
+API Agent 使用 **user-scoped** token：
+
+~~~text
+Workers Builds Configuration: Edit
+Workers Scripts: Read
+~~~
+
+前者管理 Builds/configuration，后者用于解析 Worker immutable tag。Token 只进入执行工具的 secure secret store，不进入 Git 或聊天。
+
+Access application / policy 自动化使用另一枚最小权限 token：
+
+~~~text
+Access: Apps and Policies Write
+~~~
+
+只有 Agent 必须创建/修改 OTP 或 identity provider 时，再增加：
+
+~~~text
+Access: Organizations, Identity Providers, and Groups Write
+~~~
+
+Canonical 最小人类操作契约位于 Starter：
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_MINIMAL_HUMAN_HANDOFF.zh-CN.md
+
 ## 4. “Set up your application” 页面
 
 以下 UI 映射是 **2026-09-19 的 dated observation**，不是永久 Cloudflare 规范。完整映射与 UI drift 规则见：
