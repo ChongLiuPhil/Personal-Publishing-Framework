@@ -146,3 +146,12 @@ Cloudflare reference implementation 的 production credential 选择见：
 
 `docs/PROVIDER_INTEGRATION_PATTERN_RESEARCH.zh-CN.md`
 
+
+
+## 与综合 Starter 的关系
+
+如果希望把 AHICP、PPF 与公开 Vault Interface 组合到新项目，或对既有 GitHub 项目进行可审计升级，可使用：
+
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter
+
+Starter 只负责组合、版本锁定、检查与升级计划；本仓库继续是自身规范／模板的权威来源。
