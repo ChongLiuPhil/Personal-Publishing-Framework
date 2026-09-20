@@ -432,5 +432,54 @@
       "additionalProperties": true
     }
   },
-  "additionalProperties": true
+  "additionalProperties": true,
+  "allOf": [
+    {
+      "if": {
+        "required": [
+          "deployment"
+        ],
+        "properties": {
+          "deployment": {
+            "required": [
+              "web"
+            ],
+            "properties": {
+              "web": {
+                "required": [
+                  "enabled"
+                ],
+                "properties": {
+                  "enabled": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "publication": {
+            "required": [
+              "web"
+            ],
+            "properties": {
+              "web": {
+                "required": [
+                  "authorization_state"
+                ],
+                "properties": {
+                  "authorization_state": {
+                    "const": "authorized"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

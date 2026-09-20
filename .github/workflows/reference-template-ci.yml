@@ -105,6 +105,27 @@ jobs:
           if not list(validator.iter_errors(invalid)): raise SystemExit("provider-specific access mode unexpectedly validated")
           print("Publication visibility/access/canonical-identity schema semantics passed.")
           PY
+      - name: Reject deployment without publication authorization
+        run: |
+          python - <<'PY'
+          import copy, json
+          from pathlib import Path
+          import yaml
+          from jsonschema import Draft202012Validator
+          schema = json.loads(Path("../../schema/publishing.schema.json").read_text(encoding="utf-8"))
+          base = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
+          invalid = copy.deepcopy(base)
+          invalid["deployment"]["web"]["enabled"] = True
+          invalid["publication"]["web"]["authorization_state"] = "not-authorized"
+          if not list(Draft202012Validator(schema).iter_errors(invalid)):
+              raise SystemExit("deployment enabled without authorization unexpectedly validated")
+          valid = copy.deepcopy(base)
+          valid["deployment"]["web"]["enabled"] = True
+          valid["publication"]["web"]["authorization_state"] = "authorized"
+          if list(Draft202012Validator(schema).iter_errors(valid)):
+              raise SystemExit("authorized deployment should validate")
+          print("Publication authorization/deployment invariant passed.")
+          PY
       - name: Validate installable publication authorization boundary
         run: |
           grep -q "visibility: public" publishing.yaml
