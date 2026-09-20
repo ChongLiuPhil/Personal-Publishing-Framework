@@ -61,6 +61,30 @@ Completion criterion:
 
 > Cloudflare can see the project repository without receiving access to unrelated repositories.
 
+### After this one-time authorization
+
+The human should stop doing routine build configuration manually. Current Cloudflare Workers Builds documentation exposes an API for repository connections, triggers, environment variables, build execution, and build monitoring after the GitHub App authorization exists.
+
+For API automation, use a **user-scoped** token with:
+
+~~~text
+Workers Builds Configuration: Edit
+Workers Scripts: Read
+~~~
+
+The first permission manages builds/triggers/configuration; the second is used to resolve the Worker's immutable tag. Keep this API token in the executing tool's secure secret store, not in Git or chat.
+
+For Access application/policy automation, use a separate token with:
+
+~~~text
+Access: Apps and Policies Write
+~~~
+
+Add `Access: Organizations, Identity Providers, and Groups Write` only if the agent must create or modify the OTP/identity-provider configuration.
+
+The canonical minimal-human execution contract lives in the Starter:
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_MINIMAL_HUMAN_HANDOFF.md
+
 ## 4. The “Set up your application” page
 
 The UI mapping below is a **dated observation from 2026-09-19**, not a permanent Cloudflare specification. See the full mapping and UI-drift rule in:
