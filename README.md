@@ -157,3 +157,13 @@ For projects that need to compose AHICP with PPF and the public Vault Interface,
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter
 
 The Starter handles composition, revision locking, checks, and upgrade planning only. This repository remains authoritative for its own specification and templates.
+
+## Licensing
+
+This repository uses a **noncommercial split-license model** intended to support personal learning, education, research, public-benefit work, and other noncommercial reuse.
+
+- Software, scripts, schemas, automation, machine-readable configuration, and executable templates: **PolyForm Noncommercial License 1.0.0**.
+- Prose documentation, specifications, diagrams, educational content, and methodological materials: **CC BY-NC-SA 4.0**.
+- Commercial use requires a separate commercial license.
+
+See [LICENSE.md](LICENSE.md) and [COMMERCIAL-LICENSING.md](COMMERCIAL-LICENSING.md) for the authoritative repository-level licensing boundary.

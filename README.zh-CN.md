@@ -155,3 +155,13 @@ Cloudflare reference implementation 的 production credential 选择见：
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter
 
 Starter 只负责组合、版本锁定、检查与升级计划；本仓库继续是自身规范／模板的权威来源。
+
+## 许可
+
+本仓库采用**非商业双重许可模式**，目的是支持个人学习、教育、研究、公益以及其他非商业复用，同时保留商业授权权利。
+
+- 软件、脚本、Schema、自动化、机器可读配置和可执行模板：**PolyForm Noncommercial License 1.0.0**；
+- 说明文档、规范、图示、教育材料与方法论内容：**CC BY-NC-SA 4.0**；
+- 商业使用需要另行取得商业许可。
+
+仓库级权威许可边界见 [LICENSE.md](LICENSE.md) 与 [COMMERCIAL-LICENSING.md](COMMERCIAL-LICENSING.md)。
