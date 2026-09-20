@@ -8,7 +8,7 @@ project:
 source:
   canonical: git
   branch: main
-  visibility: public
+  visibility: private
 
 publication:
   web:
@@ -16,11 +16,11 @@ publication:
     mode: continuous
     enabled: true
     authorization_state: not-authorized
-    visibility: public
+    visibility: restricted
     access:
-      mode: none
-      implementation: null
-      policy_ref: null
+      mode: authenticated
+      implementation: cloudflare-access
+      policy_ref: shared-reader-access
 
   epub:
     format: epub
