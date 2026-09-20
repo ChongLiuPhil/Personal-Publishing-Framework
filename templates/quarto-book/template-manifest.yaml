@@ -1,0 +1,35 @@
+schema: ppf-template-manifest/v1
+template_version: 0.1.0-draft
+profile: quarto-book-cloudflare
+template_root: templates/quarto-book
+
+upstream_managed:
+  - scripts/ensure_quarto.sh
+  - scripts/cloudflare_build.sh
+  - scripts/verify_public_site.py
+  - .github/workflows/cloudflare-contract-ci.yml
+
+merge_managed:
+  - Makefile
+  - publishing.yaml
+  - cloudflare-builds.yaml
+  - wrangler.jsonc
+  - package.json
+  - .github/workflows/web.yml
+  - .github/workflows/build-publication.yml
+
+project_owned:
+  - index.qmd
+  - chapter-*.qmd
+  - manuscript/**
+  - references.bib
+  - book.css
+  - assets/**
+  - project-specific validators
+
+upgrade_rules:
+  - never-overwrite-project-owned-content
+  - compare-base-current-new-for-merge-managed
+  - preserve-human-publication-authorization
+  - preserve-provider-actual-state
+  - never-write-secrets-to-git
