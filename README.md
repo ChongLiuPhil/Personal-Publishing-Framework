@@ -1,6 +1,6 @@
 **Project links:** [Public homepage](https://chongliuphil.github.io/Personal-Publishing-Framework/) · [GitHub repository](https://github.com/ChongLiuPhil/Personal-Publishing-Framework)
 
-**Human first entrypoint:** [AHICP Human Guide](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.md) · [Chinese canonical](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.zh-CN.md)
+**New to the full stack?** Start with the [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/), which explains the system from the user’s point of view and shows how to hand technical setup to an AI.
 
 **Related public projects:** [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [Vault Interface homepage](https://chongliuphil.github.io/Vault-interface/) · [Starter homepage](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
 
@@ -10,7 +10,7 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-**Personal Publishing Framework (PPF)** is a source-centered, portable framework for developing, sharing, and publishing knowledge and creative work.
+**Personal Publishing Framework (PPF)** is a source-centered framework for keeping knowledge and creative work portable, rebuildable, and publishable over time.
 
 > **Formats and platforms are replaceable; the source should endure.**
 
@@ -34,7 +34,7 @@ Creator-owned source
                                           Print
 ```
 
-The canonical source should remain portable and reconstructable even when publishing tools, hosting providers, or distribution platforms change.
+The durable source should remain portable and reconstructable even when publishing tools, hosting providers, or distribution platforms change.
 
 For newly configured original or unpublished work, the reference safety default is a **private canonical source** with Continuous Web kept **restricted and authenticated** until explicit human public-release authorization. Public Web output never implies that the source repository must become public.
 
