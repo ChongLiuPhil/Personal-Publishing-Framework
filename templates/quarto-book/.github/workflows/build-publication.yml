@@ -7,11 +7,7 @@ on:
         description: Publication format to build
         required: true
         type: choice
-        options:
-          - epub
-          - pdf
-          - docx
-          - latex
+        options: [epub, pdf, docx, latex]
 
 permissions:
   contents: read
@@ -20,28 +16,22 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Quarto
-        uses: quarto-dev/quarto-actions/setup@v2
-
+      - uses: actions/checkout@v6
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: "1.10.18"
       - name: Install TinyTeX for PDF
         if: inputs.format == 'pdf'
         run: quarto install tinytex --no-prompt
-
       - name: Render requested profile
         run: quarto render --profile "${{ inputs.format }}"
-
       - name: Verify requested artifact
         shell: bash
         run: |
           set -euo pipefail
           format="${{ inputs.format }}"
           output="_publication/$format"
-
           case "$format" in
             epub) extension="epub" ;;
             pdf) extension="pdf" ;;
@@ -49,12 +39,9 @@ jobs:
             latex) extension="tex" ;;
             *) echo "Unsupported format: $format" >&2; exit 1 ;;
           esac
-
           test -d "$output"
           test -n "$(find "$output" -type f -name "*.$extension" -print -quit)"
-
-      - name: Upload publication artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: "publication-${{ inputs.format }}-${{ github.sha }}"
           path: "_publication/${{ inputs.format }}/"

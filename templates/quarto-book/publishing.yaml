@@ -15,7 +15,7 @@ publication:
     format: html
     mode: continuous
     enabled: true
-    authorization_state: authorized
+    authorization_state: not-authorized
     visibility: public
     access:
       mode: none
@@ -41,7 +41,6 @@ publication:
     format: latex
     mode: on-demand
     enabled: true
-
 deployment:
   web:
     provider: cloudflare-workers

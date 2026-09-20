@@ -1,5 +1,5 @@
 schema: ppf-template-manifest/v1
-template_version: 0.1.0-draft
+template_version: 0.1.1-draft
 profile: quarto-book-cloudflare
 template_root: templates/quarto-book
 
@@ -15,6 +15,7 @@ merge_managed:
   - cloudflare-builds.yaml
   - wrangler.jsonc
   - package.json
+  - package-lock.json
   - .github/workflows/web.yml
   - .github/workflows/build-publication.yml
 
@@ -33,3 +34,4 @@ upgrade_rules:
   - preserve-human-publication-authorization
   - preserve-provider-actual-state
   - never-write-secrets-to-git
+  - installable-template-does-not-imply-publication-authorization
