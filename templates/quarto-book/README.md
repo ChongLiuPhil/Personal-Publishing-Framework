@@ -85,14 +85,16 @@ The reference template now demonstrates four independent state layers:
 
 ~~~yaml
 source:
-  visibility: public
+  visibility: private
 
 publication:
   web:
-    authorization_state: authorized
-    visibility: public
+    authorization_state: not-authorized
+    visibility: restricted
     access:
-      mode: none
+      mode: authenticated
+      implementation: cloudflare-access
+      policy_ref: shared-reader-access
 
 deployment:
   web:
@@ -102,7 +104,7 @@ deployment:
       url: null
 ~~~
 
-These defaults describe a public reference book; they are not mandatory PPF defaults.
+These are the safe reference defaults for newly configured original or unpublished work: private source, restricted Web, authenticated access, and no production publication authorization yet. A project may later choose a different combination explicitly.
 
 Valid downstream combinations include:
 
@@ -244,7 +246,7 @@ Before adopting the template:
 7. pass the GitHub reference contract CI;
 8. complete Cloudflare OAuth / GitHub App account authorization;
 9. validate preview / workers.dev first;
-10. explicitly choose source visibility, publication authorization / visibility, and access policy;
+10. confirm the private-source / restricted-Web safety defaults, or explicitly authorize and record any intended deviation;
 11. distinguish provider URL from canonical identity;
 12. only then decide Custom Domain, canonical URL, and production cutover.
 
