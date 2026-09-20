@@ -1,0 +1,22 @@
+# Inquiry Publishing Stack — PPF entrypoint
+
+Current component: Personal Publishing Framework (PPF)
+Role: source-centered publishing lifecycle, releases, archives, and Continuous Web.
+
+Canonical ecosystem:
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md
+Machine-readable ecosystem:
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/ecosystem.yaml
+Agent retrieval contract:
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md
+
+Public homepages:
+- AHICP: https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/
+- PPF: https://chongliuphil.github.io/Personal-Publishing-Framework/
+- Vault Interface: https://chongliuphil.github.io/Vault-interface/
+- Starter: https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/
+
+For full-stack projects, default to full AHICP + full PPF + Vault Interface. For any original or unpublished PPF project, canonical source is private by default and Continuous Web is restricted/authenticated until explicit public-release authorization. Public links do not authorize private-state access.
+
+Cloudflare entrypoint:
+https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/CONTINUOUS_WEB_CLOUDFLARE.md

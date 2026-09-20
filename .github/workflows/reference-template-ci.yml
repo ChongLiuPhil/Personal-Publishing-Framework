@@ -126,13 +126,35 @@ jobs:
               raise SystemExit("authorized deployment should validate")
           print("Publication authorization/deployment invariant passed.")
           PY
-      - name: Validate installable publication authorization boundary
+      - name: Validate installable publication safety boundary
         run: |
-          grep -q "visibility: public" publishing.yaml
-          grep -q "authorization_state: not-authorized" publishing.yaml
-          grep -q "mode: none" publishing.yaml
-          grep -q "provider_url: null" publishing.yaml
-          grep -q "canonical_identity:" publishing.yaml
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
+
+          data = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
+          source = data["source"]
+          web = data["publication"]["web"]
+          access = web["access"]
+          deployment = data["deployment"]["web"]
+
+          expected = [
+              (source.get("visibility") == "private", "source.visibility must default to private"),
+              (web.get("authorization_state") == "not-authorized", "Web publication must start not-authorized"),
+              (web.get("visibility") == "restricted", "Web visibility must default to restricted"),
+              (access.get("mode") == "authenticated", "restricted Web must default to authenticated access"),
+              (access.get("implementation") == "cloudflare-access", "reference access implementation must be cloudflare-access"),
+              (access.get("policy_ref") == "shared-reader-access", "template must record only the shared access-policy reference"),
+              (deployment.get("enabled") is False, "deployment must start disabled"),
+              (deployment.get("status") == "staged", "deployment must start staged"),
+              (deployment.get("provider_url") is None, "provider URL must be unset before deployment"),
+              ("canonical_identity" in deployment, "canonical identity object must exist"),
+          ]
+          failed = [message for ok, message in expected if not ok]
+          if failed:
+              raise SystemExit("\n".join(failed))
+          print("Installable private-source / restricted-Web safety boundary passed.")
+          PY
           grep -q "REFERENCE-ONLY / DATED PROVIDER MAPPING" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
           grep -q "Worker-level" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
           grep -q "private repository => enable Access" ../../docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md

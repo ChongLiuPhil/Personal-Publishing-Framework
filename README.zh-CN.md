@@ -2,7 +2,9 @@
 
 [English](README.md) | [中文](README.zh-CN.md)
 
-**体系与 Agent 入口：** [`docs/ECOSYSTEM.zh-CN.md`](docs/ECOSYSTEM.zh-CN.md) · [`ecosystem.yaml`](ecosystem.yaml) · [Starter 统一指南](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.zh-CN.md)
+**公共项目入口：** [AHICP 主页](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [PPF 主页](https://chongliuphil.github.io/Personal-Publishing-Framework/) · [Vault Interface 主页](https://chongliuphil.github.io/Vault-interface/) · [Starter 主页](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
+
+**体系与 Agent 入口：** [`docs/ECOSYSTEM.zh-CN.md`](docs/ECOSYSTEM.zh-CN.md) · [`ecosystem.yaml`](ecosystem.yaml) · [`llms.txt`](docs/llms.txt) · [Starter 统一指南](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.zh-CN.md) · [Agent 调取契约](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.zh-CN.md)
 
 **Personal Publishing Framework（PPF，个人出版框架）**是一套以源内容为中心、强调可迁移性的框架，用于发展、分享和出版知识与创作成果。
 
@@ -29,6 +31,8 @@ PPF 把作品的持久源内容，与具体出版格式和发布平台分开：
 ```
 
 即使未来更换构建工具、托管商或发行平台，作品仍应可以从 canonical source 重新构建。
+
+对于新配置的原创或未发布作品，参考安全默认是 **private canonical source**，Continuous Web 在获得人类明确公开发布授权前保持 **restricted + authenticated**。Web 公开绝不意味着源仓库也必须公开。
 
 ## 两种发布模式
 
