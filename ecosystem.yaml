@@ -12,7 +12,7 @@ baseline:
   ppf: full
   vault_interface: public-metadata-adapter
   continuous_web: required-for-published-projects
-  source_visibility: private-by-default-for-original-work-when-used-via-starter
+  source_visibility: private-by-default-for-original-work
   web_visibility: restricted-by-default-for-unpublished-work
   cloudflare_access: required-for-private-or-transitional-publications
   reduced_profiles: explicit-human-selection-only
