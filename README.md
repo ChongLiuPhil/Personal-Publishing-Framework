@@ -1,3 +1,7 @@
+**Project links:** [Public homepage](https://chongliuphil.github.io/Personal-Publishing-Framework/) · [GitHub repository](https://github.com/ChongLiuPhil/Personal-Publishing-Framework)
+
+**Related public projects:** [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [Starter homepage](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
+
 # Personal Publishing Framework
 
 [English](README.md) | [中文](README.zh-CN.md)
