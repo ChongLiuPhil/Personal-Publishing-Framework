@@ -1,3 +1,5 @@
+**人类第一入口：** [AHICP《普通人指南》](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.zh-CN.md) · [AHICP 主页](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/)
+
 # Personal Publishing Framework
 
 [English](README.md) | [中文](README.zh-CN.md)

@@ -1,5 +1,7 @@
 **Project links:** [Public homepage](https://chongliuphil.github.io/Personal-Publishing-Framework/) · [GitHub repository](https://github.com/ChongLiuPhil/Personal-Publishing-Framework)
 
+**Human first entrypoint:** [AHICP Human Guide](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.md) · [Chinese canonical](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.zh-CN.md)
+
 **Related public projects:** [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [Vault Interface homepage](https://chongliuphil.github.io/Vault-interface/) · [Starter homepage](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
 
 **Ecosystem and agent entrypoint:** [`docs/ECOSYSTEM.md`](docs/ECOSYSTEM.md) · [`ecosystem.yaml`](ecosystem.yaml) · [`llms.txt`](docs/llms.txt) · [Starter unified guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md) · [Agent retrieval contract](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md)
