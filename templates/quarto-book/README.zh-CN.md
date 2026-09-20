@@ -85,14 +85,16 @@ Reference template 现在显式展示四层独立状态：
 
 ~~~yaml
 source:
-  visibility: public
+  visibility: private
 
 publication:
   web:
-    authorization_state: authorized
-    visibility: public
+    authorization_state: not-authorized
+    visibility: restricted
     access:
-      mode: none
+      mode: authenticated
+      implementation: cloudflare-access
+      policy_ref: shared-reader-access
 
 deployment:
   web:
@@ -102,7 +104,7 @@ deployment:
       url: null
 ~~~
 
-默认值只是“公开 reference book”的示例，不是 PPF 强制默认。
+这些是新配置原创或未发布作品的安全参考默认：private source、restricted Web、authenticated access，并且尚未获得 production publication authorization。项目以后可以显式选择并记录其他组合。
 
 合法 downstream 组合包括：
 
@@ -242,7 +244,7 @@ Cloudflare build wrapper 不假设 provider 预装 Quarto。它下载固定 rele
 7. 运行 GitHub reference contract CI；
 8. 完成 Cloudflare OAuth / GitHub App account authorization；
 9. 先通过 preview / workers.dev 验证；
-10. 明确 source visibility、publication authorization / visibility 与 access policy；
+10. 确认 private-source / restricted-Web 安全默认，或明确授权并记录任何有意偏离；
 11. 区分 provider URL 与 canonical identity；
 12. 最后才决定 Custom Domain、canonical URL 与 production cutover。
 
