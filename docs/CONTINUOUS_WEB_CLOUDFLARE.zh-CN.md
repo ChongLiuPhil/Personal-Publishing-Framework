@@ -17,4 +17,4 @@ https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/doc
 
 不得要求人类把密码、token、私钥、恢复码或其他秘密粘贴到聊天。若当前 Cloudflare UI 与已有 runbook 不同，应核对当前 UI 或官方文档，不得猜测。
 
-对于通过 Starter 组合的原创/未发布项目，默认姿态是 private source + restricted Continuous Web + authenticated access-policy reference。从 restricted 转为 public 必须得到人类明确授权，并不要求源仓库同时公开。
+对于任何新配置的原创/未发布 PPF 项目，安全默认姿态都是 private source + restricted Continuous Web + authenticated access-policy reference。从 restricted 转为 public 必须得到人类明确授权，并不要求源仓库同时公开。
