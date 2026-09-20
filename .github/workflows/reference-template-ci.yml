@@ -17,8 +17,7 @@ on:
       - "docs/TEMPLATE_ADOPTION_AND_UPGRADE*.md"
       - ".github/workflows/reference-template-ci.yml"
   push:
-    branches:
-      - main
+    branches: [main]
     paths:
       - "templates/quarto-book/**"
       - "schema/**"
@@ -44,33 +43,24 @@ jobs:
     defaults:
       run:
         working-directory: templates/quarto-book
-
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-
-      - name: Set up Node from template pin
-        uses: actions/setup-node@v6
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
           node-version-file: "templates/quarto-book/.nvmrc"
-
-      - name: Install pinned Wrangler
-        run: npm install --ignore-scripts --no-audit --no-fund
-
+          cache: npm
+          cache-dependency-path: "templates/quarto-book/package-lock.json"
+      - name: Install locked Wrangler
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: Verify Wrangler version
         run: test "$(npx wrangler --version | tail -n 1)" = "4.135.0"
-
-      - name: Set up Python
-        uses: actions/setup-python@v6
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
-
       - name: Install schema validation dependencies
         run: python -m pip install "PyYAML==6.0.3" "jsonschema==4.25.1"
-
       - name: Validate installable template upgrade contract
         run: python scripts/check_template_manifest.py
-
       - name: Validate reference publishing.yaml against PPF schema
         run: |
           python - <<'PY'
@@ -78,7 +68,6 @@ jobs:
           from pathlib import Path
           import yaml
           from jsonschema import Draft202012Validator
-
           data = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
           schema = json.loads(Path("../../schema/publishing.schema.json").read_text(encoding="utf-8"))
           errors = sorted(Draft202012Validator(schema).iter_errors(data), key=lambda e: list(e.path))
@@ -89,54 +78,37 @@ jobs:
               raise SystemExit(1)
           print("Reference publishing.yaml validates against PPF schema.")
           PY
-
       - name: Validate publication visibility/access schema semantics
         run: |
           python - <<'PY'
-          import copy
-          import json
+          import copy, json
           from pathlib import Path
           import yaml
           from jsonschema import Draft202012Validator
-
           schema = json.loads(Path("../../schema/publishing.schema.json").read_text(encoding="utf-8"))
           validator = Draft202012Validator(schema)
           base = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
-
           restricted = copy.deepcopy(base)
           restricted["source"]["visibility"] = "private"
           restricted["publication"]["web"]["authorization_state"] = "authorized"
           restricted["publication"]["web"]["visibility"] = "restricted"
-          restricted["publication"]["web"]["access"] = {
-              "mode": "authenticated",
-              "implementation": "example-access-layer",
-              "policy_ref": "docs/access-policy.md",
-          }
+          restricted["publication"]["web"]["access"] = {"mode":"authenticated","implementation":"example-access-layer","policy_ref":"docs/access-policy.md"}
           restricted["deployment"]["web"]["provider_url"] = "https://provider.example.invalid"
-          restricted["deployment"]["web"]["canonical_identity"] = {
-              "type": "provider-native",
-              "url": "https://provider.example.invalid",
-          }
+          restricted["deployment"]["web"]["canonical_identity"] = {"type":"provider-native","url":"https://provider.example.invalid"}
           errors = list(validator.iter_errors(restricted))
           if errors:
-              for error in errors:
-                  print(error.message)
+              for error in errors: print(error.message)
               raise SystemExit("restricted-publication example should validate")
-          invalid = copy.deepcopy(restricted)
-          invalid["publication"]["web"]["visibility"] = "world-readable"
-          if not list(validator.iter_errors(invalid)):
-              raise SystemExit("invalid publication visibility unexpectedly validated")
-          invalid = copy.deepcopy(restricted)
-          invalid["publication"]["web"]["access"]["mode"] = "password"
-          if not list(validator.iter_errors(invalid)):
-              raise SystemExit("provider-specific access mode unexpectedly validated")
+          invalid = copy.deepcopy(restricted); invalid["publication"]["web"]["visibility"] = "world-readable"
+          if not list(validator.iter_errors(invalid)): raise SystemExit("invalid publication visibility unexpectedly validated")
+          invalid = copy.deepcopy(restricted); invalid["publication"]["web"]["access"]["mode"] = "password"
+          if not list(validator.iter_errors(invalid)): raise SystemExit("provider-specific access mode unexpectedly validated")
           print("Publication visibility/access/canonical-identity schema semantics passed.")
           PY
-
-      - name: Validate reference visibility/access contract markers
+      - name: Validate installable publication authorization boundary
         run: |
           grep -q "visibility: public" publishing.yaml
-          grep -q "authorization_state: authorized" publishing.yaml
+          grep -q "authorization_state: not-authorized" publishing.yaml
           grep -q "mode: none" publishing.yaml
           grep -q "provider_url: null" publishing.yaml
           grep -q "canonical_identity:" publishing.yaml
@@ -144,26 +116,21 @@ jobs:
           grep -q "Worker-level" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
           grep -q "private repository => enable Access" ../../docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md
           grep -q "deployment-credential security from publication access" ../../docs/CLOUDFLARE_SECURITY_PROFILES.md
-
       - name: Validate reference publication contract
         run: make check
-
       - name: Validate normative visibility/access migration markers
         run: |
           grep -q "Publication visibility and access policy" ../../SPECIFICATION.md
           grep -q "Canonical publication identity and delivery provider" ../../SPECIFICATION.md
           grep -q "private source => private publication" ../../docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION.md
           grep -q "GitHub Free / paid Pages product limitations" ../../docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION.md
-
       - name: Validate pilot evidence reconciliation markers
         run: |
           grep -q "Current reconciled pilot state" ../../docs/FIRST_PILOT_LESSONS.md
           grep -q "not production-tested" ../../docs/FIRST_PILOT_LESSONS.md
           grep -q "Current Cloudflare staging/runtime evidence" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
           grep -q "Cloudflare workers.dev = current canonical production" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
-
       - name: Compile runtime verification helper
         run: python -m py_compile scripts/verify_public_site.py
-
       - name: Simulate Workers Builds Web build
         run: make cloudflare-build

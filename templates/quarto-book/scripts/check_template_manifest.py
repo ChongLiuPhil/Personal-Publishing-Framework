@@ -6,19 +6,22 @@ ROOT=Path(__file__).resolve().parents[1]
 manifest=ROOT/"template-manifest.yaml"
 body=manifest.read_text(encoding="utf-8")
 for marker in (
-    "template_version: 0.1.0-draft",
+    "template_version: 0.1.1-draft",
     "upstream_managed:",
     "merge_managed:",
     "project_owned:",
+    "package-lock.json",
     "preserve-human-publication-authorization",
     "preserve-provider-actual-state",
     "never-write-secrets-to-git",
+    "installable-template-does-not-imply-publication-authorization",
 ):
     if marker not in body:
         print(f"ERROR: template manifest missing {marker}",file=sys.stderr)
         raise SystemExit(1)
 for path in (
     "publishing.yaml","cloudflare-builds.yaml","wrangler.jsonc","Makefile",
+    "package.json","package-lock.json",
     "scripts/cloudflare_build.sh","scripts/ensure_quarto.sh",
     ".github/workflows/web.yml",".github/workflows/cloudflare-contract-ci.yml",
 ):

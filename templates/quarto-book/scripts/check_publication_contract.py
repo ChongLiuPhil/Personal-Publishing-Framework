@@ -9,11 +9,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-
 def fail(message: str) -> None:
     print(f"ERROR: {message}", file=sys.stderr)
     raise SystemExit(1)
-
 
 def require(path: str, marker: str) -> None:
     target = ROOT / path
@@ -22,10 +20,10 @@ def require(path: str, marker: str) -> None:
     if marker not in target.read_text(encoding="utf-8"):
         fail(f"{path} is missing required marker: {marker}")
 
-
 def main() -> None:
     require("publishing.yaml", "integration_mode: workers-builds-git")
     require("publishing.yaml", 'canonical_publish_gate: "make web-publish-check"')
+    require("publishing.yaml", "authorization_state: not-authorized")
     require("cloudflare-builds.yaml", "mode: workers-builds-git")
     require("cloudflare-builds.yaml", 'build: "bash scripts/cloudflare_build.sh"')
     require("cloudflare-builds.yaml", 'deploy: "npm run cloudflare:deploy"')
@@ -44,11 +42,16 @@ def main() -> None:
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     if package.get("devDependencies", {}).get("wrangler") != "4.135.0":
         fail("package.json must pin Wrangler 4.135.0")
+    lock = json.loads((ROOT / "package-lock.json").read_text(encoding="utf-8"))
+    if lock.get("lockfileVersion") != 3:
+        fail("package-lock.json must use npm lockfileVersion 3")
+    wrangler = lock.get("packages", {}).get("node_modules/wrangler", {}).get("version")
+    if wrangler != "4.135.0":
+        fail("package-lock.json must resolve Wrangler 4.135.0")
     if (ROOT / ".nvmrc").read_text(encoding="utf-8").strip() != "24":
         fail(".nvmrc must pin Node 24")
 
     print("PPF Workers Builds reference contract validation passed.")
-
 
 if __name__ == "__main__":
     main()
