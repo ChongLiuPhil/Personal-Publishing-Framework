@@ -2,6 +2,8 @@
 
 **Related public projects:** [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [Starter homepage](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
 
+**Ecosystem and agent entrypoint:** [`docs/ECOSYSTEM.md`](docs/ECOSYSTEM.md) · [`ecosystem.yaml`](ecosystem.yaml) · [Starter unified guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md)
+
 # Personal Publishing Framework
 
 [English](README.md) | [中文](README.zh-CN.md)
