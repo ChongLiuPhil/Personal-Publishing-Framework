@@ -1,6 +1,6 @@
 # Cloudflare Access Publication Profile（PPF Reference）
 
-**Reviewed:** 2026-09-19  
+**Reviewed:** 2026-09-20  
 **Status:** REFERENCE-ONLY / DATED PROVIDER MAPPING  
 **Scope:** PPF publication visibility / access policy on Cloudflare Workers
 
@@ -103,7 +103,11 @@ PPF → Cloudflare reference mapping：
 
 PPF core 不规定 password、OTP、SSO 或具体 identity provider。
 
-Cloudflare Access 当前可以使用其支持的 authentication methods；例如 One-Time PIN 是一种 provider-specific choice，不应写进 PPF normative vocabulary。
+在当前 Inquiry Publishing Stack reference deployment 中，`policy_ref: shared-reader-access` 映射为一个 reusable Cloudflare Access policy。对人类读者，优先实现为“明确 email allowlist + One-Time PIN”，初始 policy/application session 使用 24h。Reader identity 与 provider ID 仍属于私人 provider state。
+
+Cloudflare Access 当前 policy selector 以身份/策略属性为核心，例如 email、login method、group、device posture、service token；没有通用的静态共享密码 selector。因此，已有统一阅读密码只作为 legacy compatibility credential，不得把它表达为 canonical Access policy，更不得把真实值写入 Git。
+
+Cloudflare Access 可以使用其支持的 authentication methods；One-Time PIN 是 provider-specific choice，不应进入 PPF normative vocabulary。
 
 ## 6. Worker-level vs hostname-level protection
 
@@ -185,7 +189,7 @@ Publication contract / access metadata MAY 记录：
 
 ## 9. Current official references
 
-Reviewed against current Cloudflare documentation on 2026-09-19:
+Reviewed against current Cloudflare documentation on 2026-09-20:
 
 - Cloudflare Workers — Cloudflare Access:
   https://developers.cloudflare.com/workers/configuration/cloudflare-access/
@@ -193,5 +197,12 @@ Reviewed against current Cloudflare documentation on 2026-09-19:
   https://developers.cloudflare.com/workers/configuration/routing/workers-dev/
 - Cloudflare One — One-time PIN login:
   https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/one-time-pin/
+- Cloudflare One — Access policies:
+  https://developers.cloudflare.com/cloudflare-one/access-controls/policies/
+- Cloudflare One — Manage Access policies:
+  https://developers.cloudflare.com/cloudflare-one/access-controls/policies/policy-management/
+- Cloudflare API — Access applications and policies:
+  https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/
+  https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/policies/
 
 If current provider behavior differs from this dated note, re-read the official documentation and provider actual state rather than guessing.
