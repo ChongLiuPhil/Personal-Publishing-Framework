@@ -5,6 +5,8 @@ Role: source-centered publishing lifecycle, releases, archives, and Continuous W
 
 Canonical ecosystem:
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md
+Machine-readable ecosystem:
+https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/ecosystem.yaml
 Agent retrieval contract:
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md
 
@@ -14,7 +16,7 @@ Public homepages:
 - Vault Interface: https://chongliuphil.github.io/Vault-interface/
 - Starter: https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/
 
-For new projects composed through Starter, default to full AHICP + full PPF + Vault Interface. Original or unpublished source is private by default; Continuous Web may be prepared with restricted authenticated access. Public links do not authorize private-state access.
+For full-stack projects, default to full AHICP + full PPF + Vault Interface. For any original or unpublished PPF project, canonical source is private by default and Continuous Web is restricted/authenticated until explicit public-release authorization. Public links do not authorize private-state access.
 
 Cloudflare entrypoint:
 https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/CONTINUOUS_WEB_CLOUDFLARE.md
