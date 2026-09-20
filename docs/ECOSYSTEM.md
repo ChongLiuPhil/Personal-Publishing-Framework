@@ -2,6 +2,8 @@
 
 PPF is the source-centered publishing lifecycle component. It governs build, publication, release, archive, and Continuous Web; it does not replace AHICP's human–AI collaboration governance.
 
+For a non-technical human introduction to the entire ecosystem, start with the [AHICP Human Guide](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.md). AHICP is the human conceptual entrypoint; Starter remains the machine/configuration entrypoint.
+
 For a complete project configuration, follow the [Starter ecosystem entrypoint](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md) and connect:
 
 - [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [repository](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol)
