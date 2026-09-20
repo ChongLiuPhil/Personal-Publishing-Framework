@@ -4,7 +4,9 @@ This file is the local PPF entrypoint for Cloudflare work. The cross-project ope
 
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CONTINUOUS_WEB_CLOUDFLARE.md
 
-Before a Cloudflare operation, read that shared contract first, then use the PPF provider-specific runbooks:
+Before a Cloudflare operation, read that shared contract first. For the shortest account-owner handoff, also read the Starter [minimal-human guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_MINIMAL_HUMAN_HANDOFF.md); for browser-capable execution, use the [Work/browser-agent handoff](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_WORK_AGENT_HANDOFF.md).
+
+Then use the PPF provider-specific runbooks:
 
 1. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md — detailed account-owner and GitHub App authorization flow.
 2. docs/CLOUDFLARE_SECURITY_PROFILES.md — deployment credential profiles and least-privilege trade-offs.

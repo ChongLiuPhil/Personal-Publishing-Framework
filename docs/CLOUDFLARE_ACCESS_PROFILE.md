@@ -1,6 +1,6 @@
 # Cloudflare Access Publication Profile (PPF Reference)
 
-**Reviewed:** 2026-09-19  
+**Reviewed:** 2026-09-20  
 **Status:** REFERENCE-ONLY / DATED PROVIDER MAPPING  
 **Scope:** PPF publication visibility / access policy on Cloudflare Workers
 
@@ -103,7 +103,11 @@ PPF → Cloudflare reference mapping:
 
 PPF core does not prescribe passwords, OTP, SSO, or a concrete identity provider.
 
-Cloudflare Access may use supported authentication methods. One-Time PIN, for example, is a provider-specific choice and does not belong in the PPF normative vocabulary.
+For the current Inquiry Publishing Stack reference deployment, `policy_ref: shared-reader-access` maps to one reusable Cloudflare Access policy. The preferred human-reader implementation is an explicit email allowlist plus One-Time PIN, with a 24h initial policy/application session. Reader identities and provider IDs remain private provider state.
+
+Current Cloudflare Access policy selectors are identity/policy oriented (for example email, login method, group, device posture, service token). A generic static shared password is not a native Access selector. Therefore an existing shared reading password is a legacy compatibility credential only; do not represent it as the canonical Access policy and never persist its value in Git.
+
+Cloudflare Access may use supported authentication methods. One-Time PIN is a provider-specific choice and does not belong in the PPF normative vocabulary.
 
 ## 6. Worker-level vs hostname-level protection
 
@@ -185,7 +189,7 @@ They must not record:
 
 ## 9. Current official references
 
-Reviewed against current Cloudflare documentation on 2026-09-19:
+Reviewed against current Cloudflare documentation on 2026-09-20:
 
 - Cloudflare Workers — Cloudflare Access:
   https://developers.cloudflare.com/workers/configuration/cloudflare-access/
@@ -193,5 +197,12 @@ Reviewed against current Cloudflare documentation on 2026-09-19:
   https://developers.cloudflare.com/workers/configuration/routing/workers-dev/
 - Cloudflare One — One-time PIN login:
   https://developers.cloudflare.com/cloudflare-one/integrations/identity-providers/one-time-pin/
+- Cloudflare One — Access policies:
+  https://developers.cloudflare.com/cloudflare-one/access-controls/policies/
+- Cloudflare One — Manage Access policies:
+  https://developers.cloudflare.com/cloudflare-one/access-controls/policies/policy-management/
+- Cloudflare API — Access applications and policies:
+  https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/applications/
+  https://developers.cloudflare.com/api/resources/zero_trust/subresources/access/subresources/policies/
 
 If current provider behavior differs from this dated note, re-read official documentation and provider actual state rather than guessing.

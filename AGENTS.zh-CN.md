@@ -5,7 +5,7 @@
 1. [`docs/ECOSYSTEM.zh-CN.md`](docs/ECOSYSTEM.zh-CN.md)
 2. [`ecosystem.yaml`](ecosystem.yaml)
 3. [统一跨仓库 Agent 调取契约](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.zh-CN.md)
-4. 涉及 Continuous Web 或 Cloudflare 时，先阅读 [`docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md)，再读取适用的 PPF provider-specific runbook
+4. 涉及 Continuous Web 或 Cloudflare 时，先阅读 [`docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md) 与 Starter 最小人类/Work 交接，再读取适用的 PPF provider-specific runbook
 5. 当 PPF 作为完整 Inquiry Publishing Stack 的一层时，读取项目的 AHICP 入口和所选 Starter profile
 
 对于包含原创或未发布内容的新项目，安全默认值是：canonical 源仓库 private，同时 Continuous Web 保持 restricted + authenticated。当通过完整 Inquiry Publishing Stack 采用时，默认组合是完整 PPF + 完整 AHICP + Vault Interface；精简 profile 必须由人类明确选择。
