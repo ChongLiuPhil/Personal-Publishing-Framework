@@ -1,5 +1,14 @@
 schema_version: "1.1"
 current_component: ppf
+human_entrypoint:
+  role: human-conceptual-entry
+  homepage: https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/
+  guide_zh_cn: https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.zh-CN.md
+  guide_en: https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.md
+machine_entrypoint:
+  role: composition-and-configuration-entry
+  ecosystem: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/ecosystem.yaml
+  agent_retrieval_contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md
 ecosystem_entrypoint: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md
 agent_retrieval_contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md
 llms_entrypoint: https://chongliuphil.github.io/Personal-Publishing-Framework/llms.txt
