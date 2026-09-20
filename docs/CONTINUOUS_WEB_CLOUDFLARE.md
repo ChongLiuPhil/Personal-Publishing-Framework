@@ -17,4 +17,4 @@ If human interaction is necessary, provide numbered operator-level instructions 
 
 Do not ask the human to paste a password, token, private key, recovery code, or other secret into chat. If the live Cloudflare UI differs from the dated runbook, verify the current UI or official documentation rather than guessing.
 
-For a Starter-composed original/unpublished project, the default posture is private source + restricted Continuous Web + authenticated access-policy reference. Moving the Web output to public requires explicit human authorization and does not require making the source repository public.
+For any newly configured original or unpublished PPF project, the safe default posture is private source + restricted Continuous Web + authenticated access-policy reference. Moving the Web output to public requires explicit human authorization and does not require making the source repository public.
