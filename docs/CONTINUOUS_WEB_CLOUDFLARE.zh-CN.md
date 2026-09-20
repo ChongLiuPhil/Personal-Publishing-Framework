@@ -4,7 +4,9 @@
 
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md
 
-执行 Cloudflare 操作前，先读取共享契约，再读取 PPF 的 provider-specific runbook：
+执行 Cloudflare 操作前，先读取共享契约。为了把账户所有者操作压缩到最少，同时读取 Starter 的 [最小人类操作指南](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_MINIMAL_HUMAN_HANDOFF.zh-CN.md)；由 Browser Agent / Work 执行时使用 [Work/Browser Agent 交接](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_WORK_AGENT_HANDOFF.zh-CN.md)。
+
+然后读取 PPF 的 provider-specific runbook：
 
 1. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md — 账户所有者与 GitHub App 的详细授权流程；
 2. docs/CLOUDFLARE_SECURITY_PROFILES.md — 部署凭据 profile 与最小权限权衡；
