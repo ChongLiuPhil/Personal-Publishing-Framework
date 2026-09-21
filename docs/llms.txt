@@ -32,3 +32,8 @@ For full-stack projects, default to full AHICP + full PPF + Vault Interface. For
 
 Cloudflare entrypoint:
 https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/CONTINUOUS_WEB_CLOUDFLARE.md
+
+Public delivery migration:
+For the four public framework sites, Cloudflare Pages is preferred and GitHub remains canonical source. Current GitHub Pages URLs remain authoritative until verified Cloudflare/custom-domain cutover.
+Migration guide: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md
+Migration state: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/templates/cloudflare-public-delivery.yaml

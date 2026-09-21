@@ -20,6 +20,14 @@ llms_entrypoint: https://chongliuphil.github.io/Personal-Publishing-Framework/ll
 homepage: https://chongliuphil.github.io/Personal-Publishing-Framework/
 repository: https://github.com/ChongLiuPhil/Personal-Publishing-Framework
 role: source-centered publishing lifecycle and continuous web
+public_delivery:
+  canonical_source_provider: github
+  current_provider: github-pages
+  preferred_provider: cloudflare-pages
+  migration_state: prepared-provider-authorization-required
+  migration_plan: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/templates/cloudflare-public-delivery.yaml
+  migration_guide: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md
+  cutover_rule: keep-current-public-urls-until-verified-cloudflare-deployment
 baseline:
   default_profile: full-research-publication
   ahicp: full-compatible-upstream
