@@ -1,4 +1,4 @@
-**人类第一入口：** [AHICP《普通人指南》](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.zh-CN.md) · [AHICP 主页](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/)
+**第一次了解整个体系：** 从 [AHICP 主页](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) 开始；那里提供完整使用指南，并说明怎样把技术配置交给 AI。
 
 # Personal Publishing Framework
 
@@ -32,9 +32,9 @@ PPF 把作品的持久源内容，与具体出版格式和发布平台分开：
                                   Print
 ```
 
-即使未来更换构建工具、托管商或发行平台，作品仍应可以从 canonical source 重新构建。
+即使未来更换构建工具、托管商或发行平台，作品仍应可以从权威源内容（canonical source）重新构建。
 
-对于新配置的原创或未发布作品，参考安全默认是 **private canonical source**，Continuous Web 在获得人类明确公开发布授权前保持 **restricted + authenticated**。Web 公开绝不意味着源仓库也必须公开。
+对于新配置的原创或未发布作品，参考安全默认是：权威源内容保持 **private（私有）**，Continuous Web 在明确公开发布前保持 **restricted + authenticated（受限并需要认证）**。Web 公开绝不意味着源仓库也必须公开。
 
 ## 两种发布模式
 
@@ -84,25 +84,25 @@ PPF 规范人的作品如何被持续维护、发展、分享和出版。它**�
 
 ## 参考实现
 
-第一套 reference implementation 预计采用：
+第一套参考实现采用：
 
 - Git 作为 canonical versioned source；
 - Quarto / Pandoc 进行多格式转换；
 - HTML 作为默认持续发布格式；
-- GitHub Actions 作为独立 validation gate；
+- GitHub Actions 作为独立 验证关卡；
 - repository-owned `make web-publish-check` 作为统一 Web publication gate；
-- Cloudflare Workers Builds + GitHub App 作为默认参考 delivery integration；
+- Cloudflare Workers Builds + GitHub App 作为默认参考 交付集成；
 - Cloudflare Workers Static Assets 作为 Web delivery layer；
-- EPUB、PDF、DOCX、LaTeX 作为按需生成的 publication artifacts。
+- EPUB、PDF、DOCX、LaTeX 作为按需生成的 发布产物。
 
 这些技术只是参考栈，而不是 PPF 的硬性要求。
 
 ## 设计原则
 
-- **Source before format — 源内容先于格式。**
-- **Creator ownership before platform dependence — 创作者拥有性先于平台依赖。**
+- **源内容先于格式。**
+- **先保证创作者能够持续掌握源内容，再考虑平台便利。**
 - **持续 Web 发布与正式版本出版相互区分。**
-- **Build、Release、外部 Publish 是不同动作。**
+- **构建、正式版本和外部发布是不同动作。**
 - **发布意图应当是声明式且可迁移的。**
 - **仓库公开并不自动等于所有输出都获得发布授权。**
 - **框架应同时适用于短小创作与长期知识项目。**
@@ -113,15 +113,15 @@ PPF v0.1 将定义：
 
 - 最小项目模型；
 - 作为声明式出版契约的 `publishing.yaml`；
-- continuous 与 on-demand 两种发布模式；
+- 持续发布与按需版本两种发布模式；
 - 与输出格式相对独立的源内容原则；
-- release 与 archive 语义；
+- 版本与归档语义；
 - Quarto、GitHub Actions、Cloudflare 的参考工作流；
 - 与其他工具和平台兼容的实现指南。
 
 ## 参考实现
 
-第一套可执行 reference implementation 位于 [`templates/quarto-book/`](templates/quarto-book/README.zh-CN.md)。
+第一套可执行 参考实现 位于 [`templates/quarto-book/`](templates/quarto-book/README.zh-CN.md)。
 
 它把 PPF 模型实现为：
 
@@ -143,10 +143,10 @@ Git canonical source
 
 **Working version: v0.1.0-draft**
 
-当前已完成初始规范、Quarto reference implementation、第一个真实 downstream runtime pilot，以及从该 pilot 提炼出的 Workers Builds ↔ GitHub 可复用集成范本。PPF 自身现已用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`，账户授权说明见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`。
+当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot，以及从该 pilot 提炼出的 Workers Builds ↔ GitHub 可复用集成范本。PPF 自身现已用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`，账户授权说明见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`。
 
 
-Cloudflare reference implementation 的 production credential 选择见：
+Cloudflare 参考实现 的 production credential 选择见：
 
 `docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
 
