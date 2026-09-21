@@ -14,6 +14,10 @@ PPF 负责作品从源内容到构建、发布、正式版本、归档和 Contin
 
 原创、未发布作品及其他需要保护的源内容默认保持私有。Continuous Web 是一种发布能力，不等于获得发布许可；私人或过渡性产物必须使用读者访问控制。
 
+对于四个公共框架网站本身，Cloudflare Pages 是首选网页交付平台，GitHub 继续作为权威源文件、版本历史和 CI 平台。当前 GitHub Pages URL 在协调迁移完成 Cloudflare staging、目标域名和跨项目链接验证以前仍然是正式入口。这个偏好不意味着下游项目都必须使用 Pages；下游发布仍可根据实际运行时和发布需求选择 Pages、Workers 或其他受支持的 provider。
+
+四个框架站点的迁移遵循 [Cloudflare 公共站点迁移说明](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.zh-CN.md)。
+
 详细 Cloudflare 契约见 [`CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md`](CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md)。现有的 [安全配置方案](CLOUDFLARE_SECURITY_PROFILES.zh-CN.md) 说明部署凭据的权衡；部署身份和读者访问是两个不同决策。
 
 跨组件工作必须阅读 [权威 Agent 调取契约](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.zh-CN.md)。公共链接只用于恢复生态关系，不授权私人状态访问。

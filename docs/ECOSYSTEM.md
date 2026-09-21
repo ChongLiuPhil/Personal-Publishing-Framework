@@ -14,6 +14,10 @@ The default new-project baseline is **full PPF + full AHICP**, with Vault Interf
 
 Original unpublished work and other copyright-bearing source assets remain private by default. Continuous Web is a publication capability, not a permission to publish; private or transitional outputs must be protected by reader access control.
 
+For the four public framework sites themselves, Cloudflare Pages is the preferred delivery provider and GitHub remains the canonical source/version-control provider. The current GitHub Pages URLs remain authoritative until the coordinated migration has verified Cloudflare staging, target domains, and cross-project links. This preference does not force downstream projects onto Pages: a downstream publication may use Pages, Workers, or another supported provider according to its actual runtime and publication requirements.
+
+Use the [coordinated public-delivery migration guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md) for the framework sites.
+
 Use [`CONTINUOUS_WEB_CLOUDFLARE.md`](CONTINUOUS_WEB_CLOUDFLARE.md) for the detailed Cloudflare contract. The existing [security profiles](CLOUDFLARE_SECURITY_PROFILES.md) describe deployment-credential trade-offs; deployment identity and reader access are separate decisions.
 
 For cross-component work, read the [canonical agent retrieval contract](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md). Public links support ecosystem reconstruction; they do not authorize private-state access.

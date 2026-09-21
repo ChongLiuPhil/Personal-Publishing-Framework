@@ -22,6 +22,16 @@ def main() -> int:
         raise SystemExit("ecosystem.yaml must contain a mapping")
     if not any(key in manifest for key in ("agent_entrypoint", "ecosystem_entrypoint", "canonical_entrypoint")):
         raise SystemExit("ecosystem.yaml is missing an agent/ecosystem entrypoint")
+    public_delivery = manifest.get("public_delivery")
+    if not isinstance(public_delivery, dict):
+        raise SystemExit("ecosystem.yaml is missing public_delivery")
+    if public_delivery.get("current_provider") != "github-pages":
+        raise SystemExit("PPF must keep GitHub Pages current before verified cutover")
+    if public_delivery.get("preferred_provider") != "cloudflare-pages":
+        raise SystemExit("PPF preferred public delivery must be Cloudflare Pages")
+    if public_delivery.get("cutover_rule") != "keep-current-public-urls-until-verified-cloudflare-deployment":
+        raise SystemExit("PPF public URL cutover rule is missing or unsafe")
+
     manifest_text = (ROOT / "ecosystem.yaml").read_text()
     for repository in CORE_REPOSITORIES:
         if repository not in manifest_text:
