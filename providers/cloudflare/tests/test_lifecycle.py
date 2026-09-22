@@ -56,7 +56,7 @@ class ContractTests(unittest.TestCase):
 
     def test_template_gate_matches_provider_implementation(self):
         canonical = SCRIPT.with_name("password_gate.mjs").read_text(encoding="utf-8")
-        template = SCRIPT.parents[3] / "templates/quarto-book/workers/password_gate.mjs"
+        template = SCRIPT.parents[2] / "templates/quarto-book/workers/password_gate.mjs"
         self.assertEqual(canonical, template.read_text(encoding="utf-8"))
 
     def test_mismatched_worker_fails_closed(self):
