@@ -27,8 +27,8 @@ def main() -> int:
         raise SystemExit("ecosystem.yaml is missing public_delivery")
     if public_delivery.get("current_provider") != "github-pages":
         raise SystemExit("PPF must keep GitHub Pages current before verified cutover")
-    if public_delivery.get("preferred_provider") != "cloudflare-pages":
-        raise SystemExit("PPF preferred public delivery must be Cloudflare Pages")
+    if public_delivery.get("preferred_provider") != "cloudflare-workers":
+        raise SystemExit("PPF preferred public delivery for new projects must be Cloudflare Workers")
     if public_delivery.get("cutover_rule") != "keep-current-public-urls-until-verified-cloudflare-deployment":
         raise SystemExit("PPF public URL cutover rule is missing or unsafe")
 

@@ -267,6 +267,8 @@ These are derived outputs and are ignored by Git by default.
 
 ## Publication contract vs provider implementation
 
+Projects that explicitly choose `access.mode: shared-password` may use `workers/password_gate.mjs` as the Worker entrypoint and merge `wrangler.password-gate.example.jsonc` with the project configuration. Replace the example rate-limit namespace with a unique positive account-level integer. Enter the password and signing key directly as Cloudflare Worker Secrets. This mode runs Worker code for every static asset request and therefore consumes Worker request quota. See the PPF Cloudflare Access profile for failure behavior, limitations, and tests.
+
 - `publishing.yaml`: publication intent;
 - `cloudflare-builds.yaml`: PPF provider-integration machine contract;
 - `wrangler.jsonc`: native Cloudflare Wrangler implementation config;
@@ -279,4 +281,3 @@ For the higher-level provider-integration architecture research, see:
 `../../docs/PROVIDER_INTEGRATION_PATTERN_RESEARCH.md`
 
 That file is currently `AI-PROPOSED / NON-NORMATIVE` and does not change this template's active contract.
-

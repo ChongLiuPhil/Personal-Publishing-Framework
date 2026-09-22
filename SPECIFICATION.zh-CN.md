@@ -169,7 +169,7 @@ Publication visibility 的通用语义至少包括：
 - `restricted` — 已发布，但只有满足 access policy 的访问者可以进入；
 - `private` — 不面向一般受众开放，访问范围由项目定义。
 
-一个项目 MAY 使用 `authenticated`、`selected-audience` 或其他 provider-neutral access mode。具体 identity provider、password/OTP、SSO、allowlist、provider access product 等属于 implementation detail，PPF normative core 不要求某一种技术。
+一个项目 MAY 使用 `authenticated`、`selected-audience`、`shared-password` 或其他有文档说明的访问模式。具体身份提供商、OTP、SSO、允许名单和 provider 访问控制产品属于 implementation detail。可选 `shared-password` 模式必须使用服务端密码/会话 Secret、让 Worker 先处理所有出版资源请求、禁止公共缓存并在故障时拒绝访问；provider profile 必须记录其具体实现。
 
 以下推断均无效：
 

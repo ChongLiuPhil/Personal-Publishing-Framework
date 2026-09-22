@@ -169,7 +169,7 @@ General publication-visibility semantics include at least:
 - `restricted` — published, but available only to visitors satisfying an access policy;
 - `private` — not generally available to an audience beyond the project-defined access boundary.
 
-A project MAY use provider-neutral access modes such as `authenticated`, `selected-audience`, or another documented mode. Concrete identity providers, passwords/OTP, SSO, allowlists, or provider access-control products are implementation details; the PPF normative core does not require one technology.
+A project MAY use `authenticated`, `selected-audience`, `shared-password`, or another documented access mode. Concrete identity providers, OTP, SSO, allowlists, and provider access-control products are implementation details. The optional `shared-password` mode requires server-side password/session secrets, a request-first Worker gate for every publication asset, non-public caching, and fail-closed behavior; its implementation must be documented by the provider profile.
 
 The following inferences are invalid:
 

@@ -1,11 +1,27 @@
 schema_version: 1
 mode: workers-builds-git
+worker_runtime: workers-static-assets
+access_modes:
+  public:
+    audience: anonymous
+    requires_explicit_public_authorization: true
+  selected-audience:
+    implementation: cloudflare-access
+    defaults:
+      identity_method: one-time-pin
+      session_duration: 24h
+    requires_approved_reader_list: true
+  shared-password:
+    implementation: ppf-worker-gate
+    secrets: [PPF_ACCESS_PASSWORD, PPF_SESSION_SIGNING_KEY]
+    require_run_worker_first: true
+    fail_closed: true
 
 git:
   provider: github
   repository: OWNER/REPOSITORY
   production_branch: main
-  non_production_branch_builds: true
+  non_production_branch_builds: false
   root_directory: "/"
 
 commands:
@@ -60,3 +76,17 @@ security:
       desired_scope: individual-worker
       desired_role: editor
       blocker: workers-builds-account-owned-token-not-yet-supported
+
+lifecycle:
+  operations: [doctor, plan, apply, verify, rollback]
+  state_record: .ppf/cloudflare-deployment.json
+  rollback_policy: latest-previously-verified-production-version
+  no_automatic_paid_upgrade: true
+  preserve_existing_provider_until_explicit_cutover: true
+
+preview:
+  enabled_by_default: false
+  enable_only_after:
+    - access-policy-configured
+    - anonymous-denial-verified
+    - approved-reader-access-verified

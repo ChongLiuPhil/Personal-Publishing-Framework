@@ -91,7 +91,7 @@ PPF 规范人的作品如何被持续维护、发展、分享和出版。它**�
 - HTML 作为默认持续发布格式；
 - GitHub Actions 作为独立 验证关卡；
 - repository-owned `make web-publish-check` 作为统一 Web publication gate；
-- Cloudflare Workers Builds + GitHub App 作为默认参考 交付集成；
+- Cloudflare Workers Builds + GitHub App 作为新项目默认参考交付集成；Cloudflare Pages 继续支持已有项目，不自动迁移；
 - Cloudflare Workers Static Assets 作为 Web delivery layer；
 - EPUB、PDF、DOCX、LaTeX 作为按需生成的 发布产物。
 
