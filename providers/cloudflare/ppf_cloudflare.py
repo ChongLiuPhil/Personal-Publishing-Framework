@@ -11,7 +11,7 @@ from pathlib import Path
 import shlex
 import subprocess
 import sys
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 import urllib.error
 import urllib.request
 
@@ -169,8 +169,19 @@ def apply(root: Path, holding: bool = False) -> int:
 
 
 def verify(url: str, root: Path) -> int:
-    if not url.startswith("https://"):
-        print("FAIL: verification URL must use HTTPS")
+    try:
+        _, publishing, wrangler, _ = load_contract(root)
+    except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
+        print(f"BLOCKED: {exc}")
+        return 2
+
+    production_url = publishing.get("deployment", {}).get("web", {}).get("production_url")
+    expected_origin = https_origin(production_url) if isinstance(production_url, str) else None
+    if expected_origin is None:
+        print("BLOCKED: deployment.web.production_url must be a valid HTTPS Worker URL")
+        return 2
+    if https_origin(url) != expected_origin:
+        print("FAIL: verification URL must match the configured production Worker origin")
         return 2
     try:
         request = urllib.request.Request(url, headers={"User-Agent": "PPF-Cloudflare-Verify/1.0"})
@@ -180,6 +191,9 @@ def verify(url: str, root: Path) -> int:
         status, final_url = exc.code, exc.geturl()
     except (urllib.error.URLError, TimeoutError, ValueError):
         print("FAIL: candidate URL could not be reached")
+        return 1
+    if https_origin(final_url) != expected_origin:
+        print("FAIL: verification redirected outside the configured production Worker origin")
         return 1
     ok = 200 <= status < 300
     record = {
@@ -196,7 +210,6 @@ def verify(url: str, root: Path) -> int:
     except json.JSONDecodeError:
         previous = {}
     verified = previous.get("verified_version_ids", [])
-    _, _, wrangler, _ = load_contract(root)
     if ok and os.environ.get("CLOUDFLARE_API_TOKEN") and os.environ.get("CLOUDFLARE_ACCOUNT_ID"):
         deployments, deployment_error = api_get(root, f"/workers/scripts/{quote(wrangler['name'], safe='')}/deployments")
         if deployment_error:
@@ -214,6 +227,16 @@ def verify(url: str, root: Path) -> int:
     state_path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(record, indent=2))
     return 0 if ok else 1
+
+
+def https_origin(url: str):
+    try:
+        parsed = urlsplit(url)
+        if parsed.scheme.lower() != "https" or not parsed.hostname or parsed.username or parsed.password:
+            return None
+        return parsed.scheme.lower(), parsed.hostname.lower().rstrip("."), parsed.port or 443
+    except (AttributeError, TypeError, ValueError):
+        return None
 
 
 def rollback(version_id: str, root: Path) -> int:
