@@ -21,7 +21,8 @@ class ContractTests(unittest.TestCase):
             "mode: workers-builds-git\nworker:\n  name: sample\n  static_assets_directory: ./_site\n"
             "commands:\n  deploy: npx wrangler deploy\n", encoding="utf-8")
         (self.root / "publishing.yaml").write_text(
-            "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: authenticated\n",
+            "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: authenticated\n"
+            "deployment:\n  web:\n    production_url: https://example.workers.dev/\n",
             encoding="utf-8")
         (self.root / "wrangler.jsonc").write_text(
             json.dumps({"name": "sample", "assets": {"directory": "./_site"}}), encoding="utf-8")
@@ -127,6 +128,29 @@ class ContractTests(unittest.TestCase):
         record = json.loads((self.root / ".ppf/cloudflare-deployment.json").read_text())
         self.assertEqual(record["http_status"], 200)
         self.assertEqual(record["result"], "PASS")
+
+    def test_verify_rejects_unrelated_origin_before_request(self):
+        with patch.object(provider.urllib.request, "urlopen") as open_url:
+            self.assertEqual(provider.verify("https://attacker.example/health", self.root), 2)
+        open_url.assert_not_called()
+        self.assertFalse((self.root / ".ppf").exists())
+
+    def test_verify_rejects_cross_origin_redirect_without_recording_version(self):
+        class Response:
+            status = 200
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *args):
+                return False
+
+            def geturl(self):
+                return "https://attacker.example/health"
+
+        with patch.object(provider.urllib.request, "urlopen", return_value=Response()):
+            self.assertEqual(provider.verify("https://example.workers.dev/", self.root), 1)
+        self.assertFalse((self.root / ".ppf").exists())
 
 
 if __name__ == "__main__":
