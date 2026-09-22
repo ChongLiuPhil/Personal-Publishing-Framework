@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "templates/quarto-book/**"
+      - "providers/cloudflare/**"
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
@@ -20,6 +21,7 @@ on:
     branches: [main]
     paths:
       - "templates/quarto-book/**"
+      - "providers/cloudflare/**"
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
@@ -175,5 +177,9 @@ jobs:
           grep -q "Cloudflare workers.dev = current canonical production" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
       - name: Compile runtime verification helper
         run: python -m py_compile scripts/verify_public_site.py
+      - name: Test Cloudflare lifecycle contract adapter
+        run: python -m unittest discover -s ../../providers/cloudflare/tests -v
+      - name: Test password-gated asset Worker
+        run: node --test ../../providers/cloudflare/tests/password_gate.test.mjs
       - name: Simulate Workers Builds Web build
         run: make cloudflare-build

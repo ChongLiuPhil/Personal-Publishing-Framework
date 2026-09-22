@@ -93,7 +93,7 @@ The first reference implementation is expected to use:
 - HTML as the default continuously published format
 - GitHub Actions as an independent validation gate
 - a repository-owned `make web-publish-check` as the canonical Web publication gate
-- Cloudflare Workers Builds + the GitHub App as the default reference delivery integration
+- Cloudflare Workers Builds + the GitHub App as the default reference delivery integration for new projects; Cloudflare Pages remains supported for existing projects
 - Cloudflare Workers Static Assets as a Web delivery layer
 - EPUB, PDF, DOCX, and LaTeX as on-demand publication artifacts
 

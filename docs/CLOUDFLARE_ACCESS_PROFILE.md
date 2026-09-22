@@ -99,13 +99,14 @@ PPF → Cloudflare reference mapping:
 | `none` | no Access, or an explicit public bypass |
 | `authenticated` | Cloudflare Access + authentication policy |
 | `selected-audience` | Cloudflare Access + email / domain / group / other allow policy |
+| `shared-password` | PPF Worker gate + server-side Cloudflare secrets; opt in per project |
 | `other` | project-recorded provider-specific implementation |
 
-PPF core does not prescribe passwords, OTP, SSO, or a concrete identity provider.
+PPF defines the shared-password access mode; password/session behavior remains a provider implementation detail. Other modes do not prescribe OTP, SSO, or a concrete identity provider.
 
 For the current Inquiry Publishing Stack reference deployment, `policy_ref: shared-reader-access` maps to one reusable Cloudflare Access policy. The preferred human-reader implementation is an explicit email allowlist plus One-Time PIN, with a 24h initial policy/application session. Reader identities and provider IDs remain private provider state.
 
-Current Cloudflare Access policy selectors are identity/policy oriented (for example email, login method, group, device posture, service token). A generic static shared password is not a native Access selector. Therefore an existing shared reading password is a legacy compatibility credential only; do not represent it as the canonical Access policy and never persist its value in Git.
+Current Cloudflare Access policy selectors are identity/policy oriented (for example email, login method, group, device posture, service token). A generic static shared password is not a native Access selector. Use the separate PPF Worker gate when a project explicitly selects shared-password mode; never persist its value in Git.
 
 Cloudflare Access may use supported authentication methods. One-Time PIN is a provider-specific choice and does not belong in the PPF normative vocabulary.
 
@@ -187,7 +188,21 @@ They must not record:
 - recovery codes;
 - one-time login codes.
 
-## 9. Current official references
+## 9. Optional project shared-password profile
+
+`providers/cloudflare/password_gate.mjs` is the PPF reference implementation for projects that explicitly select shared-password access. It intercepts every asset only when Wrangler has `assets.run_worker_first: true`, including direct file and JSON requests. The password and session signing key are Cloudflare Worker secrets only. The module fails closed when a secret or binding is missing, issues signed 12-hour Secure/HttpOnly/SameSite cookies, invalidates sessions when either secret is rotated, and applies a Workers Rate Limiting binding to login attempts. Authenticated static responses use `private, no-store`.
+
+Cloudflare's Workers Rate Limiting API is per Cloudflare location and permissive/eventually consistent. It can also group readers behind a shared public IP. It reduces casual repeated guessing but is not a global abuse-prevention or accounting system. Give every project a distinct rate-limit namespace ID. The broader production security caveats remain: shared-password access does not provide individual reader identity, revocation, or auditability; prefer Access for an approved named audience.
+
+The secret names are `PPF_ACCESS_PASSWORD` and `PPF_SESSION_SIGNING_KEY`. Store the values directly as Worker secrets; never put values in `publishing.yaml`, source, workflow variables, evidence, or chat. See the opt-in sample at `providers/cloudflare/password_gate.wrangler.jsonc` and tests at `providers/cloudflare/tests/password_gate.test.mjs`.
+
+Current Workers references:
+
+- Static Assets Worker-first routing: https://developers.cloudflare.com/workers/static-assets/binding/
+- Workers best practices and timing-safe comparison: https://developers.cloudflare.com/workers/best-practices/workers-best-practices/
+- Workers Rate Limiting locality and accuracy: https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
+
+## 10. Current official Access references
 
 Reviewed against current Cloudflare documentation on 2026-09-20:
 
