@@ -1,0 +1,47 @@
+name: Notify unified publication
+on:
+  workflow_run:
+    workflows: [Publication source changed]
+    types: [completed]
+  workflow_dispatch:
+permissions: {}
+jobs:
+  notify:
+    if: >-
+      github.repository == 'ChongLiuPhil/Personal-Publishing-Framework' &&
+      ((github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) ||
+       (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == github.event.repository.default_branch))
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      # No checkout or source-controlled build runs with this credential.
+      - name: Notify Starter of the source revision
+        env:
+          STARTER_SYNC_TOKEN: ${{ secrets.STARTER_SYNC_TOKEN }}
+          SOURCE_REPOSITORY: ${{ github.repository }}
+          SOURCE_BRANCH: ${{ github.event.repository.default_branch }}
+          SOURCE_REVISION: ${{ github.event.workflow_run.head_sha || github.sha }}
+        shell: python
+        run: |
+          import json, os, urllib.request, urllib.error
+          token = os.environ.get('STARTER_SYNC_TOKEN')
+          if not token:
+              raise SystemExit('STARTER_SYNC_TOKEN is missing. Add the dedicated Starter Actions-write token in repository Actions secrets, then rerun.')
+          data = json.dumps({'ref':'main', 'inputs':{
+              'repository':os.environ['SOURCE_REPOSITORY'],
+              'branch':os.environ['SOURCE_BRANCH'],
+              'revision':os.environ['SOURCE_REVISION']}}).encode()
+          url = 'https://api.github.com/repos/ChongLiuPhil/Inquiry-Publishing-Project-Starter/actions/workflows/refresh-public-site-sources.yml/dispatches'
+          request = urllib.request.Request(url, data=data, method='POST', headers={
+              'Authorization':'Bearer '+token, 'Accept':'application/vnd.github+json',
+              'X-GitHub-Api-Version':'2022-11-28', 'Content-Type':'application/json'})
+          try:
+              with urllib.request.urlopen(request, timeout=30) as response:
+                  if response.status not in (200, 204):
+                      raise SystemExit('Unexpected notification status')
+          except urllib.error.HTTPError as exc:
+              raise SystemExit('Starter notification failed (HTTP '+str(exc.code)+'). Check token expiry, selected repository and Actions-write permission; rerun after repair.') from None
+          print('Starter accepted the notification; this is not deployment confirmation.')
