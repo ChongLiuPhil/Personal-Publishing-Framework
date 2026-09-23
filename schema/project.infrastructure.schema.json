@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://chongliuphil.github.io/Personal-Publishing-Framework/schema/project.infrastructure.schema.json",
+  "$id": "https://raw.githubusercontent.com/ChongLiuPhil/Personal-Publishing-Framework/main/schema/project.infrastructure.schema.json",
   "title": "PPF project infrastructure desired state",
   "type": "object",
   "required": ["schemaVersion", "project", "github", "cloudflare", "deployment", "release", "policy"],

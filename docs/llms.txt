@@ -37,7 +37,7 @@ GitHub–Cloudflare infrastructure integration standard:
 https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/GITHUB_CLOUDFLARE_INTEGRATION.md
 
 Public delivery migration:
-For new deployments, Cloudflare Workers Static Assets + Workers Builds is preferred. Cloudflare Pages remains supported for existing projects and is not migrated automatically. The four framework sections now use the verified canonical Worker at https://inquirystack.philohub.workers.dev/; legacy GitHub Pages URLs remain available.
+For new deployments, Cloudflare Workers Static Assets + Workers Builds is preferred. Cloudflare Pages remains supported for existing projects and is not migrated automatically. The four framework sections now use the verified canonical Worker at https://inquirystack.philohub.workers.dev/; the former framework GitHub Pages sites have been retired.
 Migration guide: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md
 Migration state: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/templates/cloudflare-public-delivery.yaml
 
