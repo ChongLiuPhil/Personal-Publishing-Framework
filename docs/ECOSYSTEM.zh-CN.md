@@ -2,19 +2,19 @@
 
 PPF 负责作品从源内容到构建、发布、正式版本、归档和 Continuous Web 的完整生命周期；它不规定人与 AI 应怎样协作。
 
-如果第一次接触整个体系，请先从 [AHICP 主页](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) 开始；那里提供完整使用指南。需要配置、采用或升级项目时，再由 AI 进入 Starter 的机器入口。
+如果第一次接触整个体系，请先从 [AHICP 主页](https://inquirystack.philohub.workers.dev/) 开始；那里提供完整使用指南。需要配置、采用或升级项目时，再由 AI 进入 Starter 的机器入口。
 
 要完成一个项目的完整配置，请遵循 [Starter 体系入口](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.zh-CN.md)，并连接：
 
-- [AHICP 主页](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [仓库](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol)
-- [Vault Interface 主页](https://chongliuphil.github.io/Vault-interface/) · [仓库](https://github.com/ChongLiuPhil/Vault-interface)
-- [Starter 主页](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/) · [仓库](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter)
+- [AHICP 主页](https://inquirystack.philohub.workers.dev/) · [仓库](https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol)
+- [Vault Interface 主页](https://inquirystack.philohub.workers.dev/vault-interface/) · [仓库](https://github.com/ChongLiuPhil/Vault-interface)
+- [Starter 主页](https://inquirystack.philohub.workers.dev/starter/) · [仓库](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter)
 
 新项目的默认基线是 **完整 PPF + 完整 AHICP**，Vault Interface 只负责公共元数据。项目应在适当的项目记录中保存实际采用状态、源版本、出版授权和提供商状态。
 
 原创、未发布作品及其他需要保护的源内容默认保持私有。Continuous Web 是一种发布能力，不等于获得发布许可；私人或过渡性产物必须使用读者访问控制。
 
-新部署优先采用 Cloudflare Workers Static Assets + Workers Builds，GitHub 继续作为权威源文件、版本历史和 CI 平台。Cloudflare Pages 继续支持已有项目，不自动迁移。当前 GitHub Pages URL 在另行批准的切换完成候选部署及跨项目链接验证以前仍是正式入口。下游项目可根据运行时和发布需求选择 Pages、Workers 或其他受支持的 provider。
+新部署优先采用 Cloudflare Workers Static Assets + Workers Builds，GitHub 继续作为权威源文件、版本历史和 CI 平台。Cloudflare Pages 继续支持已有项目，不自动迁移。四个框架栏目现以 https://inquirystack.philohub.workers.dev/ 为正式入口；原 GitHub Pages URL 保留为旧入口。下游项目可根据运行时和发布需求选择 Pages、Workers 或其他受支持的 provider。
 
 四个框架站点的迁移遵循 [Cloudflare 公共站点迁移说明](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.zh-CN.md)。
 

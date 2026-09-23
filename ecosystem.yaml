@@ -2,32 +2,32 @@ schema_version: "1.1"
 current_component: ppf
 human_entrypoint:
   role: human-conceptual-entry
-  current_public_landing: https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/
-  delivery_provider: github-pages
+  current_public_landing: https://inquirystack.philohub.workers.dev/
+  delivery_provider: cloudflare-workers
   provider_may_change: true
-  homepage: https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/
+  homepage: https://inquirystack.philohub.workers.dev/
   guide_zh_cn: https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.zh-CN.md
   guide_en: https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol/blob/main/docs/HUMAN_GUIDE.md
 machine_entrypoint:
   role: composition-and-configuration-entry
-  public_landing: https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/agent/
-  descriptor: https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/agent/entry.json
+  public_landing: https://inquirystack.philohub.workers.dev/agent/
+  descriptor: https://inquirystack.philohub.workers.dev/agent/entry.json
   ecosystem: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/ecosystem.yaml
   agent_retrieval_contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md
 ecosystem_entrypoint: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md
 agent_retrieval_contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md
-llms_entrypoint: https://chongliuphil.github.io/Personal-Publishing-Framework/llms.txt
-homepage: https://chongliuphil.github.io/Personal-Publishing-Framework/
+llms_entrypoint: https://inquirystack.philohub.workers.dev/ppf/llms.txt
+homepage: https://inquirystack.philohub.workers.dev/ppf/
 repository: https://github.com/ChongLiuPhil/Personal-Publishing-Framework
 role: source-centered publishing lifecycle and continuous web
 public_delivery:
   canonical_source_provider: github
-  current_provider: github-pages
+  current_provider: cloudflare-workers
   preferred_provider: cloudflare-workers
-  migration_state: prepared-provider-authorization-required
+  migration_state: verified-cutover
   migration_plan: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/templates/cloudflare-public-delivery.yaml
   migration_guide: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md
-  cutover_rule: keep-current-public-urls-until-verified-cloudflare-deployment
+  cutover_rule: workers-dev-canonical-after-verified-human-approved-cutover
 baseline:
   default_profile: full-research-publication
   ahicp: full-compatible-upstream
@@ -40,16 +40,16 @@ baseline:
   reduced_profiles: explicit-human-selection-only
 components:
   ahicp:
-    homepage: https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/
+    homepage: https://inquirystack.philohub.workers.dev/ahicp/
     repository: https://github.com/ChongLiuPhil/AI-Assisted-Human-Inquiry-and-Creation-Protocol
   ppf:
-    homepage: https://chongliuphil.github.io/Personal-Publishing-Framework/
+    homepage: https://inquirystack.philohub.workers.dev/ppf/
     repository: https://github.com/ChongLiuPhil/Personal-Publishing-Framework
   vault_interface:
-    homepage: https://chongliuphil.github.io/Vault-interface/
+    homepage: https://inquirystack.philohub.workers.dev/vault-interface/
     repository: https://github.com/ChongLiuPhil/Vault-interface
   starter:
-    homepage: https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/
+    homepage: https://inquirystack.philohub.workers.dev/starter/
     repository: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter
 private_state_rule: fetch only after explicit human authorization
 public_links_grant_private_access: false

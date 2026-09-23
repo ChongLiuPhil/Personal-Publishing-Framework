@@ -25,11 +25,11 @@ def main() -> int:
     public_delivery = manifest.get("public_delivery")
     if not isinstance(public_delivery, dict):
         raise SystemExit("ecosystem.yaml is missing public_delivery")
-    if public_delivery.get("current_provider") != "github-pages":
-        raise SystemExit("PPF must keep GitHub Pages current before verified cutover")
+    if public_delivery.get("current_provider") != "cloudflare-workers":
+        raise SystemExit("PPF must record the approved Workers cutover")
     if public_delivery.get("preferred_provider") != "cloudflare-workers":
         raise SystemExit("PPF preferred public delivery for new projects must be Cloudflare Workers")
-    if public_delivery.get("cutover_rule") != "keep-current-public-urls-until-verified-cloudflare-deployment":
+    if public_delivery.get("cutover_rule") != "workers-dev-canonical-after-verified-human-approved-cutover":
         raise SystemExit("PPF public URL cutover rule is missing or unsafe")
     cloudflare = manifest.get("cloudflare", {})
     if cloudflare.get("integration_standard") != "docs/GITHUB_CLOUDFLARE_INTEGRATION.md":
@@ -55,7 +55,7 @@ def main() -> int:
         "Publish · 发布",
         "Release · 版本",
         "Archive · 归档",
-        "https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/agent/",
+        "https://inquirystack.philohub.workers.dev/agent/",
     ]
     for marker in required_homepage_markers:
         if marker not in page:

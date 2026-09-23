@@ -1,8 +1,8 @@
-**Project links:** [Public homepage](https://chongliuphil.github.io/Personal-Publishing-Framework/) · [GitHub repository](https://github.com/ChongLiuPhil/Personal-Publishing-Framework)
+**Project links:** [Public homepage](https://inquirystack.philohub.workers.dev/ppf/) · [GitHub repository](https://github.com/ChongLiuPhil/Personal-Publishing-Framework)
 
-**New to the full stack?** Start with the [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/), which explains the system from the user’s point of view and shows how to hand technical setup to an AI.
+**New to the full stack?** Start with the [AHICP homepage](https://inquirystack.philohub.workers.dev/), which explains the system from the user’s point of view and shows how to hand technical setup to an AI.
 
-**Related public projects:** [AHICP homepage](https://chongliuphil.github.io/AI-Assisted-Human-Inquiry-and-Creation-Protocol/) · [Vault Interface homepage](https://chongliuphil.github.io/Vault-interface/) · [Starter homepage](https://chongliuphil.github.io/Inquiry-Publishing-Project-Starter/)
+**Related public projects:** [AHICP homepage](https://inquirystack.philohub.workers.dev/) · [Vault Interface homepage](https://inquirystack.philohub.workers.dev/vault-interface/) · [Starter homepage](https://inquirystack.philohub.workers.dev/starter/)
 
 **Ecosystem and agent entrypoint:** [`docs/ECOSYSTEM.md`](docs/ECOSYSTEM.md) · [`ecosystem.yaml`](ecosystem.yaml) · [`llms.txt`](docs/llms.txt) · [Starter unified guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/ECOSYSTEM.md) · [Agent retrieval contract](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md)
 
