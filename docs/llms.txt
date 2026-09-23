@@ -42,6 +42,6 @@ Migration guide: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Star
 Migration state: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/templates/cloudflare-public-delivery.yaml
 
 Commit-driven unified publication (registered public outputs only):
-Default-branch pushes notify Starter through the account-installed GitHub App. No scheduled polling or upstream personal-token secret is required. New publications require explicit registration and installation approval.
+Default-branch pushes notify Starter through the account-installed GitHub App. Source-lock updates use App-created pull requests, required CI checks, and normal branch protection before native Cloudflare deployment. The App private key stays in Cloudflare. No scheduled polling or upstream personal-token secret is required. New publications require explicit registration and installation approval.
 English contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/GITHUB_APP_PUBLICATION.md
 Chinese contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/GITHUB_APP_PUBLICATION.zh-CN.md
