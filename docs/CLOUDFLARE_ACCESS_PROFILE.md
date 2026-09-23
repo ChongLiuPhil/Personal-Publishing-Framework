@@ -117,7 +117,7 @@ Current Cloudflare Workers Access supports account-wide, Worker-level, and hostn
 
 New projects use an Access application whose destination is `all_workers` and whose allow policy is selected during one-time platform bootstrap. This protects existing and future Worker production and preview traffic. A project-level workflow must verify the baseline before creating a Worker or enabling previews; it must never disable or rewrite this account-wide application.
 
-For an approved public production Worker, create a separate Worker-scoped application targeting its Worker ID with a Bypass policy for Everyone. Do not bypass previews. The account-wide application remains enabled; a private control Worker must still fail an anonymous request. Bypass disables Access enforcement and Access request logging for the matching Worker, so public Worker observability must come from Worker logs/analytics.
+For an approved public production site, create a separate application with a public destination matching only the exact production hostname and a Bypass policy for Everyone. Do not use a worker destination for a production-only exception: it also matches previews. Cloudflare documents that a public destination takes precedence over all_workers, so preview hostnames remain protected by the account baseline. Keep the account-wide application enabled; a private control Worker must still fail an anonymous request. Bypass disables Access enforcement and Access request logging for the matching hostname, so public Worker observability must come from Worker logs/analytics.
 
 ### Worker-level
 
