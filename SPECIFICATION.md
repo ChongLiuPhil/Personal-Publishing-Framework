@@ -169,7 +169,7 @@ General publication-visibility semantics include at least:
 - `restricted` — published, but available only to visitors satisfying an access policy;
 - `private` — not generally available to an audience beyond the project-defined access boundary.
 
-A project MAY use `authenticated`, `selected-audience`, `shared-password`, or another documented access mode. Concrete identity providers, OTP, SSO, allowlists, and provider access-control products are implementation details. The optional `shared-password` mode requires server-side password/session secrets, a request-first Worker gate for every publication asset, non-public caching, and fail-closed behavior; its implementation must be documented by the provider profile.
+A project MAY use `authenticated`, `selected-audience`, or another documented access mode. Infrastructure access MUST use Cloudflare Access for Cloudflare-hosted Workers; application code MUST NOT add a second password, cookie, JWT, or session gate unless the project implements real application user accounts. Concrete identity providers, OTP, SSO, allowlists, and provider access-control products remain implementation details.
 
 The following inferences are invalid:
 

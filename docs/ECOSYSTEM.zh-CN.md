@@ -18,6 +18,6 @@ PPF 负责作品从源内容到构建、发布、正式版本、归档和 Contin
 
 四个框架站点的迁移遵循 [Cloudflare 公共站点迁移说明](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.zh-CN.md)。
 
-详细 Cloudflare 契约见 [`CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md`](CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md)。现有的 [安全配置方案](CLOUDFLARE_SECURITY_PROFILES.zh-CN.md) 说明部署凭据的权衡；部署身份和读者访问是两个不同决策。
+详细 Cloudflare 出版契约见 [`CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md`](CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md)，可复用基础设施状态与协调边界见 [`GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md`](GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md)。现有的 [安全配置方案](CLOUDFLARE_SECURITY_PROFILES.zh-CN.md) 说明部署凭据的权衡；部署身份和读者访问是两个不同决策。
 
 跨组件工作必须阅读 [权威 Agent 调取契约](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.zh-CN.md)。公共链接只用于恢复生态关系，不授权私人状态访问。

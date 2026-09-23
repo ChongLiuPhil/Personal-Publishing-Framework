@@ -19,6 +19,7 @@ class ContractTests(unittest.TestCase):
         (self.root / "_site").mkdir()
         (self.root / "cloudflare-builds.yaml").write_text(
             "mode: workers-builds-git\nworker:\n  name: sample\n  static_assets_directory: ./_site\n"
+            "platform_security:\n  worker_access:\n    baseline: account-wide\n    destination: all_workers\n    private_by_default: true\n    public_exception: worker-scoped-bypass\n    previews_protected_by_default: true\n    bootstrap_required_before_worker_creation: true\n"
             "commands:\n  deploy: npx wrangler deploy\n", encoding="utf-8")
         (self.root / "publishing.yaml").write_text(
             "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: authenticated\n"
@@ -35,30 +36,26 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(worker["name"], "sample")
         self.assertTrue(output.is_dir())
 
-    def test_reference_preview_is_disabled_until_access_is_verified(self):
-        contract = Path(__file__).parents[3] / "templates/quarto-book/cloudflare-builds.yaml"
-        policy = provider.yaml.safe_load(contract.read_text(encoding="utf-8"))
-        self.assertFalse(policy["git"]["non_production_branch_builds"])
-        self.assertFalse(policy["preview"]["enabled_by_default"])
-        self.assertIn("anonymous-denial-verified", policy["preview"]["enable_only_after"])
-        self.assertTrue(policy["access_modes"]["shared-password"]["fail_closed"])
-
-    def test_shared_password_requires_worker_first_for_every_asset(self):
-        (self.root / "publishing.yaml").write_text(
-            "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: shared-password\n      implementation: ppf-worker-gate\n",
-            encoding="utf-8")
-        worker = {"name": "sample", "main": "workers/password_gate.mjs", "assets": {"directory": "./_site", "binding": "ASSETS", "run_worker_first": True}, "ratelimits": [{"name": "LOGIN_LIMIT"}]}
-        (self.root / "wrangler.jsonc").write_text(json.dumps(worker), encoding="utf-8")
-        provider.load_contract(self.root)
-        worker["assets"]["run_worker_first"] = False
-        (self.root / "wrangler.jsonc").write_text(json.dumps(worker), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "run_worker_first"):
+    def test_missing_account_access_baseline_fails_closed(self):
+        path = self.root / "cloudflare-builds.yaml"
+        path.write_text("mode: workers-builds-git\nworker:\n  name: sample\n  static_assets_directory: ./_site\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "account-wide private-by-default Access baseline"):
             provider.load_contract(self.root)
 
-    def test_template_gate_matches_provider_implementation(self):
-        canonical = SCRIPT.with_name("password_gate.mjs").read_text(encoding="utf-8")
-        template = SCRIPT.parents[2] / "templates/quarto-book/workers/password_gate.mjs"
-        self.assertEqual(canonical, template.read_text(encoding="utf-8"))
+    def test_reference_previews_are_private_and_require_access_verification(self):
+        contract = Path(__file__).parents[3] / "templates/quarto-book/cloudflare-builds.yaml"
+        policy = provider.yaml.safe_load(contract.read_text(encoding="utf-8"))
+        self.assertTrue(policy["git"]["non_production_branch_builds"])
+        self.assertTrue(policy["preview"]["enabled_by_default"])
+        self.assertIn("account-wide-access-verified", policy["preview"]["enable_only_after"])
+        self.assertNotIn("shared-password", policy["access_modes"])
+
+    def test_application_password_mode_is_not_a_publishing_access_mode(self):
+        (self.root / "publishing.yaml").write_text(
+            "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: shared-password\n",
+            encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "explicit access mode"):
+            provider.load_contract(self.root)
 
     def test_mismatched_worker_fails_closed(self):
         (self.root / "wrangler.jsonc").write_text(

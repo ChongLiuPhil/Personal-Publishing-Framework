@@ -4,11 +4,11 @@ profile: quarto-book-cloudflare
 template_root: templates/quarto-book
 
 upstream_managed:
+  - project.infrastructure.json
+  - .gitignore
   - scripts/ensure_quarto.sh
   - scripts/cloudflare_build.sh
   - scripts/verify_public_site.py
-  - workers/password_gate.mjs
-  - wrangler.password-gate.example.jsonc
   - .github/workflows/cloudflare-contract-ci.yml
 
 merge_managed:

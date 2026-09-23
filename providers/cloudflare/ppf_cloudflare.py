@@ -32,6 +32,16 @@ def load_contract(root: Path):
         raise ValueError("project contract files must each contain a mapping")
     if build.get("mode") != "workers-builds-git":
         raise ValueError("unsupported mode; expected workers-builds-git")
+    access_baseline = build.get("platform_security", {}).get("worker_access", {})
+    if access_baseline != {
+        "baseline": "account-wide",
+        "destination": "all_workers",
+        "private_by_default": True,
+        "public_exception": "worker-scoped-bypass",
+        "previews_protected_by_default": True,
+        "bootstrap_required_before_worker_creation": True,
+    }:
+        raise ValueError("platform_security.worker_access must require the account-wide private-by-default Access baseline")
     worker = build.get("worker", {})
     if not worker.get("name") or worker["name"] != wrangler.get("name"):
         raise ValueError("worker.name must match the Wrangler config")
@@ -44,19 +54,8 @@ def load_contract(root: Path):
     access = (web.get("access") or {}).get("mode")
     if visibility == "public" and access != "none":
         raise ValueError("public publication requires access.mode: none")
-    if visibility in {"restricted", "private"} and access not in {"authenticated", "selected-audience", "shared-password", "other"}:
+    if visibility in {"restricted", "private"} and access not in {"authenticated", "selected-audience", "other"}:
         raise ValueError("restricted/private publication requires an explicit access mode")
-    if access == "shared-password":
-        assets = wrangler.get("assets", {})
-        limits = wrangler.get("ratelimits", [])
-        if (web.get("access") or {}).get("implementation") != "ppf-worker-gate":
-            raise ValueError("shared-password requires access.implementation: ppf-worker-gate")
-        if not wrangler.get("main", "").endswith("password_gate.mjs"):
-            raise ValueError("shared-password requires the PPF password gate Worker module")
-        if assets.get("binding") != "ASSETS" or assets.get("run_worker_first") is not True:
-            raise ValueError("shared-password requires the ASSETS binding and assets.run_worker_first: true")
-        if not any(item.get("name") == "LOGIN_LIMIT" for item in limits):
-            raise ValueError("shared-password requires the LOGIN_LIMIT binding")
     if visibility not in {"public", "restricted", "private"}:
         raise ValueError("web.visibility must be public, restricted, or private")
     return build, publishing, wrangler, output

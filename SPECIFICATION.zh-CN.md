@@ -169,7 +169,7 @@ Publication visibility 的通用语义至少包括：
 - `restricted` — 已发布，但只有满足 access policy 的访问者可以进入；
 - `private` — 不面向一般受众开放，访问范围由项目定义。
 
-一个项目 MAY 使用 `authenticated`、`selected-audience`、`shared-password` 或其他有文档说明的访问模式。具体身份提供商、OTP、SSO、允许名单和 provider 访问控制产品属于 implementation detail。可选 `shared-password` 模式必须使用服务端密码/会话 Secret、让 Worker 先处理所有出版资源请求、禁止公共缓存并在故障时拒绝访问；provider profile 必须记录其具体实现。
+一个项目 MAY 使用 `authenticated`、`selected-audience` 或其他有文档说明的访问模式。Cloudflare Worker 的基础设施访问 MUST 使用 Cloudflare Access；应用代码 MUST NOT 再实现一套密码、Cookie、JWT 或会话访问层，除非该项目确实提供应用级用户账户。具体身份提供商、OTP、SSO、允许名单和 provider 访问控制产品属于 implementation detail。
 
 以下推断均无效：
 

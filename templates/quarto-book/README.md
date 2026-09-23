@@ -267,7 +267,7 @@ These are derived outputs and are ignored by Git by default.
 
 ## Publication contract vs provider implementation
 
-Projects that explicitly choose `access.mode: shared-password` may use `workers/password_gate.mjs` as the Worker entrypoint and merge `wrangler.password-gate.example.jsonc` with the project configuration. Replace the example rate-limit namespace with a unique positive account-level integer. Enter the password and signing key directly as Cloudflare Worker Secrets. This mode runs Worker code for every static asset request and therefore consumes Worker request quota. See the PPF Cloudflare Access profile for failure behavior, limitations, and tests.
+Infrastructure authentication uses Cloudflare Access. Do not add a project-level shared-password or session gate for publication access; application authentication belongs only to projects with real application user accounts. See the PPF Cloudflare Access profile for account-wide, Worker-level, and preview protection.
 
 - `publishing.yaml`: publication intent;
 - `cloudflare-builds.yaml`: PPF provider-integration machine contract;

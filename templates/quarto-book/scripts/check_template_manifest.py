@@ -20,6 +20,8 @@ for marker in (
         print(f"ERROR: template manifest missing {marker}",file=sys.stderr)
         raise SystemExit(1)
 for path in (
+    "project.infrastructure.json",
+    ".gitignore",
     "publishing.yaml","cloudflare-builds.yaml","wrangler.jsonc","Makefile",
     "package.json","package-lock.json",
     "scripts/cloudflare_build.sh","scripts/ensure_quarto.sh",

@@ -1,0 +1,6 @@
+# Local provider state and transient deployment metadata
+.ppf/
+.wrangler/
+node_modules/
+__pycache__/
+*.py[cod]
