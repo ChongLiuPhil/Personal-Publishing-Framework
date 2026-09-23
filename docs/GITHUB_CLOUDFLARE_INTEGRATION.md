@@ -16,17 +16,25 @@ Repository and application visibility are independent fields. A public site does
 - `providers/infrastructure/manifest.py` validates the manifest.
 - `providers/infrastructure/plan.py` compares desired state with a provider-read snapshot and emits a read-only plan.
 - `providers/infrastructure/state.py` stores non-secret IDs and audit events under `~/.ppf/infrastructure` (or `PPF_INFRA_STATE_DIR`) with owner-only permissions.
+- `providers/infrastructure/github.py`, `cloudflare.py`, and `coordinator.py` provide injectable GitHub, Workers, Workers Builds, and Access adapters with the `doctor / plan / apply / verify / rollback` commands.
 
 ```sh
 python providers/infrastructure/manifest.py project.infrastructure.json
 python -m providers.infrastructure.plan project.infrastructure.json --actual actual-state.json
+python -m providers.infrastructure.coordinator doctor project.infrastructure.json
+python -m providers.infrastructure.coordinator plan project.infrastructure.json --website-gate approval.json --build-config builds.json --triggers triggers.json
+python -m providers.infrastructure.coordinator apply project.infrastructure.json --website-gate approval.json --build-config builds.json --triggers triggers.json
+python -m providers.infrastructure.coordinator verify project.infrastructure.json
+python -m providers.infrastructure.coordinator rollback project.infrastructure.json
 ```
 
-The planner never mutates provider state. Missing actual state returns `READ_REQUIRED`; account-wide Access gaps return `BOOTSTRAP_REQUIRED`; unexpected public state is reported as `SECURITY_DRIFT`. State and audit records reject secret-bearing fields and credential-like values. Never put API tokens, passwords, cookies, private keys, or raw provider error bodies in state or logs.
+Set GitHub's GITHUB_TOKEN and Cloudflare's CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID directly in the agent's protected process environment. These credentials are never accepted as command-line arguments. Set PPF_PRODUCTION_HOSTNAME, PPF_PREVIEW_URL, and PPF_CONTROL_WORKER_URL for live anonymous verification; they contain hostnames only. The API client returns sanitized error codes, not raw provider messages.
+
+The planner never mutates provider state. Missing actual state returns `READ_REQUIRED`; absent account-wide Access blocks apply; unexpected public state is reported as `SECURITY_DRIFT`. The account-wide Access setup method deliberately stops with `ACCOUNT_SECURITY_UI_APPROVAL_REQUIRED`: only the account owner completes that setting in Cloudflare's dashboard. The adapters re-read and verify it afterward. State and audit records reject secret-bearing fields and credential-like values. Build configuration snapshots omit secret environment variables because Cloudflare does not return their values; rollback never rewrites or records them.
 
 ## Provider behavior
 
-Cloudflare Access can protect all Workers through an account-level `all_workers` destination. A public production Worker under that baseline needs a Worker-scoped `worker` destination with a bypass policy; the account baseline remains active. Previews can be protected separately. Bypass disables Access enforcement and Access request logging for matching traffic, so public applications need Worker observability. Always verify the public target and a separate private control Worker after a public transition.
+Cloudflare Access can protect all Workers through an account-level all_workers destination. A public production hostname under that baseline needs a separate exact-hostname public destination with a bypass policy. A worker destination covers both production and previews; the more-specific public destination takes precedence, so an exact production hostname bypass leaves preview hostnames covered by the account baseline. Keep the baseline active. Bypass disables Access enforcement and Access request logging for matching traffic, so public applications need Worker observability. Always verify the public target and a separate private control Worker after a public transition.
 
 Workers Builds identifies a Worker by its immutable `external_script_id` tag, not by its name. Store the Worker name, tag, repository ID, connection UUID, trigger UUIDs, and build-token UUID as separate values. The build-token UUID is an identifier, not a secret value. Cloudflare's current Workers Builds API requires a user-scoped API token with Workers Builds Configuration Edit and Workers Scripts Read for its documented provisioning flow; do not describe that credential as least privilege. GitHub visibility writes require repository Administration write permission. Keep these credentials out of source control and logs.
 
@@ -34,7 +42,7 @@ GitHub App installation/authorization, account-wide Access bootstrap, domain/DNS
 
 ## Current implementation boundary
 
-The manifest validator, visibility invariants, read-only planner, private ID/audit store, and existing Cloudflare Worker lifecycle adapter are implemented and tested. Provider inventory readers and mutating GitHub/Cloudflare reconciliation operations are not yet implemented by this reference package; until then, operators must supply an independently verified actual-state snapshot and must not treat a plan as proof that resources exist or have changed.
+Provider adapters now read GitHub repositories, Workers, Workers Builds configuration/triggers, and Access applications. GitHub visibility, Workers Builds configuration/triggers, and the exact production-hostname Access exception reconcile by re-reading before writes. Account-wide Access remains a manual Cloudflare dashboard action. Worker code deployment is left to the repository's approved build pipeline. Live apply/verify requires provider credentials, the account-wide Access UI gate, and the appropriate explicit publication gate; simulation tests do not count as live verification.
 
 Current provider references (checked 2026-09-23):
 
