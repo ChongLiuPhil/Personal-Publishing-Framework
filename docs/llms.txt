@@ -40,3 +40,8 @@ Public delivery migration:
 For new deployments, Cloudflare Workers Static Assets + Workers Builds is preferred. Cloudflare Pages remains supported for existing projects and is not migrated automatically. GitHub Pages URLs remain authoritative until a separately approved candidate verification and cutover.
 Migration guide: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md
 Migration state: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/templates/cloudflare-public-delivery.yaml
+
+Commit-driven unified publication (registered public outputs only):
+Default-branch pushes notify Starter through the account-installed GitHub App. No scheduled polling or upstream personal-token secret is required. New publications require explicit registration and installation approval.
+English contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/GITHUB_APP_PUBLICATION.md
+Chinese contract: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/GITHUB_APP_PUBLICATION.zh-CN.md
