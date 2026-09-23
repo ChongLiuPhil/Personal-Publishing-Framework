@@ -8,6 +8,8 @@
 4. 涉及 Continuous Web 或 Cloudflare 时，先阅读 [`docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md) 与 Starter 最小人类/Work 交接，再读取适用的 PPF provider-specific runbook
 5. 当 PPF 作为完整 Inquiry Publishing Stack 的一层时，读取项目的 AHICP 入口和所选 Starter profile
 
+由网页 AI Agent 为 GitHub 仓库配置 Cloudflare 时，还必须遵循 [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md)（English: [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md)）。
+
 对于包含原创或未发布内容的新项目，安全默认值是：canonical 源仓库 private，同时 Continuous Web 保持 restricted + authenticated。当通过完整 Inquiry Publishing Stack 采用时，默认组合是完整 PPF + 完整 AHICP + Vault Interface；精简 profile 必须由人类明确选择。
 
 从任意 PPF 公共入口进入时，在跨组件配置前恢复四组件生态。公共链接只授权读取公共信息，绝不授权私人状态访问。

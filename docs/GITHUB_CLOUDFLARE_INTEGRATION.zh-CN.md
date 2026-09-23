@@ -2,6 +2,8 @@
 
 PPF 项目在 `project.infrastructure.json` 中声明托管意图。该清单是期望状态；GitHub 与 Cloudflare API 响应以及匿名 HTTP 探测结果才是实际状态。Provider adapter 先读取现状，规划器再生成最小、幂等的协调计划；只有授权与发布关卡通过后，orchestrator 才能应用变更。
 
+由网页 AI Agent 根据 GitHub 仓库配置 Cloudflare 时，遵循[网页 Agent 接入契约](WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md)，其中规定了资源发现、最小项目输入、安全应用边界、在线验证与回滚。
+
 ## 可见性与安全默认值
 
 仓库可见性与网站可见性是两个独立字段。网站公开不会连带公开 GitHub 仓库，源码开放也不会连带公开托管网站。新项目默认使用 private 仓库、private Worker、private 预览、无公共 bypass、禁止付费服务，并依赖账户级 Access 基线。预览保护与正式站可见性互相独立。

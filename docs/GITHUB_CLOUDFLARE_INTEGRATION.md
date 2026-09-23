@@ -2,6 +2,8 @@
 
 PPF projects declare hosting intent in `project.infrastructure.json`. The manifest is desired state; GitHub and Cloudflare API responses plus anonymous HTTP probes are actual state. Provider adapters read actual state first, the planner emits the smallest idempotent reconciliation plan, and an orchestrator may apply only operations whose authorization and release gates have passed.
 
+For setup by a web AI agent working from GitHub, use the [web-agent onboarding contract](WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md). It defines discovery, minimum project inputs, safe apply boundaries, live verification, and rollback.
+
 ## Visibility and safe defaults
 
 Repository and application visibility are independent fields. A public site does not make its GitHub repository public, and an open repository does not make its hosted application public. New projects default to a private repository, private production Worker, private previews, no public bypass, no paid services, and an account-wide Access baseline. Preview protection is independent from production visibility.
