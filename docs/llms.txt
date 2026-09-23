@@ -33,6 +33,9 @@ For full-stack projects, default to full AHICP + full PPF + Vault Interface. For
 Cloudflare entrypoint:
 https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/CONTINUOUS_WEB_CLOUDFLARE.md
 
+GitHub–Cloudflare infrastructure integration standard:
+https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/GITHUB_CLOUDFLARE_INTEGRATION.md
+
 Public delivery migration:
 For new deployments, Cloudflare Workers Static Assets + Workers Builds is preferred. Cloudflare Pages remains supported for existing projects and is not migrated automatically. GitHub Pages URLs remain authoritative until a separately approved candidate verification and cutover.
 Migration guide: https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md

@@ -94,6 +94,7 @@ The first reference implementation is expected to use:
 - GitHub Actions as an independent validation gate
 - a repository-owned `make web-publish-check` as the canonical Web publication gate
 - Cloudflare Workers Builds + the GitHub App as the default reference delivery integration for new projects; Cloudflare Pages remains supported for existing projects
+- `project.infrastructure.json` as the machine-readable GitHub/Cloudflare desired-state manifest, with private-by-default visibility and a read-only reconciliation planner
 - Cloudflare Workers Static Assets as a Web delivery layer
 - EPUB, PDF, DOCX, and LaTeX as on-demand publication artifacts
 
@@ -149,6 +150,8 @@ The reference implementation is intentionally separate from the normative specif
 
 The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, and a reusable Workers Builds ↔ GitHub integration extracted from that pilot. PPF now continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md` and `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`.
 
+
+For the reusable GitHub–Cloudflare desired-state and reconciliation contract, see [`docs/GITHUB_CLOUDFLARE_INTEGRATION.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.md).
 
 For Cloudflare reference-implementation production credential profiles, see:
 

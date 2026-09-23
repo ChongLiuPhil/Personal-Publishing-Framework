@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://chongliuphil.github.io/Personal-Publishing-Framework/schema/project.infrastructure.schema.json",
+  "title": "PPF project infrastructure desired state",
+  "type": "object",
+  "required": ["schemaVersion", "project", "github", "cloudflare", "deployment", "release", "policy"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "project": {
+      "type": "object",
+      "required": ["id", "slug"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+      },
+      "additionalProperties": false
+    },
+    "github": {
+      "type": "object",
+      "required": ["owner", "repository", "repositoryVisibility", "productionBranch"],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "pattern": "^[a-zA-Z0-9._-]+$" },
+        "repositoryVisibility": { "enum": ["private", "public"] },
+        "productionBranch": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": false
+    },
+    "cloudflare": {
+      "type": "object",
+      "required": ["platform", "worker", "applicationVisibility", "previewVisibility", "accessMode", "publicBypass", "customDomain"],
+      "properties": {
+        "platform": { "const": "workers" },
+        "worker": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
+        "applicationVisibility": { "enum": ["private", "public"] },
+        "previewVisibility": { "enum": ["private", "public"] },
+        "accessMode": { "const": "account-wide-access" },
+        "publicBypass": { "type": "boolean" },
+        "customDomain": { "type": ["string", "null"], "format": "hostname" }
+      },
+      "additionalProperties": false
+    },
+    "deployment": {
+      "type": "object",
+      "required": ["provider", "productionBranch", "previewDeployments", "previewProtection"],
+      "properties": {
+        "provider": { "const": "cloudflare-workers-builds" },
+        "productionBranch": { "type": "string", "minLength": 1 },
+        "previewDeployments": { "type": "boolean" },
+        "previewProtection": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "release": {
+      "type": "object",
+      "required": ["state", "openSource"],
+      "properties": {
+        "state": { "enum": ["private", "release_candidate", "public", "release_blocked"] },
+        "openSource": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "policy": {
+      "type": "object",
+      "required": ["privateByDefault", "paidServicesAllowed", "requiresApprovedPublicTransition"],
+      "properties": {
+        "privateByDefault": { "const": true },
+        "paidServicesAllowed": { "type": "boolean" },
+        "requiresApprovedPublicTransition": { "const": true }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

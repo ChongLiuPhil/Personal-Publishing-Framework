@@ -265,7 +265,7 @@ _publication/
 
 ## Publication contract 与 provider implementation 分离
 
-项目若明确选择 `access.mode: shared-password`，将 `workers/password_gate.mjs` 作为 Worker 主入口，并参考 `wrangler.password-gate.example.jsonc` 合并静态资源、Worker-first 和限速配置。将 `ratelimits[].namespace_id` 换成账户内唯一的正整数。登录密码和会话签名密钥只在 Cloudflare Worker Secrets 中直接录入；该模式会使每次静态资源请求消耗 Worker 请求额度。完整边界、故障行为和本地测试见 PPF `docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`。
+基础设施身份验证使用 Cloudflare Access。出版访问不得另加项目级共享密码或会话门；只有真正提供应用级用户账户的项目才自行实现应用身份验证。账户级、Worker 级与预览保护方式见 PPF `docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`。
 
 - `publishing.yaml`：发布意图；
 - `cloudflare-builds.yaml`：PPF 的 provider integration machine contract；

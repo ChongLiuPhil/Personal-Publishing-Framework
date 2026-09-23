@@ -31,6 +31,12 @@ def main() -> int:
         raise SystemExit("PPF preferred public delivery for new projects must be Cloudflare Workers")
     if public_delivery.get("cutover_rule") != "keep-current-public-urls-until-verified-cloudflare-deployment":
         raise SystemExit("PPF public URL cutover rule is missing or unsafe")
+    cloudflare = manifest.get("cloudflare", {})
+    if cloudflare.get("integration_standard") != "docs/GITHUB_CLOUDFLARE_INTEGRATION.md":
+        raise SystemExit("ecosystem.yaml must point to the GitHub–Cloudflare integration standard")
+    for relative in ("docs/GITHUB_CLOUDFLARE_INTEGRATION.md", "docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md"):
+        if not (ROOT / relative).is_file():
+            raise SystemExit(f"missing GitHub–Cloudflare integration guide: {relative}")
 
     manifest_text = (ROOT / "ecosystem.yaml").read_text()
     for repository in CORE_REPOSITORIES:

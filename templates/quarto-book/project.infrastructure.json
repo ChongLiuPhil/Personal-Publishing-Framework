@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "project": {
+    "id": "replace-with-stable-project-id",
+    "slug": "replace-with-project-slug"
+  },
+  "github": {
+    "owner": "OWNER",
+    "repository": "replace-with-project-slug",
+    "repositoryVisibility": "private",
+    "productionBranch": "main"
+  },
+  "cloudflare": {
+    "platform": "workers",
+    "worker": "replace-with-project-slug",
+    "applicationVisibility": "private",
+    "previewVisibility": "private",
+    "accessMode": "account-wide-access",
+    "publicBypass": false,
+    "customDomain": null
+  },
+  "deployment": {
+    "provider": "cloudflare-workers-builds",
+    "productionBranch": "main",
+    "previewDeployments": true,
+    "previewProtection": true
+  },
+  "release": {
+    "state": "private",
+    "openSource": false
+  },
+  "policy": {
+    "privateByDefault": true,
+    "paidServicesAllowed": false,
+    "requiresApprovedPublicTransition": true
+  }
+}

@@ -58,3 +58,4 @@ cloudflare:
   github_authorization_runbook: docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md
   security_profiles: docs/CLOUDFLARE_SECURITY_PROFILES.md
   access_profile: docs/CLOUDFLARE_ACCESS_PROFILE.md
+  integration_standard: docs/GITHUB_CLOUDFLARE_INTEGRATION.md

@@ -8,6 +8,8 @@ Before configuring or publishing a project, read:
 4. when Continuous Web or Cloudflare is in scope, [`docs/CONTINUOUS_WEB_CLOUDFLARE.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.md), the Starter minimal-human/Work handoff, then the applicable provider-specific PPF runbooks
 5. the project's AHICP entrypoint and selected Starter profile when this PPF layer participates in the full stack
 
+For web-agent GitHub-to-Cloudflare onboarding, also follow [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md) (Chinese: [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md)).
+
 For new projects containing original or unpublished work, the safe default is a private canonical source plus Continuous Web in a restricted, authenticated state. When used through the full Inquiry Publishing Stack, the default composition is full PPF + full AHICP + Vault Interface; reduced profiles require explicit human selection.
 
 From any public PPF entrypoint, reconstruct the four-component ecosystem before cross-component configuration. Public links authorize public retrieval only and never authorize private-state access.

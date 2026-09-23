@@ -92,6 +92,7 @@ PPF 规范人的作品如何被持续维护、发展、分享和出版。它**�
 - GitHub Actions 作为独立 验证关卡；
 - repository-owned `make web-publish-check` 作为统一 Web publication gate；
 - Cloudflare Workers Builds + GitHub App 作为新项目默认参考交付集成；Cloudflare Pages 继续支持已有项目，不自动迁移；
+- `project.infrastructure.json` 作为 GitHub/Cloudflare 期望状态清单，默认 private，并通过只读协调规划器比较实际状态；
 - Cloudflare Workers Static Assets 作为 Web delivery layer；
 - EPUB、PDF、DOCX、LaTeX 作为按需生成的 发布产物。
 
@@ -145,6 +146,8 @@ Git canonical source
 
 当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot，以及从该 pilot 提炼出的 Workers Builds ↔ GitHub 可复用集成范本。PPF 自身现已用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`，账户授权说明见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`。
 
+
+可复用的 GitHub–Cloudflare 期望状态与协调契约见 [`docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md)。
 
 Cloudflare 参考实现 的 production credential 选择见：
 

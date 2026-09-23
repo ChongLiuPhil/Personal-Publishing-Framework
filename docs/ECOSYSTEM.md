@@ -18,6 +18,6 @@ For new deployments, Cloudflare Workers Static Assets with Workers Builds is the
 
 Use the [coordinated public-delivery migration guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md) for the framework sites.
 
-Use [`CONTINUOUS_WEB_CLOUDFLARE.md`](CONTINUOUS_WEB_CLOUDFLARE.md) for the detailed Cloudflare contract. The existing [security profiles](CLOUDFLARE_SECURITY_PROFILES.md) describe deployment-credential trade-offs; deployment identity and reader access are separate decisions.
+Use [`CONTINUOUS_WEB_CLOUDFLARE.md`](CONTINUOUS_WEB_CLOUDFLARE.md) for the detailed Cloudflare publication contract and [`GITHUB_CLOUDFLARE_INTEGRATION.md`](GITHUB_CLOUDFLARE_INTEGRATION.md) for reusable infrastructure state and reconciliation boundaries. The existing [security profiles](CLOUDFLARE_SECURITY_PROFILES.md) describe deployment-credential trade-offs; deployment identity and reader access are separate decisions.
 
 For cross-component work, read the [canonical agent retrieval contract](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md). Public links support ecosystem reconstruction; they do not authorize private-state access.

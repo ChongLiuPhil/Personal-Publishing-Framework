@@ -1,6 +1,6 @@
 # Cloudflare Access Publication Profile（PPF Reference）
 
-**Reviewed:** 2026-09-20  
+**Reviewed:** 2026-09-23
 **Status:** REFERENCE-ONLY / DATED PROVIDER MAPPING  
 **Scope:** PPF publication visibility / access policy on Cloudflare Workers
 
@@ -99,20 +99,25 @@ PPF → Cloudflare reference mapping：
 | `none` | 不启用 Access，或明确 public bypass |
 | `authenticated` | Cloudflare Access + authentication policy |
 | `selected-audience` | Cloudflare Access + email / domain / group / other allow policy |
-| `shared-password` | PPF Worker gate + 服务端 Cloudflare Secret；必须由项目主动选择 |
 | `other` | 项目记录 provider-specific implementation |
 
-PPF 定义共享密码访问模式，但密码与会话行为属于 provider implementation。其他模式不规定 OTP、SSO 或具体 identity provider。
+Cloudflare Access 是基础设施身份验证层。除非项目确实提供应用级用户账户，应用代码不得另加密码/会话访问。PPF 不定义共享密码出版访问模式。
 
 在当前 Inquiry Publishing Stack reference deployment 中，`policy_ref: shared-reader-access` 映射为一个 reusable Cloudflare Access policy。对人类读者，优先实现为“明确 email allowlist + One-Time PIN”，初始 policy/application session 使用 24h。Reader identity 与 provider ID 仍属于私人 provider state。
 
-Cloudflare Access 当前 policy selector 以身份/策略属性为核心，例如 email、login method、group、device posture、service token；没有通用的静态共享密码 selector。项目明确选择共享密码模式时使用独立 PPF Worker gate；真实值绝不写入 Git。
+Cloudflare Access 当前 policy selector 以身份/策略属性为核心，例如 email、login method、group、device posture、service token。应选择符合已批准读者范围的 Access policy，不要用应用密码替代。
 
 Cloudflare Access 可以使用其支持的 authentication methods；One-Time PIN 是 provider-specific choice，不应进入 PPF normative vocabulary。
 
 ## 6. Worker-level vs hostname-level protection
 
-当前 Cloudflare Workers Access 支持两种重要范围：
+当前 Cloudflare Workers Access 支持账户级、Worker 级和 hostname/path 级范围。
+
+### 账户级基线
+
+新项目统一使用 destination 为 `all_workers` 的 Access application；允许策略在一次性平台初始化中确定。它保护现有和未来 Worker 的正式站及预览流量。项目流程必须先验证该基线，才能创建 Worker 或启用预览；不得关闭或重写账户级 application。
+
+获批公开正式站点时，另建仅匹配精确正式 hostname 的 public destination application，并为 Everyone 设置 Bypass。正式站专用例外不要使用 worker destination，因为它也会匹配预览。Cloudflare 说明 public destination 优先于 all_workers，因此预览 hostname 仍由账户级基线保护。账户级 application 必须继续启用；匿名访问的 private 控制 Worker 仍须被拒绝。bypass 会关闭匹配 hostname 的 Access 执行和 Access 请求日志，公开 Worker 必须使用 Worker logs/analytics 做可观测性。
 
 ### Worker-level
 
@@ -188,26 +193,14 @@ Publication contract / access metadata MAY 记录：
 - recovery code；
 - one-time login code。
 
-## 9. 可选项目共享密码 profile
+## 9. 当前 Access 官方参考
 
-`providers/cloudflare/password_gate.mjs` 是 PPF 对共享密码模式的参考实现。只有 Wrangler 设置 `assets.run_worker_first: true` 时才启用；Worker 会先处理所有静态请求，包括直接访问文件和 JSON。密码和会话签名密钥只能作为 Cloudflare Worker Secret。任一秘密或 binding 缺失时均 fail closed 并返回 503。会话使用签名的 12 小时 Secure/HttpOnly/SameSite Cookie；任一秘密轮换都会使旧会话失效。登录尝试由 Workers Rate Limiting binding 限制，受保护静态响应统一为 `private, no-store`。
-
-Cloudflare Workers Rate Limiting 按 Cloudflare 数据中心位置分别计数，且为宽松、最终一致；共享公网 IP 也可能把多个读者归为一组。它能限制一般重复尝试，但不能视为全局滥用防护或计费系统。每个项目应使用独立的账户级 namespace ID。共享密码无法提供个人读者身份、单独撤销或审计；若读者名单已获批准，优先使用 Access。
-
-Secret 名称为 `PPF_ACCESS_PASSWORD` 与 `PPF_SESSION_SIGNING_KEY`。直接在 Cloudflare Secret 输入界面保存实际值，绝不写入 `publishing.yaml`、源代码、工作流变量、执行证据或聊天。配置样例位于 `providers/cloudflare/password_gate.wrangler.jsonc`，测试位于 `providers/cloudflare/tests/password_gate.test.mjs`。
-
-当前 Workers 参考：
-
-- 静态资源 Worker-first 路由：https://developers.cloudflare.com/workers/static-assets/binding/
-- Workers 安全最佳实践与恒时比较：https://developers.cloudflare.com/workers/best-practices/workers-best-practices/
-- Workers Rate Limiting 的区域性与准确度：https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
-
-## 10. 当前 Access 官方参考
-
-Reviewed against current Cloudflare documentation on 2026-09-20:
+Reviewed against current Cloudflare documentation on 2026-09-23:
 
 - Cloudflare Workers — Cloudflare Access:
   https://developers.cloudflare.com/workers/configuration/cloudflare-access/
+- Cloudflare One — Require Access protection:
+  https://developers.cloudflare.com/cloudflare-one/access-controls/access-settings/require-access-protection/
 - Cloudflare Workers — workers.dev:
   https://developers.cloudflare.com/workers/configuration/routing/workers-dev/
 - Cloudflare One — One-time PIN login:

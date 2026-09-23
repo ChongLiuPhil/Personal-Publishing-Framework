@@ -11,23 +11,27 @@ access_modes:
       identity_method: one-time-pin
       session_duration: 24h
     requires_approved_reader_list: true
-  shared-password:
-    implementation: ppf-worker-gate
-    secrets: [PPF_ACCESS_PASSWORD, PPF_SESSION_SIGNING_KEY]
-    require_run_worker_first: true
-    fail_closed: true
+
+platform_security:
+  worker_access:
+    baseline: account-wide
+    destination: all_workers
+    private_by_default: true
+    public_exception: worker-scoped-bypass
+    previews_protected_by_default: true
+    bootstrap_required_before_worker_creation: true
 
 git:
   provider: github
   repository: OWNER/REPOSITORY
   production_branch: main
-  non_production_branch_builds: false
+  non_production_branch_builds: true
   root_directory: "/"
 
 commands:
   build: "bash scripts/cloudflare_build.sh"
-  deploy: "npm run cloudflare:deploy"
-  preview_deploy: "npm run cloudflare:preview"
+  deploy: "wrangler deploy"
+  preview_deploy: "wrangler versions upload"
 
 toolchain:
   node: "24"
@@ -85,8 +89,7 @@ lifecycle:
   preserve_existing_provider_until_explicit_cutover: true
 
 preview:
-  enabled_by_default: false
+  enabled_by_default: true
   enable_only_after:
-    - access-policy-configured
-    - anonymous-denial-verified
-    - approved-reader-access-verified
+    - account-wide-access-verified
+    - preview-anonymous-denial-verified

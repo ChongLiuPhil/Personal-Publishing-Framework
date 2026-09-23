@@ -117,10 +117,6 @@ Copy from the machine contract.
 
 PPF reference:
 
-`npm run cloudflare:deploy`
-
-which ultimately calls:
-
 `wrangler deploy`
 
 ### Builds for non-production branches
@@ -162,10 +158,6 @@ Do not put passwords, OTPs, tokens, or other secrets in `publishing.yaml` or cha
 ### Advanced settings → Non-production branch deploy command
 
 PPF reference:
-
-`npm run cloudflare:preview`
-
-which ultimately calls:
 
 `wrangler versions upload`
 

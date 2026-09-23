@@ -1,4 +1,5 @@
 import importlib.util
+import base64
 import json
 from unittest.mock import patch
 from pathlib import Path
@@ -19,13 +20,28 @@ class ContractTests(unittest.TestCase):
         (self.root / "_site").mkdir()
         (self.root / "cloudflare-builds.yaml").write_text(
             "mode: workers-builds-git\nworker:\n  name: sample\n  static_assets_directory: ./_site\n"
-            "commands:\n  deploy: npx wrangler deploy\n", encoding="utf-8")
+            "platform_security:\n  worker_access:\n    baseline: account-wide\n    destination: all_workers\n    private_by_default: true\n    public_exception: worker-scoped-bypass\n    previews_protected_by_default: true\n    bootstrap_required_before_worker_creation: true\n"
+            "commands:\n  deploy: wrangler deploy\ntoolchain:\n  wrangler: 4.135.0\n", encoding="utf-8")
         (self.root / "publishing.yaml").write_text(
             "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: authenticated\n"
             "deployment:\n  web:\n    production_url: https://example.workers.dev/\n",
             encoding="utf-8")
         (self.root / "wrangler.jsonc").write_text(
             json.dumps({"name": "sample", "assets": {"directory": "./_site"}}), encoding="utf-8")
+        (self.root / "package.json").write_text(
+            json.dumps({"devDependencies": {"wrangler": "4.135.0"}, "scripts": {"cloudflare:deploy": "wrangler deploy"}}), encoding="utf-8")
+        (self.root / "package-lock.json").write_text(json.dumps({"packages": {
+            "": {"devDependencies": {"wrangler": "4.135.0"}},
+            "node_modules/wrangler": {
+                "version": "4.135.0",
+                "resolved": "https://registry.npmjs.org/wrangler/-/wrangler-4.135.0.tgz",
+                "integrity": "sha512-" + base64.b64encode(b"x" * 64).decode("ascii"),
+            },
+        }}), encoding="utf-8")
+        entrypoint = self.root / "node_modules/wrangler/bin/wrangler.js"
+        entrypoint.parent.mkdir(parents=True)
+        entrypoint.write_text("// pinned Wrangler fixture\n", encoding="utf-8")
+        (entrypoint.parent.parent / "package.json").write_text(json.dumps({"version": "4.135.0"}), encoding="utf-8")
 
     def tearDown(self):
         self.temp.cleanup()
@@ -35,30 +51,26 @@ class ContractTests(unittest.TestCase):
         self.assertEqual(worker["name"], "sample")
         self.assertTrue(output.is_dir())
 
-    def test_reference_preview_is_disabled_until_access_is_verified(self):
-        contract = Path(__file__).parents[3] / "templates/quarto-book/cloudflare-builds.yaml"
-        policy = provider.yaml.safe_load(contract.read_text(encoding="utf-8"))
-        self.assertFalse(policy["git"]["non_production_branch_builds"])
-        self.assertFalse(policy["preview"]["enabled_by_default"])
-        self.assertIn("anonymous-denial-verified", policy["preview"]["enable_only_after"])
-        self.assertTrue(policy["access_modes"]["shared-password"]["fail_closed"])
-
-    def test_shared_password_requires_worker_first_for_every_asset(self):
-        (self.root / "publishing.yaml").write_text(
-            "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: shared-password\n      implementation: ppf-worker-gate\n",
-            encoding="utf-8")
-        worker = {"name": "sample", "main": "workers/password_gate.mjs", "assets": {"directory": "./_site", "binding": "ASSETS", "run_worker_first": True}, "ratelimits": [{"name": "LOGIN_LIMIT"}]}
-        (self.root / "wrangler.jsonc").write_text(json.dumps(worker), encoding="utf-8")
-        provider.load_contract(self.root)
-        worker["assets"]["run_worker_first"] = False
-        (self.root / "wrangler.jsonc").write_text(json.dumps(worker), encoding="utf-8")
-        with self.assertRaisesRegex(ValueError, "run_worker_first"):
+    def test_missing_account_access_baseline_fails_closed(self):
+        path = self.root / "cloudflare-builds.yaml"
+        path.write_text("mode: workers-builds-git\nworker:\n  name: sample\n  static_assets_directory: ./_site\n", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "account-wide private-by-default Access baseline"):
             provider.load_contract(self.root)
 
-    def test_template_gate_matches_provider_implementation(self):
-        canonical = SCRIPT.with_name("password_gate.mjs").read_text(encoding="utf-8")
-        template = SCRIPT.parents[2] / "templates/quarto-book/workers/password_gate.mjs"
-        self.assertEqual(canonical, template.read_text(encoding="utf-8"))
+    def test_reference_previews_are_private_and_require_access_verification(self):
+        contract = Path(__file__).parents[3] / "templates/quarto-book/cloudflare-builds.yaml"
+        policy = provider.yaml.safe_load(contract.read_text(encoding="utf-8"))
+        self.assertTrue(policy["git"]["non_production_branch_builds"])
+        self.assertTrue(policy["preview"]["enabled_by_default"])
+        self.assertIn("account-wide-access-verified", policy["preview"]["enable_only_after"])
+        self.assertNotIn("shared-password", policy["access_modes"])
+
+    def test_application_password_mode_is_not_a_publishing_access_mode(self):
+        (self.root / "publishing.yaml").write_text(
+            "publication:\n  web:\n    visibility: restricted\n    access:\n      mode: shared-password\n",
+            encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "explicit access mode"):
+            provider.load_contract(self.root)
 
     def test_mismatched_worker_fails_closed(self):
         (self.root / "wrangler.jsonc").write_text(
@@ -84,6 +96,52 @@ class ContractTests(unittest.TestCase):
         with patch.dict("os.environ", {}, clear=True):
             self.assertEqual(provider.apply(self.root), 2)
 
+    def test_apply_rejects_repository_configured_arbitrary_command(self):
+        path = self.root / "cloudflare-builds.yaml"
+        path.write_text(path.read_text(encoding="utf-8").replace("deploy: wrangler deploy", "deploy: python -c print-secret"), encoding="utf-8")
+        with patch.dict("os.environ", {"CLOUDFLARE_API_TOKEN": "test-token", "CLOUDFLARE_ACCOUNT_ID": "test-account"}):
+            with patch.object(provider.subprocess, "run") as run:
+                self.assertEqual(provider.apply(self.root), 2)
+                run.assert_not_called()
+
+    def test_apply_rejects_unpinned_wrangler_package_source(self):
+        path = self.root / "package-lock.json"
+        lock = json.loads(path.read_text(encoding="utf-8"))
+        lock["packages"]["node_modules/wrangler"]["resolved"] = "https://attacker.example/wrangler.tgz"
+        path.write_text(json.dumps(lock), encoding="utf-8")
+        with patch.dict("os.environ", {"CLOUDFLARE_API_TOKEN": "test-token", "CLOUDFLARE_ACCOUNT_ID": "test-account"}):
+            with patch.object(provider.shutil, "which", return_value="/usr/bin/node"):
+                with patch.object(provider.subprocess, "run") as run:
+                    self.assertEqual(provider.apply(self.root), 2)
+                    run.assert_not_called()
+
+    def test_apply_runs_only_pinned_wrangler_with_minimal_environment(self):
+        package_path = self.root / "package.json"
+        package = json.loads(package_path.read_text(encoding="utf-8"))
+        package["scripts"]["cloudflare:deploy"] = "python -c print-secret"
+        package_path.write_text(json.dumps(package), encoding="utf-8")
+        with patch.dict("os.environ", {
+            "CLOUDFLARE_API_TOKEN": "test-token",
+            "CLOUDFLARE_ACCOUNT_ID": "test-account",
+            "GITHUB_TOKEN": "must-not-be-inherited",
+            "AWS_SECRET_ACCESS_KEY": "must-not-be-inherited",
+        }, clear=True):
+            with patch.object(provider.shutil, "which", return_value="/usr/bin/node"):
+                with patch.object(provider.subprocess, "run") as run:
+                    run.return_value.returncode = 0
+                    self.assertEqual(provider.apply(self.root), 0)
+        command = run.call_args.args[0]
+        env = run.call_args.kwargs["env"]
+        self.assertEqual(command[0], "/usr/bin/node")
+        self.assertEqual(command[1], str((self.root / "node_modules/wrangler/bin/wrangler.js").resolve()))
+        self.assertEqual(command[2:], ["deploy"])
+        self.assertEqual(env["CLOUDFLARE_API_TOKEN"], "test-token")
+        self.assertEqual(env["CLOUDFLARE_ACCOUNT_ID"], "test-account")
+        self.assertNotIn("GITHUB_TOKEN", env)
+        self.assertNotIn("AWS_SECRET_ACCESS_KEY", env)
+        self.assertEqual(run.call_args.kwargs["stdout"], provider.subprocess.PIPE)
+        self.assertEqual(run.call_args.kwargs["stderr"], provider.subprocess.PIPE)
+
     def test_rollback_requires_explicit_version_uuid(self):
         self.assertEqual(provider.rollback("latest", self.root), 2)
 
@@ -93,11 +151,13 @@ class ContractTests(unittest.TestCase):
         (self.root / ".ppf/cloudflare-deployment.json").write_text(
             json.dumps({"worker": "sample", "verified_version_ids": [version]}), encoding="utf-8")
         with patch.dict("os.environ", {"CLOUDFLARE_API_TOKEN": "test-token", "CLOUDFLARE_ACCOUNT_ID": "test-account"}):
-            with patch.object(provider.subprocess, "run") as run:
-                run.return_value.returncode = 0
-                self.assertEqual(provider.rollback(version, self.root), 0)
-                run.assert_called_once()
-                self.assertIn(version, run.call_args.args[0])
+            with patch.object(provider.shutil, "which", return_value="/usr/bin/node"):
+                with patch.object(provider.subprocess, "run") as run:
+                    run.return_value.returncode = 0
+                    self.assertEqual(provider.rollback(version, self.root), 0)
+                    run.assert_called_once()
+                    self.assertIn(version, run.call_args.args[0])
+                    self.assertNotIn("GITHUB_TOKEN", run.call_args.kwargs["env"])
 
     def test_rollback_cannot_cross_worker_boundary(self):
         (self.root / ".ppf").mkdir()

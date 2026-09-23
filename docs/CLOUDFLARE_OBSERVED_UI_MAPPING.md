@@ -25,10 +25,10 @@ Cloudflare does not natively consume the PPF machine contract. Values displayed 
 | --- | --- | --- |
 | Project name | Worker / project name from machine contract | do not copy a pilot-specific name from this file |
 | Build command | `bash scripts/cloudflare_build.sh` | current repository machine contract governs |
-| Deploy command | `npm run cloudflare:deploy` | current repository machine contract governs |
+| Deploy command | `wrangler deploy` | fixed operation; do not route provider credentials through an npm script |
 | Builds for non-production branches | enabled | supports preview/non-production builds |
 | Protect with Cloudflare Access | `publication.web.visibility` + `publication.web.access` | may be off for `public + none`; read the access policy for `restricted/private`; do not infer from source visibility |
-| Advanced settings → Non-production branch deploy command | `npm run cloudflare:preview` | current repository machine contract governs |
+| Advanced settings → Non-production branch deploy command | `wrangler versions upload` | fixed operation; do not route provider credentials through an npm script |
 | Advanced settings → Path | `/` for repository-root build | a monorepo must use the actual project path |
 | API token | provider-managed/selected Workers Builds user token in Profile A | secret never enters Git, machine contract, or chat |
 | Variables | empty unless required by the machine contract | do not invent variables or secrets merely to fill UI |

@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PPF private integration state",
+  "type": "object",
+  "required": ["schemaVersion", "projectId", "github", "cloudflare", "builds", "updatedAt"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "projectId": { "type": "string", "minLength": 1 },
+    "github": {
+      "type": "object",
+      "required": ["owner", "repository", "repositoryId", "visibility"],
+      "properties": {
+        "owner": { "type": "string", "minLength": 1 },
+        "repository": { "type": "string", "minLength": 1 },
+        "repositoryId": { "type": ["string", "integer"] },
+        "visibility": { "enum": ["private", "public"] }
+      },
+      "additionalProperties": false
+    },
+    "cloudflare": {
+      "type": "object",
+      "required": ["workerName", "workerId", "workerTag", "accountWideAccessApplicationId", "workerAccessApplicationId", "previewAccessApplicationId", "publicBypassApplicationId"],
+      "properties": {
+        "workerName": { "type": "string", "minLength": 1 },
+        "workerId": { "type": ["string", "null"] },
+        "workerTag": { "type": ["string", "null"] },
+        "accountWideAccessApplicationId": { "type": ["string", "null"] },
+        "workerAccessApplicationId": { "type": ["string", "null"] },
+        "previewAccessApplicationId": { "type": ["string", "null"] },
+        "publicBypassApplicationId": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "builds": {
+      "type": "object",
+      "required": ["repoConnectionUuid", "productionTriggerUuid", "previewTriggerUuid", "buildTokenUuid"],
+      "properties": {
+        "repoConnectionUuid": { "type": ["string", "null"] },
+        "productionTriggerUuid": { "type": ["string", "null"] },
+        "previewTriggerUuid": { "type": ["string", "null"] },
+        "buildTokenUuid": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "updatedAt": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

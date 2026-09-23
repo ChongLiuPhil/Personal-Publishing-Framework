@@ -5,6 +5,8 @@ on:
     paths:
       - "templates/quarto-book/**"
       - "providers/cloudflare/**"
+      - "providers/infrastructure/**"
+      - "docs/GITHUB_CLOUDFLARE_INTEGRATION*.md"
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
@@ -22,6 +24,8 @@ on:
     paths:
       - "templates/quarto-book/**"
       - "providers/cloudflare/**"
+      - "providers/infrastructure/**"
+      - "docs/GITHUB_CLOUDFLARE_INTEGRATION*.md"
       - "schema/**"
       - "SPECIFICATION*.md"
       - "docs/PROVIDER_INTEGRATION_SEMANTIC_MIGRATION*.md"
@@ -63,6 +67,20 @@ jobs:
         run: python -m pip install "PyYAML==6.0.3" "jsonschema==4.25.1"
       - name: Validate installable template upgrade contract
         run: python scripts/check_template_manifest.py
+      - name: Validate infrastructure desired-state manifest
+        run: python ../../providers/infrastructure/manifest.py project.infrastructure.json
+      - name: Test infrastructure manifest safety and visibility matrix
+        run: cd ../.. && python -m unittest discover -s providers/infrastructure/tests -v
+      - name: Validate private integration state schema
+        run: |
+          python - <<'PY'
+          import json
+          from jsonschema import Draft202012Validator
+          with open("../../schema/integration-state.schema.json", encoding="utf-8") as handle:
+              schema = json.load(handle)
+          Draft202012Validator.check_schema(schema)
+          print("Private integration state schema is valid.")
+          PY
       - name: Validate reference publishing.yaml against PPF schema
         run: |
           python - <<'PY'
@@ -179,7 +197,5 @@ jobs:
         run: python -m py_compile scripts/verify_public_site.py
       - name: Test Cloudflare lifecycle contract adapter
         run: python -m unittest discover -s ../../providers/cloudflare/tests -v
-      - name: Test password-gated asset Worker
-        run: node --test ../../providers/cloudflare/tests/password_gate.test.mjs
       - name: Simulate Workers Builds Web build
         run: make cloudflare-build
