@@ -16,17 +16,25 @@ PPF 项目在 `project.infrastructure.json` 中声明托管意图。该清单是
 - `providers/infrastructure/manifest.py` 校验项目清单。
 - `providers/infrastructure/plan.py` 对照 provider 读取的状态生成只读计划。
 - `providers/infrastructure/state.py` 将非秘密 ID 和审计事件保存在 `~/.ppf/infrastructure`（或 `PPF_INFRA_STATE_DIR`），并设置仅所有者可读写的权限。
+- `providers/infrastructure/github.py`、`cloudflare.py` 和 `coordinator.py` 提供可注入的 GitHub、Workers、Workers Builds、Access API 适配器，以及 `doctor / plan / apply / verify / rollback` 命令。
 
 ```sh
 python providers/infrastructure/manifest.py project.infrastructure.json
 python -m providers.infrastructure.plan project.infrastructure.json --actual actual-state.json
+python -m providers.infrastructure.coordinator doctor project.infrastructure.json
+python -m providers.infrastructure.coordinator plan project.infrastructure.json --website-gate approval.json --build-config builds.json --triggers triggers.json
+python -m providers.infrastructure.coordinator apply project.infrastructure.json --website-gate approval.json --build-config builds.json --triggers triggers.json
+python -m providers.infrastructure.coordinator verify project.infrastructure.json
+python -m providers.infrastructure.coordinator rollback project.infrastructure.json
 ```
 
-规划器不修改 provider 状态。缺少实际状态时返回 `READ_REQUIRED`；账户级 Access 不足时返回 `BOOTSTRAP_REQUIRED`；意外的公开状态标记为 `SECURITY_DRIFT`。状态和审计记录会拒绝秘密字段及凭据格式值。API token、密码、Cookie、私钥或 provider 原始错误响应均不得进入状态文件或日志。
+GitHub 凭据使用 GITHUB_TOKEN，Cloudflare 凭据使用 CLOUDFLARE_API_TOKEN 和 CLOUDFLARE_ACCOUNT_ID；只在 Agent 受保护的进程环境中直接录入，不通过命令行参数传递。设置 PPF_PRODUCTION_HOSTNAME、PPF_PREVIEW_URL 和 PPF_CONTROL_WORKER_URL 后可执行匿名 HTTP 验证，这些值只包含 hostname。API 客户端只返回脱敏错误码，不输出 provider 原始错误。
+
+规划器不修改 provider 状态。缺少实际状态时返回 `READ_REQUIRED`；未发现账户级 Access 时阻止 apply；意外的公开状态标记为 `SECURITY_DRIFT`。账户级 Access 设置方法会明确停止并返回 `ACCOUNT_SECURITY_UI_APPROVAL_REQUIRED`，由账户所有者在 Cloudflare 控制台提交该安全设置，之后适配器重新读取并验证。状态和审计记录会拒绝秘密字段及凭据格式值。由于 Cloudflare 不会返回构建 Secret 的值，构建配置回滚快照会省略 Secret 环境变量；回滚不会重写或记录这些值。
 
 ## Provider 行为
 
-Cloudflare Access 可通过账户级 `all_workers` destination 保护全部 Worker。启用该基线后，公开某个正式 Worker 需要为该 Worker 单独建立 `worker` destination 和 bypass policy；账户级基线必须继续启用。预览可以独立保护。bypass 会关闭匹配流量的 Access 执行与 Access 请求日志，因此公开应用需要 Worker observability。公开切换后必须同时验证目标站可匿名访问，并验证另一个 private 控制 Worker 仍拒绝匿名请求。
+Cloudflare Access 可通过账户级 all_workers destination 保护全部 Worker。启用该基线后，公开某个正式站点 hostname 需要为该 hostname 单独建立精确的 public destination 和 bypass policy。worker destination 同时覆盖正式站和预览；更具体的 public destination 优先，因此只匹配正式 hostname 的 bypass 会让预览 hostname 继续受账户级基线保护。账户级基线必须继续启用。bypass 会关闭匹配流量的 Access 执行与 Access 请求日志，因此公开应用需要 Worker observability。公开切换后必须同时验证目标站可匿名访问，并验证另一个 private 控制 Worker 仍拒绝匿名请求。
 
 Workers Builds 使用 Worker 不可变的 `external_script_id` tag 标识 Worker，不能将它与 Worker 名称混为一谈。Worker 名称、tag、GitHub 仓库 ID、连接 UUID、trigger UUID 和 build-token UUID 必须分开记录。build-token UUID 是标识符，不是秘密值。Cloudflare 当前文档的 Workers Builds 配置流程要求 user-scoped API token，并授予 Workers Builds Configuration Edit 和 Workers Scripts Read；不得把这类凭据称为最小权限。修改 GitHub 仓库可见性要求仓库 Administration write 权限。所有凭据不得进入源码和日志。
 
@@ -34,7 +42,7 @@ GitHub App 安装/授权、账户级 Access 初始化、域名/DNS、计费与�
 
 ## 当前实现边界
 
-目前已实现并测试清单校验、可见性不变量、只读规划器、私有 ID/审计状态存储，以及既有 Cloudflare Worker 生命周期 adapter。这个参考包尚未实现读取 provider 资源清单或修改 GitHub/Cloudflare 状态的 API 操作；在补齐之前，操作人员必须提供独立核验过的实际状态快照，不能把计划当作资源存在或变更已完成的证据。
+Provider adapter 现可读取 GitHub 仓库、Workers、Workers Builds 配置和触发器以及 Access 应用。GitHub 可见性、Workers Builds 配置/触发器和精确正式 hostname 的 Access 例外会先读取再幂等协调。账户级 Access 仍由账户所有者在 Cloudflare 控制台设置；Worker 代码部署沿用项目获批的构建流程。真实 apply/verify 需要 provider 凭据、已在控制台启用的账户级 Access 和相应的明确发布关卡；模拟测试不等同于真实验证。
 
 当前 provider 参考（2026-09-23 核验）：
 
