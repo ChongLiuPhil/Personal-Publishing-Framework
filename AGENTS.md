@@ -16,4 +16,6 @@ From any public PPF entrypoint, reconstruct the four-component ecosystem before 
 
 Before a Cloudflare action, state the exact target, affected layer, data flow, credential scope, human approval boundary, verification checks, and rollback path. If human UI interaction is required, provide numbered operator-level instructions with the current Dashboard path, non-secret values to enter, completion evidence, and the next verification step. Never request passwords, tokens, private keys, recovery codes, or other secrets in chat.
 
+Treat human gates as resumable checkpoints, not as a reason to stop the whole task. Continue independent, already-authorized work; when a gate blocks a specific action, give the user its direct provider link, exact navigation steps, required non-secret choices/values, secret-input boundary, completion evidence, and the precise read-back you will perform. Wait only for that gate, then re-read provider state and resume automatically without asking the user to repeat completed steps.
+
 Preserve proposal, authorization, execution, verification, and durable write-back as distinct stages.

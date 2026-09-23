@@ -6,7 +6,7 @@
 
 从仓库可以明确判断时，自动读取 GitHub 所有者/仓库/默认分支、构建命令、静态输出目录或 Worker 入口、固定的运行时与工具版本，以及项目属于静态站还是服务端渲染。依照 `schema/project.infrastructure.schema.json`，从 `templates/quarto-book/project.infrastructure.json` 复制并调整项目清单。只填写无法从仓库确定的项目 slug 与仓库字段。清单描述托管和访问意图；项目自己的 Workers Builds 契约描述命令、输出路径、工具链、分支规则和 Wrangler 配置。
 
-新项目默认使用私有 GitHub 仓库、私有 Worker、受保护预览、账户级 Access、不配置自定义域名且不启用付费服务。如果账户级 Access 基线不存在、读者范围未确定、项目归属不清或无法安全确定构建方式/输出目录，写入前停止，只询问缺少的决定。不得把缺失设置解释为公开。
+新项目默认使用私有 GitHub 仓库、私有 Worker、受保护预览、账户级 Access、不配置自定义域名且不启用付费服务。如果账户级 Access 基线不存在、读者范围未确定、项目归属不清或无法安全确定构建方式/输出目录，只暂停受阻的那项写操作，询问缺少的决定；继续其他互不依赖且已获授权的读取、验证和准备工作。不得把缺失设置解释为公开。
 
 ## 必须执行的流程
 
@@ -18,12 +18,26 @@
 
 ## 安全、费用与交接
 
-优先使用已授权的提供商 API/MCP 工具。不要在聊天中索要密码、Token、恢复代码或秘密内容。Token 必须由用户直接输入到受保护的提供商凭据界面或进程环境；不得放入命令参数、仓库文件、构建输出、审计日志或工具返回文本。如果网页 Agent 没有安全使用所需凭据的能力，停止并说明具体需要的授权或安全输入动作。
+优先使用已授权的提供商 API/MCP 工具。不要在聊天中索要密码、Token、恢复代码或秘密内容。Token 必须由用户直接输入到受保护的提供商凭据界面或进程环境；不得放入命令参数、仓库文件、构建输出、审计日志或工具返回文本。如果网页 Agent 不能安全访问所需凭据，只暂停受阻的操作，并给出服务直达链接、当前页面的准确导航、需要的权限/非秘密值、安全输入位置和完成标志。继续其他已授权工作。用户完成后重新读取服务状态并自动续办，不要要求用户重复操作。
 
 GitHub App 安装/仓库授权、账户级 Access 初始化、添加读者、自定义域名选择、zone/DNS 授权、直接录入秘密、付费套餐变更和最终公开切换均为人工关卡。不得自动购买或启用付费产品。除非所有者单独批准切换及回滚方案，否则保留 GitHub Pages 和现有 Cloudflare 资源。
 
-Workers Builds API 当前要求用户级 API Token，权限为 Workers Builds Configuration: Edit 和 Workers Scripts: Read（后者用于读取 Worker tag）。这个 API Token 与构建系统使用的 build-token UUID 不同。必须披露所需权限，不得称为最小权限。如果不能安全提供 API 凭据，使用已批准的部署方式，或在修改构建连接前停止。绝不使用仓库提供的任意 shell 命令并让其继承 Cloudflare Token；部署必须通过凭据隔离的 Provider runner 调用固定且已锁定版本的 Wrangler 操作。参见 [Cloudflare Builds API 官方文档](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/)。
+## 可续办的人工交接
+
+每次只询问当前确实阻塞具体操作的下一个决定。交接必须包含：(a) 直达链接；(b) 从当前控制台开始的编号步骤；(c) 需要批准的准确非秘密权限或选择；(d) 提醒秘密只能填写在提供商的安全输入框，不能发到聊天；(e) 用户完成后 Agent 将重新读取并继续的具体信号。不要提前罗列尚未确定是否需要的所有关卡，也不要让用户手动做 Agent 可以安全完成的事。现有授权已覆盖的操作无需再次询问，直接继续。
+
+按当前需要使用以下官方入口：
+
+- **Workers Builds / GitHub App：**[Cloudflare Workers Builds 配置说明](https://developers.cloudflare.com/workers/ci-cd/builds/)和 [GitHub App 安装设置](https://github.com/settings/installations)。Cloudflare 路径：Workers & Pages → 目标 Worker → Settings → Builds → Connect。除非用户明确选择更广范围，只授权指定仓库。
+- **Workers Builds API Token：**[Cloudflare API Tokens](https://dash.cloudflare.com/profile/api-tokens)。只有现有 Cloudflare 授权连接无法完成所需 API 操作时，才申请用户级 Token，并明确权限 Workers Builds Configuration: Edit 与 Workers Scripts: Read。它与 build token 不同。由用户在安全凭据输入位置直接录入，不要索要 Token 文本。
+- **Access 读者或基线：**[Cloudflare Zero Trust](https://one.dash.cloudflare.com/) → Access controls → Applications → 指定应用 → Policies。只有当前访问模式需要读者时，才询问名单，并明确列出需要批准的应用和邮箱。
+- **域名与 DNS：**[Cloudflare 控制台](https://dash.cloudflare.com/)和 [DNS 记录操作说明](https://developers.cloudflare.com/dns/manage-dns-records/how-to/create-dns-records/)。先询问使用哪个 hostname/zone，再展示准确拟新增或修改的记录并等待 DNS/zone 授权。获批之前不改记录。
+- **公开切换：**链接到确切 Worker 和 hostname，说明匿名访问变化、对当前正式 URL 的影响及回滚目标。改变可见性、DNS 或正式 URL 前必须取得明确批准。
+
+这些关卡按需触发。如果已授权 Cloudflare connector 能完成操作，就不要再要求 API Token；如果目标仓库已在 GitHub App 授权范围内，也不要重复要求安装或授权。
+
+Workers Builds API 当前要求用户级 API Token，权限为 Workers Builds Configuration: Edit 和 Workers Scripts: Read（后者用于读取 Worker tag）。这个 API Token 与构建系统使用的 build-token UUID 不同。必须披露所需权限，不得称为最小权限。如果不能安全提供 API 凭据，使用已批准的部署方式，或只暂停构建配置操作。绝不使用仓库提供的任意 shell 命令并让其继承 Cloudflare Token；部署必须通过凭据隔离的 Provider runner 调用固定且已锁定版本的 Wrangler 操作。参见 [Cloudflare Builds API 官方文档](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/)。
 
 ## 完成报告
 
-报告真实源版本、创建/复用的资源、正式与预览构建结果、匿名访问结果、启用的产品与费用、私有状态记录位置（不披露内容）以及回滚目标。任何在线验证或人工关卡未完成时，明确标记整个接入尚未完成。
+报告真实源版本、创建/复用的资源、正式与预览构建结果、匿名访问结果、启用的产品与费用、私有状态记录位置（不披露内容）以及回滚目标。如果仍有人工关卡，只说明当前受阻步骤、给出可执行交接并记录已完成工作；用户完成后从该检查点继续。所有必要的在线验证和关卡通过前，接入状态保持未完成。
