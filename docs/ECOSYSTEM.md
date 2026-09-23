@@ -14,7 +14,7 @@ The default new-project baseline is **full PPF + full AHICP**, with Vault Interf
 
 Original unpublished work and other copyright-bearing source assets remain private by default. Continuous Web is a publication capability, not a permission to publish; private or transitional outputs must be protected by reader access control.
 
-For new deployments, Cloudflare Workers Static Assets with Workers Builds is the preferred delivery provider and GitHub remains the canonical source/version-control provider. Cloudflare Pages remains supported for existing projects and is not migrated automatically. The verified canonical framework site now uses https://inquirystack.philohub.workers.dev/; former GitHub Pages URLs remain available as legacy entrypoints. A downstream publication may select Pages, Workers, or another supported provider according to its actual runtime and publication requirements.
+For new deployments, Cloudflare Workers Static Assets with Workers Builds is the preferred delivery provider and GitHub remains the canonical source/version-control provider. Cloudflare Pages remains supported for existing projects and is not migrated automatically. The verified canonical framework site now uses https://inquirystack.philohub.workers.dev/; the former framework GitHub Pages sites have been retired. A downstream publication may select Pages, Workers, or another supported provider according to its actual runtime and publication requirements.
 
 Use the [coordinated public-delivery migration guide](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.md) for the framework sites.
 

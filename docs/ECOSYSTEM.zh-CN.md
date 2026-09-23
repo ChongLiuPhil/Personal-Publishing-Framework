@@ -14,7 +14,7 @@ PPF 负责作品从源内容到构建、发布、正式版本、归档和 Contin
 
 原创、未发布作品及其他需要保护的源内容默认保持私有。Continuous Web 是一种发布能力，不等于获得发布许可；私人或过渡性产物必须使用读者访问控制。
 
-新部署优先采用 Cloudflare Workers Static Assets + Workers Builds，GitHub 继续作为权威源文件、版本历史和 CI 平台。Cloudflare Pages 继续支持已有项目，不自动迁移。四个框架栏目现以 https://inquirystack.philohub.workers.dev/ 为正式入口；原 GitHub Pages URL 保留为旧入口。下游项目可根据运行时和发布需求选择 Pages、Workers 或其他受支持的 provider。
+新部署优先采用 Cloudflare Workers Static Assets + Workers Builds，GitHub 继续作为权威源文件、版本历史和 CI 平台。Cloudflare Pages 继续支持已有项目，不自动迁移。四个框架栏目现以 https://inquirystack.philohub.workers.dev/ 为正式入口；原框架 GitHub Pages 站点已停用。下游项目可根据运行时和发布需求选择 Pages、Workers 或其他受支持的 provider。
 
 四个框架站点的迁移遵循 [Cloudflare 公共站点迁移说明](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_PUBLIC_DELIVERY_MIGRATION.zh-CN.md)。
 
