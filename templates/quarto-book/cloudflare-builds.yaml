@@ -30,8 +30,8 @@ git:
 
 commands:
   build: "bash scripts/cloudflare_build.sh"
-  deploy: "npm run cloudflare:deploy"
-  preview_deploy: "npm run cloudflare:preview"
+  deploy: "wrangler deploy"
+  preview_deploy: "wrangler versions upload"
 
 toolchain:
   node: "24"

@@ -4,13 +4,15 @@
 from __future__ import annotations
 
 import argparse
+import base64
 import datetime as dt
 import json
 import os
 from pathlib import Path
-import shlex
+import shutil
 import subprocess
 import sys
+import tempfile
 from urllib.parse import quote, urlsplit
 import urllib.error
 import urllib.request
@@ -58,7 +60,89 @@ def load_contract(root: Path):
         raise ValueError("restricted/private publication requires an explicit access mode")
     if visibility not in {"public", "restricted", "private"}:
         raise ValueError("web.visibility must be public, restricted, or private")
+    commands = build.get("commands", {})
+    for key, expected in {
+        "deploy": "wrangler deploy",
+        "holding_deploy": "wrangler deploy",
+        "preview_deploy": "wrangler versions upload",
+    }.items():
+        if key in commands and commands[key] != expected:
+            raise ValueError(f"commands.{key} must be the fixed Wrangler operation: {expected}")
     return build, publishing, wrangler, output
+
+
+def _wrangler_argv(root: Path, build: dict, args: list[str]) -> list[str]:
+    """Resolve only the project-pinned Wrangler entrypoint; never run a repo npm script."""
+    version = build.get("toolchain", {}).get("wrangler")
+    if not isinstance(version, str) or not version:
+        raise ValueError("toolchain.wrangler must pin the Wrangler version")
+    package_path = root / "package.json"
+    lock_path = root / "package-lock.json"
+    try:
+        package = json.loads(package_path.read_text(encoding="utf-8"))
+        lock = json.loads(lock_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        raise ValueError("package.json and package-lock.json are required to verify the pinned Wrangler tool") from None
+    if not isinstance(package, dict) or not isinstance(lock, dict):
+        raise ValueError("package.json and package-lock.json must contain mappings")
+    package_dev = package.get("devDependencies") if isinstance(package.get("devDependencies"), dict) else {}
+    package_prod = package.get("dependencies") if isinstance(package.get("dependencies"), dict) else {}
+    lock_packages = lock.get("packages") if isinstance(lock.get("packages"), dict) else {}
+    lock_root = lock_packages.get("") if isinstance(lock_packages.get(""), dict) else {}
+    lock_root_dev = lock_root.get("devDependencies") if isinstance(lock_root.get("devDependencies"), dict) else {}
+    lock_root_prod = lock_root.get("dependencies") if isinstance(lock_root.get("dependencies"), dict) else {}
+    lock_entry = lock_packages.get("node_modules/wrangler") if isinstance(lock_packages.get("node_modules/wrangler"), dict) else {}
+    package_version = package_dev.get("wrangler") or package_prod.get("wrangler")
+    lock_root_version = lock_root_dev.get("wrangler") or lock_root_prod.get("wrangler")
+    lock_version = lock_entry.get("version")
+    if package_version != version or lock_root_version != version or lock_version != version:
+        raise ValueError("Wrangler package and lockfile must match toolchain.wrangler")
+    resolved_url = lock_entry.get("resolved", "")
+    integrity = lock_entry.get("integrity", "")
+    try:
+        if not isinstance(resolved_url, str) or not isinstance(integrity, str):
+            raise ValueError("invalid Wrangler package lock metadata")
+        resolved = urlsplit(resolved_url)
+        digest = base64.b64decode(integrity.removeprefix("sha512-"), validate=True) if integrity.startswith("sha512-") else b""
+    except (ValueError, TypeError):
+        resolved = urlsplit("")
+        digest = b""
+    if (resolved.scheme, resolved.hostname, resolved.path) != ("https", "registry.npmjs.org", f"/wrangler/-/wrangler-{version}.tgz") or len(digest) != 64:
+        raise ValueError("package-lock.json must pin Wrangler to its npm registry URL and SHA-512 integrity")
+    node = shutil.which("node")
+    entrypoint = root / "node_modules" / "wrangler" / "bin" / "wrangler.js"
+    try:
+        installed_package = json.loads((root / "node_modules" / "wrangler" / "package.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        installed_package = {}
+    if not node or not entrypoint.is_file() or not isinstance(installed_package, dict) or installed_package.get("version") != version:
+        raise ValueError("the pinned Wrangler installation is missing; install project dependencies before deployment")
+    return [str(Path(node).resolve()), str(entrypoint.resolve()), *args]
+
+
+def _run_wrangler(root: Path, build: dict, args: list[str]):
+    """Run the pinned Wrangler entrypoint with only the credentials it needs."""
+    command = _wrangler_argv(root, build, args)
+    token = os.environ.get("CLOUDFLARE_API_TOKEN")
+    account = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+    if not token or not account:
+        raise ValueError("Cloudflare deploy credentials are not available; no changes made")
+    with tempfile.TemporaryDirectory(prefix="ppf-wrangler-") as config_dir:
+        child_env = {
+            "CLOUDFLARE_API_TOKEN": token,
+            "CLOUDFLARE_ACCOUNT_ID": account,
+            "PATH": os.defpath,
+            "HOME": config_dir,
+            "XDG_CONFIG_HOME": config_dir,
+            "TMPDIR": config_dir,
+            "TEMP": config_dir,
+            "TMP": config_dir,
+        }
+        if os.name == "nt":
+            for key in ("SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT"):
+                if os.environ.get(key):
+                    child_env[key] = os.environ[key]
+        return subprocess.run(command, cwd=root, env=child_env, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
 
 def api_get(root: Path, path: str):
@@ -151,15 +235,18 @@ def apply(root: Path, holding: bool = False) -> int:
     if not output.is_dir():
         print("BLOCKED: build output is missing; run the configured build first")
         return 2
-    key = "holding_deploy" if holding else "deploy"
-    command = build.get("commands", {}).get(key)
-    if not command:
+    key = "holding_deploy" if holding and "holding_deploy" in build.get("commands", {}) else "deploy"
+    if not build.get("commands", {}).get(key):
         print(f"BLOCKED: no {key} command is configured")
         return 2
     if not os.environ.get("CLOUDFLARE_API_TOKEN") or not os.environ.get("CLOUDFLARE_ACCOUNT_ID"):
         print("BLOCKED: Cloudflare deploy credentials are not available; no changes made")
         return 2
-    result = subprocess.run(shlex.split(command), cwd=root, check=False)
+    try:
+        result = _run_wrangler(root, build, ["deploy"])
+    except ValueError as exc:
+        print(f"BLOCKED: {exc}")
+        return 2
     if result.returncode:
         print(f"FAILED: configured {key} command exited with status {result.returncode}")
         return result.returncode
@@ -256,14 +343,18 @@ def rollback(version_id: str, root: Path) -> int:
         print("BLOCKED: requested version is not recorded as successfully verified; no changes made")
         return 2
     try:
-        _, _, wrangler, _ = load_contract(root)
+        build, _, wrangler, _ = load_contract(root)
     except (ValueError, KeyError, TypeError, json.JSONDecodeError) as exc:
         print(f"BLOCKED: {exc}")
         return 2
     if state.get("worker") != wrangler["name"]:
         print("BLOCKED: verified deployment record belongs to a different Worker; no changes made")
         return 2
-    result = subprocess.run(["npx", "wrangler", "rollback", version_id, "--name", wrangler["name"]], cwd=root, check=False)
+    try:
+        result = _run_wrangler(root, build, ["rollback", version_id, "--name", wrangler["name"]])
+    except ValueError as exc:
+        print(f"BLOCKED: {exc}")
+        return 2
     if result.returncode:
         print(f"FAILED: Wrangler rollback exited with status {result.returncode}")
         return result.returncode

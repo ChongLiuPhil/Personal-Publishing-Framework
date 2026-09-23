@@ -25,10 +25,10 @@ Cloudflare 不原生读取 PPF 的 machine contract。UI 中显示的值也不�
 | --- | --- | --- |
 | Project name | Worker / project name from machine contract | 不从本文件复制 pilot-specific name |
 | Build command | `bash scripts/cloudflare_build.sh` | 以当前 repository machine contract 为准 |
-| Deploy command | `npm run cloudflare:deploy` | 以当前 repository machine contract 为准 |
+| Deploy command | `wrangler deploy` | 固定操作；不要通过 npm script 传递 provider 凭据 |
 | Builds for non-production branches | enabled | 用于 preview/non-production build |
 | Protect with Cloudflare Access | `publication.web.visibility` + `publication.web.access` | `public + none` 可关闭；`restricted/private` 先读取 access policy；不得从 source visibility 推断 |
-| Advanced settings → Non-production branch deploy command | `npm run cloudflare:preview` | 以当前 repository machine contract 为准 |
+| Advanced settings → Non-production branch deploy command | `wrangler versions upload` | 固定操作；不要通过 npm script 传递 provider 凭据 |
 | Advanced settings → Path | `/` for repository-root build | monorepo 必须使用真实项目路径 |
 | API token | provider-managed/selected Workers Builds user token in Profile A | secret 不进入 Git、machine contract 或聊天 |
 | Variables | empty unless the machine contract requires variables | 不为了填满 UI 而发明变量或 secret |

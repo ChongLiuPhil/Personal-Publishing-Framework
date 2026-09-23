@@ -121,10 +121,6 @@ PPF Quarto reference：
 
 PPF reference：
 
-`npm run cloudflare:deploy`
-
-它最终调用：
-
 `wrangler deploy`
 
 ### Builds for non-production branches
@@ -164,10 +160,6 @@ Cloudflare current Workers documentation 还支持在创建后对单个 Worker�
 ### Advanced settings → Non-production branch deploy command
 
 PPF reference：
-
-`npm run cloudflare:preview`
-
-它最终调用：
 
 `wrangler versions upload`
 
