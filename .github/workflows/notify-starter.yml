@@ -1,12 +1,19 @@
 name: Notify unified publication
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: [Publication source changed]
+    types: [completed]
   workflow_dispatch:
 permissions: {}
 jobs:
   notify:
-    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    if: >-
+      github.repository == 'ChongLiuPhil/Personal-Publishing-Framework' &&
+      ((github.event_name == 'workflow_dispatch' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)) ||
+       (github.event_name == 'workflow_run' && github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.head_repository.full_name == github.repository &&
+        github.event.workflow_run.head_branch == github.event.repository.default_branch))
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -16,7 +23,7 @@ jobs:
           STARTER_SYNC_TOKEN: ${{ secrets.STARTER_SYNC_TOKEN }}
           SOURCE_REPOSITORY: ${{ github.repository }}
           SOURCE_BRANCH: ${{ github.event.repository.default_branch }}
-          SOURCE_REVISION: ${{ github.sha }}
+          SOURCE_REVISION: ${{ github.event.workflow_run.head_sha || github.sha }}
         shell: python
         run: |
           import json, os, urllib.request, urllib.error
