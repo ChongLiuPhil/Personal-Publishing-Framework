@@ -117,7 +117,7 @@ Cloudflare Access 可以使用其支持的 authentication methods；One-Time PIN
 
 新项目统一使用 destination 为 `all_workers` 的 Access application；允许策略在一次性平台初始化中确定。它保护现有和未来 Worker 的正式站及预览流量。项目流程必须先验证该基线，才能创建 Worker 或启用预览；不得关闭或重写账户级 application。
 
-获批公开某个正式 Worker 时，另建仅指向该 Worker ID 的 Worker 级 application，并为 Everyone 设置 Bypass。不得绕过预览。账户级 application 必须继续启用；匿名访问的 private 控制 Worker 仍须被拒绝。bypass 会关闭匹配 Worker 的 Access 执行和 Access 请求日志，公开 Worker 必须使用 Worker logs/analytics 做可观测性。
+获批公开正式站点时，另建仅匹配精确正式 hostname 的 public destination application，并为 Everyone 设置 Bypass。正式站专用例外不要使用 worker destination，因为它也会匹配预览。Cloudflare 说明 public destination 优先于 all_workers，因此预览 hostname 仍由账户级基线保护。账户级 application 必须继续启用；匿名访问的 private 控制 Worker 仍须被拒绝。bypass 会关闭匹配 hostname 的 Access 执行和 Access 请求日志，公开 Worker 必须使用 Worker logs/analytics 做可观测性。
 
 ### Worker-level
 
