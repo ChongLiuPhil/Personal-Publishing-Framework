@@ -44,7 +44,7 @@ publication:
 deployment:
   web:
     provider: cloudflare-workers
-    integration_mode: github-actions-external-ci
+    integration_mode: workers-builds-git
     build_contract: cloudflare-builds.yaml
     canonical_publish_gate: "make web-publish-check"
     enabled: false
@@ -57,13 +57,13 @@ deployment:
       url: null
     readiness:
       cloudflare_account: unverified
-      github_app: not-required-for-external-ci
-      repository_connection: not-required-for-external-ci
+      github_app: project-authorization-required
+      repository_connection: unverified
       worker_target: unverified
-      production_trigger: github-actions-main
+      production_trigger: unverified
       preview_trigger: disabled-until-protected
-      build_token: project-scoped-secret-broker-pending
-      first_preview_build: not-run
+      build_token: provider-managed-user-token
+      first_preview_build: not-applicable-until-enabled
       production_cutover: blocked
 
 release:
