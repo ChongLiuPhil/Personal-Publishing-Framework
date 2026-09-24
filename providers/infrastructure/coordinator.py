@@ -220,15 +220,39 @@ class Coordinator:
         for label, url in urls.items():
             if url:
                 probes[label] = _anonymous_probe("https://" + url.removeprefix("https://").removeprefix("http://"))
-        public_ok = probes.get("production", {}).get("statusCode") == 200
-        protected_ok = all(
-            bool(urls[key]) and probes.get(key, {}).get("denied") is True
-            for key in ("preview", "controlWorker")
+        desired_visibility = manifest["cloudflare"]["applicationVisibility"]
+        production_probe = probes.get("production", {})
+        production_ok = (
+            production_probe.get("statusCode") == 200
+            if desired_visibility == "public"
+            else production_probe.get("denied") is True
         )
-        verified = report["status"] == "PLAN_READY" and not report["operations"] and public_ok and protected_ok
+        preview_ok = (
+            True
+            if not manifest["deployment"]["previewDeployments"]
+            else bool(urls["preview"]) and probes.get("preview", {}).get("denied") is True
+        )
+        control_ok = (
+            True
+            if desired_visibility == "private"
+            else bool(urls["controlWorker"]) and probes.get("controlWorker", {}).get("denied") is True
+        )
+        verified = (
+            report["status"] == "PLAN_READY"
+            and not report["operations"]
+            and bool(urls["production"])
+            and production_ok
+            and preview_ok
+            and control_ok
+        )
+        required_inputs = ["production"]
+        if manifest["deployment"]["previewDeployments"]:
+            required_inputs.append("preview")
+        if desired_visibility == "public":
+            required_inputs.append("controlWorker")
         return {"status": "VERIFIED" if verified else "NOT_VERIFIED", "actual": actual, "plan": report,
                 "anonymousProbes": probes,
-                "missingProbeInputs": [key for key, value in urls.items() if not value]}
+                "missingProbeInputs": [key for key in required_inputs if not urls.get(key)]}
 
     def rollback(self, manifest: dict[str, Any]) -> dict[str, Any]:
         state = self.store.read(manifest["project"]["id"])
