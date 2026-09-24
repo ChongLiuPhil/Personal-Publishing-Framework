@@ -54,17 +54,17 @@ connection:
 
 validation:
   repository_contract_ci: not-run
-  first_preview_build: not-run
+  first_preview_build: not-applicable-until-enabled
   workers_dev_http: not-run
   production_cutover: blocked
 
 security:
   credentials_in_repository: prohibited
-  github_app_repository_scope: selected-repositories-only
+  native_profile_github_app_repository_scope: selected-repositories-only
   production_profile: agent-provisioned-external-ci
   profiles:
     workers_builds_native:
-      status: reference-default
+      status: operational-native
       token_type: user-token
       least_privilege: false
       caveat: workers-builds-currently-supports-user-tokens-only
@@ -110,7 +110,7 @@ lifecycle:
   preserve_existing_provider_until_explicit_cutover: true
 
 preview:
-  enabled_by_default: true
+  enabled_by_default: false
   enable_only_after:
     - account-wide-access-verified
     - preview-anonymous-denial-verified
