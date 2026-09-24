@@ -1,20 +1,20 @@
 # Cloudflare Deployment Security Profiles (PPF Reference)
 
-**Reviewed:** 2026-09-19
+**Reviewed:** 2026-09-24
 
 This file describes only the Cloudflare PPF reference implementation. It is not a PPF conformance requirement.
 
 ## 1. Why security profiles are necessary
 
-The real pilot established that:
+Current Cloudflare capabilities create a useful but real split:
 
-- Cloudflare Workers Builds + the GitHub App is a stable low-manual-work integration with native preview/production triggers;
-- Cloudflare's current Workers permission model supports individual Worker + `Editor`;
-- Workers Builds currently supports **user tokens** only;
-- granular Wrangler authorization for individual Workers uses **account-owned API tokens**;
-- therefore the native Workers Builds experience and true per-Worker least privilege cannot currently be combined completely.
+- Workers Builds + the Cloudflare GitHub App is a low-manual-work provider-native integration with automatic Git-triggered builds;
+- individual Workers can use granular roles such as `Editor`;
+- individual-Worker granular authorization uses account-owned API tokens;
+- Workers Builds still uses the user-token model for its build credential;
+- therefore provider-native Workers Builds and one-Worker routine deployment credentials are still different security paths.
 
-The PPF reference implementation should make this trade-off explicit.
+PPF records that distinction instead of presenting one path as universally optimal.
 
 ## 2. Profile A — Workers Builds Native
 
@@ -22,65 +22,74 @@ The PPF reference implementation should make this trade-off explicit.
 GitHub
 -> Cloudflare GitHub App
 -> Workers Builds
--> Cloudflare-managed / selected user build token
+-> provider-managed / selected user build token
 -> wrangler deploy / versions upload
 ```
 
-Best for projects that prioritize minimal setup, provider-native Git integration, automatic preview/production builds, and keeping Cloudflare deployment secrets out of GitHub.
+Best for projects that prioritize provider-native Git integration, automatic preview/production triggers, and keeping the deployment credential entirely on the Cloudflare side.
 
 Advantages:
 
 - native Git integration;
 - simple preview and production triggers;
-- build token remains on the Cloudflare side;
+- build credential stays on the Cloudflare side;
 - validated by the first real PPF pilot.
 
 Current limitation:
 
-- the automatically created build token is broader than a static Worker's routine deployment needs;
-- Workers Builds cannot currently use the newer per-Worker account-owned `Editor` token model.
+- the native build token has broader scope than a pure static Worker's routine deployment needs;
+- Workers Builds cannot currently consume an account-owned token restricted to one Worker.
 
 PPF label:
 
-`reference-default / operational / broader-than-ideal-token-scope`
+`operational-native / real-pilot-verified / broader-than-ideal-token-scope`
 
-## 3. Profile B — Hardened External CI
+## 3. Profile B — Agent-Provisioned External CI
 
 ```text
-GitHub Actions
--> account-owned Cloudflare API token
--> individual Worker
--> Editor
--> wrangler deploy
+platform provisioner
+-> create private GitHub repository
+-> verify account-wide Access
+-> create Cloudflare Worker
+-> create account-owned token scoped to that Worker / Editor
+-> trusted secret broker -> GitHub Actions secrets
+-> GitHub Actions -> wrangler deploy
 ```
 
-Best for projects that require per-Worker least privilege and accept additional secret-management and CI setup.
+Profile id:
+
+`agent-provisioned-external-ci`
+
+This is the preferred **new-project automation profile** when the objective is minimal repeated human involvement plus one-Worker routine deployment authority.
 
 Advantages:
 
-- token can be restricted to one existing Worker;
-- routine deployment needs only `Editor`;
-- no KV / R2 / D1 permission is required merely to deploy;
-- routine deployment does not need all-zone route write.
+- the platform provisioning principal is separated from the project deployment identity;
+- the project deployment token is restricted to one existing Worker;
+- routine deployment uses the Worker `Editor` role;
+- no Cloudflare GitHub App authorization is required for each new repository;
+- new projects can remain private/restricted by default behind an account-wide `all_workers` Access baseline;
+- the secret broker can transfer the Cloudflare token into GitHub Actions without exposing plaintext to the model.
 
-Costs:
+Costs and requirements:
 
-- an account-owned token must be created;
-- token + account ID must be stored in a CI secret store;
-- preview/production trigger behavior must be implemented and validated by external CI;
-- initial human setup is more involved.
+- the platform must first have an authorized GitHub provisioning principal;
+- the platform must have an authorized Cloudflare provisioning principal that can create Workers and account-owned tokens;
+- account-wide Access protection must be verified before creating a project Worker;
+- a trusted secret broker is required for the Cloudflare-token-to-GitHub-secret hop;
+- preview automation is disabled by default until protected-preview acceptance.
 
 PPF label:
 
-`supported-hardened-alternative / pilot-candidate-validate-only`
+`preferred-agent-provisioning / implemented-reference / live-new-project-acceptance-pending`
 
-Current real-pilot evidence boundary:
+Current evidence boundary:
 
-- candidate workflow repository/build validation: PASS;
-- credential / preview / production deployment steps in the PR context: SKIPPED;
-- account-owned per-Worker token: not configured;
-- Profile B production deployment: not executed;
-- therefore Profile B **must not** be described as production-tested.
+- schema, template, GitHub Actions workflow, provisioner state machine, reconciliation path, and tests are implemented;
+- the existing repository has production evidence for Profile A, not yet for a clean Profile B project bootstrap;
+- until one new-project end-to-end pilot succeeds, Profile B must not be described as production-accepted.
+
+See [AGENT_PROVISIONED_EXTERNAL_CI.md](AGENT_PROVISIONED_EXTERNAL_CI.md).
 
 ## 4. Profile C — Future Native Granular
 
@@ -94,80 +103,99 @@ Cloudflare GitHub App
 -> Editor
 ```
 
-This would preserve Workers Builds native Git behavior while providing per-Worker least privilege.
+This would preserve native Workers Builds while providing one-Worker account-owned deployment credentials.
 
-As of the reviewed date, Cloudflare Workers Builds documentation still states that only user tokens are supported and account-owned token support is not yet available.
+As of the reviewed date, Workers Builds still documents the user-token model for build credentials, so this combination is not yet the active reference path.
 
 PPF label:
 
-`future-preferred / currently-unavailable`
+`future-native-granular / currently-unavailable-in-workers-builds`
 
-## 5. Separate deployment-credential security from publication access
+## 5. Deployment credential security is separate from publication access
 
 Profiles A / B / C answer:
 
-> “Which identity and permission scope can modify / deploy the Worker?”
+> Which identity and permission scope may modify or deploy the Worker?
 
 They do not answer:
 
-> “Which readers may access the publication after deployment?”
+> Which readers may access the deployed publication?
 
-The latter belongs to PPF `publication.web.visibility` and `publication.web.access`, which the Cloudflare reference can map to Cloudflare Access.
+The latter belongs to PPF `publication.web.visibility` and `publication.web.access`.
 
-All of these combinations may therefore be valid:
+Valid combinations therefore include:
 
-~~~text
-Profile A deployment credential + public publication
-Profile A deployment credential + restricted publication
-Profile B deployment credential + public publication
-Profile B deployment credential + restricted publication
-~~~
+```text
+Profile A credential + public publication
+Profile A credential + restricted publication
+Profile B credential + public publication
+Profile B credential + restricted publication
+```
 
-Deployment-credential least privilege and reader access control are orthogonal security axes.
+A deployment success never implies a public publication decision.
 
-See:
+## 6. Platform authorization vs project authorization
 
-`docs/CLOUDFLARE_ACCESS_PROFILE.md`
+PPF distinguishes:
 
-for reader-access mapping.
+### Platform authorization
 
-## 6. Separate Custom Domain provisioning from routine deployment
+Long-lived authority to provision infrastructure:
 
-For either Profile A or B, route/domain provisioning should not become permanent routine-deployment authority.
+- GitHub provisioning principal;
+- Cloudflare provisioning principal;
+- trusted secret broker.
+
+These should be authorized once within a bounded platform scope and reused for later projects.
+
+### Project authorization
+
+Durable project-level decisions:
+
+- whether restricted deployment is allowed;
+- whether the publication may become public;
+- which audience may read it;
+- whether a custom domain/canonical identity may be changed.
+
+Public release, reader-audience expansion, domain/DNS authority expansion, and paid-plan changes remain human-reserved unless separately and explicitly pre-authorized.
+
+## 7. Separate Custom Domain provisioning from routine deployment
+
+For either Profile A or B, domain or route provisioning must not become permanent routine deployment authority.
 
 Recommended:
 
 ```text
-temporary domain provisioning authority
--> Worker access
--> affected zone Workers Routes Write
--> attach/verify domain
+temporary / platform domain provisioning authority
+-> attach and verify hostname
 
 then
 
-routine deployment identity
--> no zone-route write unless a deployment actually changes routing
+routine project deployment identity
+-> one Worker Editor
+-> no zone-route authority unless the deployment actually changes routing
 ```
 
-## 7. PPF security principles
+## 8. PPF security principles
 
 The Cloudflare reference implementation SHOULD:
 
 1. record the selected security profile explicitly;
-2. not describe a provider-managed broad token as least privilege;
-3. never store token secrets in Git, chat, or the machine contract;
-4. not break an already verified pipeline merely to pursue theoretical hardening without a rollback path;
-5. provide an external-CI hardened alternative when provider-native integration cannot satisfy the required credential scope;
-6. re-evaluate the profile when provider capabilities change.
+2. separate platform provisioning authority from routine project deployment authority;
+3. not describe a provider-managed broad token as least privilege;
+4. never store token values in Git, chat, public state, issues, PRs, or logs;
+5. keep token plaintext out of model context through a trusted secret broker;
+6. require verified account-wide protection before automatically creating a restricted project Worker;
+7. keep public release independent from deployment success;
+8. retain a provider-native profile for teams that prefer convenience over one-Worker token isolation;
+9. re-evaluate these profiles when provider capabilities change.
 
-## 8. Selection rule
+## 9. Selection rule
 
-Profile A is the reference convenience default, not a claim that it is optimal for every security environment.
+For newly agent-provisioned projects, prefer **Profile B** after platform bootstrap.
 
-If a project requires before production that:
+Use **Profile A** when native Workers Builds is deliberately selected because provider-native Git integration is more important than one-Worker deployment-token isolation.
 
-> the routine deployment credential can modify only one existing Worker
+Use **Profile C** only after Workers Builds actually supports the required account-owned per-Worker token path and that path has been verified.
 
-then Profile B should be selected until Profile C becomes supported by Workers Builds.
-
-The project owner should confirm the production security profile.
+The first clean Profile B project must still pass live acceptance before the repository labels it production-accepted.
