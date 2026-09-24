@@ -31,20 +31,21 @@
 
 ### GitHub Provisioning Principal
 
-优先使用专门的 GitHub organization 或其他明确受限的账户范围。Provisioner GitHub App 只申请创建和维护项目所需权限；具体实现通常包括 Repository Administration write、Contents write、Workflows write、Actions write、Secrets write、Pull requests write 与 Metadata read。
+使用边界清楚的 GitHub account / organization scope。Provisioner GitHub App 只申请创建和维护项目所需权限；具体实现通常包括 Repository Administration write、Contents write、Workflows write、Actions write、Secrets write、Pull requests write 与 Metadata read。
 
-App installation 是平台级授权。在已经批准的安装范围内创建新仓库，不应要求人类为每个项目重新授权。
+Repository 创建方式取决于 owner type：
+- **个人 user account** 的 authenticated-user repository creation endpoint 接受 GitHub App **user access token**（或其他受支持的 user-authorized fine-grained token），不接受 installation token；
+- **organization** 的 repository creation endpoint 接受 GitHub App installation access token，也接受 user access token。
+
+因此 manifest 显式记录 `github.ownerType`，平台 Provisioning Principal 必须与 owner type 匹配。
+
+App/user authorization 属于平台级授权。在已经批准的 scope 内新增仓库，不应要求人类逐项目重新授权。
 
 ### Cloudflare Provisioning Principal
 
-建立一个严格控制的平台凭据或 OAuth/MCP 授权，用于：
+建立一个严格控制的平台凭据或 OAuth/MCP 授权，用于读取账户状态、验证 account-wide Access baseline、创建 Worker、读取 deployment / observability state，并只在另有授权时修改 Access。
 
-- 读取账户状态；
-- 验证 account-wide Access baseline；
-- 创建 Worker；
-- 创建 account-owned API token；
-- 读取部署与 observability 状态；
-- 在另有授权时创建或修改 Access application。
+**Token minting 是另一条高权限边界。** Cloudflare 当前 account-owned token API 对创建/更新 account-owned token 要求 Super Administrator authority。不得把这项 authority 交给普通 project Agent 或 CI credential；它只能隔离在 trusted Secret Broker / provisioning service 内。
 
 新建 Worker 需要 Workers product-level Admin；日常项目部署不需要这一广泛权限。
 
@@ -97,7 +98,7 @@ Provisioner 只输出非秘密请求，例如：
 }
 ```
 
-可信工具或服务内部执行：
+拥有隔离 token-minting authority 的 trusted tool/service 内部执行：
 
 ```text
 Cloudflare 创建 token
