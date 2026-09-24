@@ -93,7 +93,7 @@ The first reference implementation is expected to use:
 - HTML as the default continuously published format
 - GitHub Actions as an independent validation gate
 - a repository-owned `make web-publish-check` as the canonical Web publication gate
-- GitHub Actions + a project-scoped Cloudflare account-owned token as the preferred delivery path for **new agent-provisioned projects**; Workers Builds + the Cloudflare GitHub App remains the operational provider-native profile with real pilot evidence, and Cloudflare Pages remains supported for existing projects
+- Workers Builds + the Cloudflare GitHub integration as the preferred delivery path for ordinary **new personal-account projects**, using one documented per-project setup and provider-managed credentials; GitHub Actions + a project-scoped Cloudflare token remains an optional advanced profile, and Cloudflare Pages remains supported for existing projects
 - `project.infrastructure.json` as the machine-readable GitHub/Cloudflare desired-state manifest, with private-by-default visibility and a read-only reconciliation planner
 - Cloudflare Workers Static Assets as a Web delivery layer
 - EPUB, PDF, DOCX, and LaTeX as on-demand publication artifacts
@@ -148,7 +148,7 @@ The reference implementation is intentionally separate from the normative specif
 
 **Working version: v0.1.0-draft**
 
-The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, the verified Workers Builds native path, an implemented `agent-provisioned-external-ci` reference profile, and an executable atomic Trusted Secret Broker orchestration state machine. The Cloudflare granular-token issuer adapter and the full external-CI route still require one clean end-to-end new-project pilot before the profile may be called production-accepted. PPF continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md`, `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`, `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`, and `docs/TRUSTED_SECRET_BROKER.md`.
+The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, and a verified Workers Builds Native route that is now the default guided per-project onboarding path. The implemented `agent-provisioned-external-ci` profile and atomic Trusted Secret Broker remain available as optional advanced infrastructure; the Cloudflare granular-token issuer still requires live Provider acceptance before that advanced profile may be called production-accepted. See `docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md`, `docs/FIRST_PILOT_LESSONS.md`, `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`, `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`, and `docs/TRUSTED_SECRET_BROKER.md`.
 
 
 For the reusable GitHub–Cloudflare desired-state and reconciliation contract, see [`docs/GITHUB_CLOUDFLARE_INTEGRATION.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.md).
