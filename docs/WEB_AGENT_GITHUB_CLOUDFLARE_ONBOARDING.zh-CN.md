@@ -2,13 +2,13 @@
 
 本契约供网页 AI Agent 使用已授权的 GitHub 与 Cloudflare Provider 工具配置项目。先读仓库的 `AGENTS.zh-CN.md`（或 `AGENTS.md`）、存在时的 `ecosystem.yaml`、`project.infrastructure.json` 和适用的 provider-integration contract。公开仓库描述期望行为；凭据和账户私有资源标识不得写入仓库。
 
-新项目必须按 `deployment.securityProfile` 行动。v2 reference template 使用 `agent-provisioned-external-ci`；只有明确选择 `workers-builds-native` 时才使用本文后面的 Workers Builds 专用步骤。Provisioning 新项目之前先读 `AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`。
+新项目必须按 `deployment.securityProfile` 行动。v2 reference template 现在默认使用 `workers-builds-native`，允许每项目一次短人工 bootstrap；先读 `PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.zh-CN.md`。只有显式选择高级 External-CI Profile 时才读 `AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`。
 
 ## 最少项目输入
 
 从仓库可以明确判断时，自动读取 GitHub 所有者/仓库/默认分支、构建命令、静态输出目录或 Worker 入口、固定的运行时与工具版本，以及项目属于静态站还是服务端渲染。依照 `schema/project.infrastructure.schema.json`，从 `templates/quarto-book/project.infrastructure.json` 复制并调整项目清单。只填写无法从仓库确定的项目 slug 与仓库字段。清单描述托管和访问意图；项目自己的 Cloudflare integration contract 描述命令、输出路径、工具链、分支规则、credential strategy 与 Wrangler 配置。
 
-新项目默认使用 private GitHub repository、account-wide Access 后的 restricted Worker、Preview 在受保护验收前关闭、不配置 Custom Domain 且不启用付费服务。如果账户级 Access 基线不存在、读者范围未确定、项目归属不清或无法安全确定构建方式/输出目录，只暂停受阻的那项写操作，询问缺少的决定；继续其他互不依赖且已获授权的读取、验证和准备工作。不得把缺失设置解释为公开。
+新项目默认使用 private GitHub repository、Worker-scoped Access（或已验证 account-wide policy）后的 restricted Worker、Preview 在受保护验收前关闭、不配置 Custom Domain 且不启用付费服务。允许为了当前项目一次性连接 Cloudflare repository、启用 Access policy 而返回人类；其他互不依赖且已获授权的读取、验证和准备工作继续进行。不得把缺失设置解释为公开。
 
 ## 必须执行的流程
 
@@ -39,7 +39,7 @@
 
 这些关卡按需触发。如果当前 GitHub / Cloudflare provisioning scope 已覆盖该项目，不得重复要求平台授权。如果已授权 connector / broker 能完成操作，就不要再要求 API Token；如果目标仓库已经处于适用的批准范围内，也不要重复要求安装或授权。
 
-只有 **Workers Builds Native Profile** 使用这一路径：Workers Builds API 当前要求用户级 API Token，权限为 Workers Builds Configuration: Edit 和 Workers Scripts: Read（后者用于读取 Worker tag）。这个 API Token 与构建系统使用的 build-token UUID 不同。必须披露所需权限，不得称为最小权限。如果不能安全提供 API 凭据，使用已批准的部署方式，或只暂停构建配置操作。绝不使用仓库提供的任意 shell 命令并让其继承 Cloudflare Token；部署必须通过凭据隔离的 Provider runner 调用固定且已锁定版本的 Wrangler 操作。参见 [Cloudflare Builds API 官方文档](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/)。
+只有在**通过 API 自动管理 Workers Builds Native** 时，Workers Builds API 当前才需要用户级 API Token，权限为 Workers Builds Configuration: Edit 和 Workers Scripts: Read（后者用于读取 Worker tag）。如果使用者按照文档在 Cloudflare Dashboard 完成每项目一次 repository connection，则不要求把这类 API credential 提供给 Agent。若使用 API automation，必须披露所需权限、不得称为 least-privilege，也绝不能要求使用者把 credential 粘贴到聊天。参见 [Cloudflare Builds API 官方文档](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/)。
 
 ## 完成报告
 
