@@ -107,7 +107,12 @@ class ProjectProvisioner:
 
         repo = before["repository"]
         if repo is None:
-            repo = self.github.ensure_repository(owner, repository, "private")
+            repo = self.github.ensure_repository(
+                owner,
+                repository,
+                "private",
+                owner_type=manifest["github"]["ownerType"],
+            )
             completed.append("github.repository")
 
         worker = before["worker"]
