@@ -37,24 +37,16 @@ jobs:
           data = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
           web = data.get("publication", {}).get("web", {})
           deployment = data.get("deployment", {}).get("web", {})
-          allowed = web.get("authorization_state") == "authorized" and deployment.get("enabled") is True
+          allowed = (
+              web.get("authorization_state") == "authorized"
+              and web.get("visibility") == "restricted"
+              and web.get("access", {}).get("mode") == "authenticated"
+              and deployment.get("enabled") is True
+          )
           print("deploy=" + ("true" if allowed else "false"))
           PY
-          if ! grep -q '^deploy=true
-      - name: Install locked deployment toolchain
-        if: steps.gate.outputs.deploy == 'true'
-        run: npm ci --ignore-scripts --no-audit --no-fund
-      - name: Build canonical Web output
-        if: steps.gate.outputs.deploy == 'true'
-        run: make cloudflare-build
-      - name: Deploy existing project Worker
-        if: steps.gate.outputs.deploy == 'true'
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx wrangler deploy
- "$GITHUB_OUTPUT"; then
-            echo "Continuous Web remains staged; no deployment is authorized."
+          if ! grep -q '^deploy=true$' "$GITHUB_OUTPUT"; then
+            echo "Continuous Web remains staged; no restricted deployment is authorized."
           fi
       - name: Install locked deployment toolchain
         if: steps.gate.outputs.deploy == 'true'

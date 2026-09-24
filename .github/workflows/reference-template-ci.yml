@@ -16,7 +16,7 @@ on:
       - "docs/CLOUDFLARE_GITHUB_AUTHORIZATION*.md"
       - "docs/CLOUDFLARE_SECURITY_PROFILES*.md"
       - "docs/AGENT_PROVISIONED_EXTERNAL_CI*.md"
-      - "docs/AGENT_PROVISIONED_EXTERNAL_CI*.md"
+      - "docs/TRUSTED_SECRET_BROKER*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
       - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - "docs/TEMPLATE_ADOPTION_AND_UPGRADE*.md"
@@ -36,6 +36,8 @@ on:
       - "docs/CLOUDFLARE_OBSERVED_UI_MAPPING*.md"
       - "docs/CLOUDFLARE_GITHUB_AUTHORIZATION*.md"
       - "docs/CLOUDFLARE_SECURITY_PROFILES*.md"
+      - "docs/AGENT_PROVISIONED_EXTERNAL_CI*.md"
+      - "docs/TRUSTED_SECRET_BROKER*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
       - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - "docs/TEMPLATE_ADOPTION_AND_UPGRADE*.md"
@@ -95,10 +97,35 @@ jobs:
           if external.get("workflow") != ".github/workflows/deploy-cloudflare.yml":
               raise SystemExit("external CI workflow path drifted")
           workflow = Path(".github/workflows/deploy-cloudflare.yml").read_text(encoding="utf-8")
-          for required in ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "authorization_state", "wrangler deploy"):
+          try:
+              parsed = yaml.safe_load(workflow)
+          except yaml.YAMLError as exc:
+              raise SystemExit("deployment workflow is not valid YAML: " + str(exc))
+          if not isinstance(parsed, dict) or not isinstance(parsed.get("jobs"), dict):
+              raise SystemExit("deployment workflow does not contain a jobs mapping")
+          steps = parsed.get("jobs", {}).get("deploy", {}).get("steps", [])
+          if not isinstance(steps, list):
+              raise SystemExit("deployment workflow deploy.steps is not a list")
+          names = [step.get("name") for step in steps if isinstance(step, dict) and step.get("name")]
+          for name in (
+              "Check durable publication authorization",
+              "Install locked deployment toolchain",
+              "Build canonical Web output",
+              "Deploy existing project Worker",
+          ):
+              if names.count(name) != 1:
+                  raise SystemExit("deployment workflow step must appear exactly once: " + name)
+          for required in (
+              "CLOUDFLARE_API_TOKEN",
+              "CLOUDFLARE_ACCOUNT_ID",
+              "authorization_state",
+              "visibility",
+              "authenticated",
+              "wrangler deploy",
+          ):
               if required not in workflow:
                   raise SystemExit("deployment workflow missing " + required)
-          print("Project-provisioning contracts are internally consistent.")
+          print("Project-provisioning contracts and deployment workflow are internally consistent.")
           PY
       - name: Validate private integration state schema
         run: |
