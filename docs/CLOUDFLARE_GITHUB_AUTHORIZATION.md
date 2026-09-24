@@ -39,7 +39,7 @@ See [AGENT_PROVISIONED_EXTERNAL_CI.md](AGENT_PROVISIONED_EXTERNAL_CI.md).
 
 ## 2. One-time GitHub platform authorization
 
-Prefer a dedicated GitHub organization or another clearly bounded installation scope.
+Use a clearly bounded GitHub user account or organization scope.
 
 Authorize a provisioning GitHub App with only the capabilities needed by the implementation. Typical required repository permissions are:
 
@@ -55,27 +55,28 @@ Metadata: read
 
 The exact permission set must be verified against the operations actually implemented.
 
+Credential type must match the repository owner:
+
+- personal user owner -> GitHub App user access token (or another supported user-authorized fine-grained token) for `POST /user/repos`;
+- organization owner -> GitHub App installation access token or user access token for `POST /orgs/{org}/repos`.
+
+The project infrastructure manifest records `github.ownerType`; do not infer organization/user from an arbitrary token by calling unrelated identity endpoints.
+
 Completion criterion:
 
 > The provisioning principal can create and configure a private project repository inside the approved scope without another repository-by-repository human authorization.
 
-Do not install the App on unrelated organizations/accounts merely for convenience.
+Do not authorize unrelated accounts merely for convenience.
 
 ## 3. One-time Cloudflare platform authorization
 
 Authorize one Cloudflare provisioning principal through an API token, OAuth, or an official MCP connection supported by the executing client.
 
-The platform principal may need authority to:
-
-- inspect account and Worker inventory;
-- read Access applications;
-- create Worker metadata;
-- create account-owned API tokens;
-- read deployment and observability state;
-- create/update Access applications only when separately authorized;
-- attach a domain only when domain/DNS authority has been explicitly granted.
+The platform principal may need authority to inspect account/Worker inventory, read Access applications, create Worker metadata, read deployment/observability state, perform separately authorized Access changes, and attach a domain only after domain/DNS authority is granted.
 
 Creating a new Worker requires Workers product-level Admin. Routine deployment must not continue using that broad identity.
+
+Creating **account-owned API tokens** is more privileged: Cloudflare's current account-token API requires Super Administrator authority for token creation/update. Isolate that authority inside the trusted Secret Broker/provisioning service; do not grant it to project CI or the language-model-facing Agent.
 
 Completion criterion:
 
