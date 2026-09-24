@@ -83,14 +83,22 @@ def plan_reconciliation(
             else:
                 op("protect-previews", "Protect preview URLs independently from production visibility.")
 
-    if not builds.get("repositoryConnectionUuid"):
-        op("ensure-repository-connection", "Read the existing repository connections before creating one; reuse its stable UUID.")
-    if not builds.get("productionTriggerUuid"):
-        op("ensure-production-trigger", "Create only if no trigger already matches this Worker, repository, and branch.")
-    elif builds.get("productionBranch") != desired_build["productionBranch"]:
-        op("reconcile-production-trigger", "Patch the existing trigger to the declared production branch and verify it.")
-    if desired_build["previewDeployments"] and not builds.get("previewTriggerUuid"):
-        op("ensure-preview-trigger", "Create or reuse the preview trigger; its URLs must stay protected.")
+    if desired_build["provider"] == "cloudflare-workers-builds":
+        if not builds.get("repositoryConnectionUuid"):
+            op("ensure-repository-connection", "Read the existing repository connections before creating one; reuse its stable UUID.")
+        if not builds.get("productionTriggerUuid"):
+            op("ensure-production-trigger", "Create only if no trigger already matches this Worker, repository, and branch.")
+        elif builds.get("productionBranch") != desired_build["productionBranch"]:
+            op("reconcile-production-trigger", "Patch the existing trigger to the declared production branch and verify it.")
+        if desired_build["previewDeployments"] and not builds.get("previewTriggerUuid"):
+            op("ensure-preview-trigger", "Create or reuse the preview trigger; its URLs must stay protected.")
+    else:
+        deployment_secrets = github.get("deploymentSecrets") or {}
+        if not all(deployment_secrets.get(name) is True for name in ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID")):
+            op(
+                "install-project-scoped-deployment-credential",
+                "Use the platform secret broker to create an account-owned token scoped to this Worker with Editor role and write it directly to GitHub Actions secrets without exposing plaintext to the model.",
+            )
     status = "SECURITY_DRIFT" if security_drift else "PERMISSION_REQUIRED" if blockers else "PLAN_READY"
     return {
         "projectId": desired["project"]["id"],
