@@ -2,13 +2,13 @@
 
 This contract lets a web AI agent configure a project using authenticated GitHub and Cloudflare provider tools. Start with the repository's `AGENTS.md`, `ecosystem.yaml` if present, `project.infrastructure.json`, and the applicable provider-integration contract. The public repository describes desired behavior; it is never a place for credentials or account-private resource identifiers.
 
-For a new project, follow `deployment.securityProfile`. The v2 reference template uses `agent-provisioned-external-ci`; Workers Builds instructions below apply only when `workers-builds-native` is explicitly selected. Read `AGENT_PROVISIONED_EXTERNAL_CI.md` before provisioning a new project.
+For a new project, follow `deployment.securityProfile`. The v2 reference template now defaults to `workers-builds-native` with a short per-project human bootstrap. Read `PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md` first. Use `AGENT_PROVISIONED_EXTERNAL_CI.md` only when the advanced external-CI profile is explicitly selected.
 
 ## Minimum project inputs
 
 Infer these values from the repository when unambiguous: GitHub owner/repository/default branch, build command, static output directory or Worker entry point, pinned runtime/tool versions, and whether the project is static or server-rendered. Use the schema at `schema/project.infrastructure.schema.json` and a project manifest based on `templates/quarto-book/project.infrastructure.json`. Set only the project slug and repository fields that cannot be inferred. The manifest captures hosting and access intent; the project-specific Cloudflare integration contract captures commands, output paths, toolchain, branch rules, credential strategy, and Wrangler settings.
 
-New projects default to a private GitHub repository, a restricted Worker behind account-wide Access, previews disabled until protected-preview verification, no custom domain, and no paid services. If the account's Access baseline is missing, the reader audience is unspecified, project ownership is ambiguous, or the build/output cannot be determined safely, pause only the affected write and ask only for that missing decision. Continue independent, already-authorized read/validation/preparation work. Never turn a missing setting into a public default.
+New projects default to a private GitHub repository, a restricted Worker behind Worker-scoped Access (or an already-verified account-wide policy), previews disabled until protected-preview verification, no custom domain, and no paid services. It is acceptable to pause for the user to connect the repository to Cloudflare and enable the intended Access policy once for that project. Continue independent, already-authorized read/validation/preparation work, and never turn a missing setting into a public default.
 
 ## Required workflow
 
@@ -39,7 +39,7 @@ Use the relevant official entry points:
 
 These gates are conditional. Do not request another platform authorization when the current GitHub/Cloudflare provisioning scopes already cover the project. Do not request a Cloudflare API token when an already-authorized connector/broker can complete the action. Do not ask the user to authorize a GitHub App again when the selected repository is already in the applicable approved scope.
 
-For the **Workers Builds Native profile only**, the Workers Builds API currently requires a user-scoped API token with Workers Builds Configuration: Edit and Workers Scripts: Read (the latter is needed to read a Worker tag). This API token is distinct from the build-token UUID used by the build system. Disclose the requested permissions and do not call them least-privilege. If the API credential cannot be supplied safely, use an already-approved deployment route or pause only the build-configuration action. Never reuse a repository-provided shell command to execute with a Cloudflare token; deployment must invoke the fixed, pinned Wrangler operation through the credential-isolated provider runner. See the [Cloudflare Builds API reference](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/).
+For automated API management of the **Workers Builds Native profile**, the Workers Builds API currently requires a user-scoped API token with Workers Builds Configuration: Edit and Workers Scripts: Read (the latter is needed to read a Worker tag). This API credential is not required when the user performs the documented one-time project connection in the Cloudflare Dashboard. If API automation is used, disclose the requested permissions and do not call them least-privilege. Never ask the user to paste that credential into chat. See the [Cloudflare Builds API reference](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/).
 
 ## Completion report
 
