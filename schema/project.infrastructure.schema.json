@@ -41,6 +41,7 @@
       "type": "object",
       "required": [
         "owner",
+        "ownerType",
         "repository",
         "repositoryVisibility",
         "productionBranch"
@@ -63,6 +64,12 @@
         "productionBranch": {
           "type": "string",
           "minLength": 1
+        },
+        "ownerType": {
+          "enum": [
+            "user",
+            "organization"
+          ]
         }
       },
       "additionalProperties": false
