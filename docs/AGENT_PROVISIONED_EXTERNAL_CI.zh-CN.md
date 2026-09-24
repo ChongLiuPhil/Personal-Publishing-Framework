@@ -109,6 +109,10 @@ Cloudflare 创建 token
 
 模型只看到安装状态和非秘密 ID。
 
+Reference Broker 编排现在已经在 `providers/infrastructure/secret_broker.py` 中可执行：它拒绝覆盖已有目标 Secret，验证 issuer adapter 返回的 minted scope；后续写入失败时，只回滚本 transaction 写入的 Secret，并 revoke 本轮新 mint 的 token；对可变 token buffer 做 best-effort wipe；只返回 `ppf/secret-broker-result/v1`。详见 [`TRUSTED_SECRET_BROKER.zh-CN.md`](TRUSTED_SECRET_BROKER.zh-CN.md)。
+
+Cloudflare granular-token **issuer adapter** 仍是独立 live-acceptance 项。PPF 不会硬编码猜测出来的 “Specified Workers + Editor” policy-resource JSON；第一个已授权 pilot 必须 discovery 并验证当前 Provider API shape 后，才能冻结该 adapter。
+
 ## 6. 仓库部署 Workflow
 
 参考模板包含 `.github/workflows/deploy-cloudflare.yml`。
@@ -164,7 +168,7 @@ Agent 自动配置的新项目优先 external-CI，因为 Provisioner 可以先�
 
 ## 10. 当前证据边界
 
-仓库实现与 CI 能证明契约内部一致，但不能证明“新建项目端到端线上路径”已经真实通过。
+仓库实现与 CI 能证明契约内部一致。Project Provisioner 与原子 Secret Broker 编排已经实现并可测试，但 Cloudflare granular-token issuer adapter 仍需真实 Provider acceptance；这些证据仍不能证明“新建项目端到端线上路径”已经真实通过。
 
 把本 Profile 从“已实现参考 Profile”升级为“已验证默认”之前，必须用一个全新项目完成：
 
