@@ -1,248 +1,194 @@
-# Cloudflare ↔ GitHub 一次性授权指南（PPF Reference）
+# GitHub + Cloudflare 平台授权指南（PPF Reference）
 
-本指南面向没有技术背景的操作者。
+**Reviewed:** 2026-09-24
 
-目标不是让操作者学习 API、Wrangler 或 CI，而是只完成账户所有者必须亲自确认的授权动作。完成后，AI Agent 或项目维护者应根据仓库中的 `cloudflare-builds.yaml` 继续配置。
+目标是让未来新项目尽量不重复要求人类授权，同时把 Provider authority 控制在明确范围内。
 
-## 1. 推荐路线
+PPF 现在区分两条受支持路线：
+
+1. **Agent-Provisioned External CI** — 未来由 AI Agent 新建项目时的首选路线。
+2. **Workers Builds Native** — 已有真实 pilot 证据的 provider-native 备选路线。
+
+`cloudflare-builds.yaml` 继续是 PPF machine contract；Cloudflare 不会自动读取它。
+
+## 1. 未来 Agent 自动新建项目的首选路线
 
 ```text
-AI Agent
-   |
-   +--> Cloudflare OAuth / MCP      (如果客户端支持)
-
-Cloudflare
-   |
-   +--> Workers Builds
-            |
-            +--> Cloudflare GitHub App
-                    |
-                    +--> selected repository only
+Human
+  |
+  +-- GitHub provisioning principal 一次授权
+  |
+  +-- Cloudflare provisioning principal 一次授权
+          |
+          v
+      Project Provisioner
+       /            \
+ GitHub              Cloudflare
+ private repo        all_workers baseline 检查
+ workflow            Worker 创建
+ repo secrets <---- trusted secret broker
+       \             /
+        GitHub Actions
+             |
+        wrangler deploy
 ```
 
-Cloudflare API MCP：
+本 Profile 不需要为每个新项目再次安装 Cloudflare GitHub App。
 
-`https://mcp.cloudflare.com/mcp`
+详见 [AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md](AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md)。
 
-Workers Builds MCP：
+## 2. 一次性 GitHub 平台授权
 
-`https://builds.mcp.cloudflare.com/mcp`
+优先使用专门的 GitHub organization，或其他范围清楚的 App installation scope。
 
-`cloudflare-builds.yaml` 是 **PPF machine contract**。Cloudflare 不会自动读取它；AI 或人类需要把其中参数应用到 Cloudflare Workers Builds。
+Provisioning GitHub App 只申请实现真正需要的权限。典型 repository permission 包括：
 
-## 2. 授权 AI ↔ Cloudflare（可选但推荐）
+```text
+Administration: write
+Contents: write
+Workflows: write
+Actions: write
+Secrets: write
+Pull requests: write
+Metadata: read
+```
 
-如果 AI 客户端支持 MCP：
-
-1. 打开 Plugins / Connectors / MCP / Integrations。
-2. 添加 Cloudflare 官方 MCP。
-3. 登录 Cloudflare。
-4. 如果可以选择权限，只保留完成 Workers / Workers Builds 管理所需的权限。
-5. 完成 OAuth 授权。
-
-完成标准：
-
-> AI Agent 能实际读取 Cloudflare account、Workers 或 Workers Builds 状态。
-
-如果客户端不支持 Cloudflare MCP，不影响 PPF 使用；直接用 Dashboard fallback。
-
-## 3. 授权 Cloudflare ↔ GitHub
-
-1. 打开 Cloudflare Dashboard。
-2. 进入 **Workers & Pages**。
-3. 选择 **Create application → Import a repository**，或在已有 Worker 的 Builds 设置中连接 Git repository。
-4. 选择 GitHub。
-5. GitHub 显示 Cloudflare Workers & Pages App 授权页。
-6. 如果可以选择 **All repositories** 或 **Only select repositories**，选择 **Only select repositories**。
-7. 只选择当前项目需要的 repository。
-8. 返回 Cloudflare。
+实际权限必须根据实现的具体 API 操作复核，不能为了方便扩大。
 
 完成标准：
 
-> Cloudflare 能看到项目 repository，但没有获得不相关 repository 的访问权限。
+> Provisioner 能在已批准范围内创建和配置 private project repository，而不要求人类逐仓库重新授权。
 
-### 完成这次一次性授权以后
+不要为了方便把 App 安装到无关 organization/account。
 
-人类应停止手工执行常规 build 配置。Cloudflare 当前 Workers Builds API 已支持在 GitHub App 授权存在后，程序化管理 repository connection、trigger、environment variable、build 执行与 build monitoring。
+## 3. 一次性 Cloudflare 平台授权
 
-API Agent 使用 **user-scoped** token：
+通过 API token、OAuth 或执行客户端支持的 Cloudflare 官方 MCP，建立一个 Cloudflare provisioning principal。
 
-~~~text
-Workers Builds Configuration: Edit
-Workers Scripts: Read
-~~~
+该平台身份可能需要：
 
-前者管理 Builds/configuration，后者用于解析 Worker immutable tag。Token 只进入执行工具的 secure secret store，不进入 Git 或聊天。
+- 检查 account 与 Worker inventory；
+- 读取 Access application；
+- 创建 Worker metadata；
+- 创建 account-owned API token；
+- 读取 deployment / observability 状态；
+- 在另有授权时创建或修改 Access application；
+- 只有在明确得到 domain/DNS authority 时才绑定域名。
 
-Access application / policy 自动化使用另一枚最小权限 token：
+新建 Worker 需要 Workers product-level Admin。日常 project deployment 不能继续使用这一广泛身份。
 
-~~~text
-Access: Apps and Policies Write
-~~~
+完成标准：
 
-只有 Agent 必须创建/修改 OTP 或 identity provider 时，再增加：
+> Provisioner 能验证 account-wide Access baseline 并创建 Worker，而项目后续部署可以换成只限制到该 Worker 的凭据。
 
-~~~text
-Access: Organizations, Identity Providers, and Groups Write
-~~~
+## 4. 新项目之前先建立 account-wide private baseline
 
-Canonical 最小人类操作契约位于 Starter：
-https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_MINIMAL_HUMAN_HANDOFF.zh-CN.md
+在自动创建任何 project Worker 以前，配置并验证 destination 覆盖 `all_workers` 的 Cloudflare Access application，或等价的 account-wide baseline。
 
-## 4. “Set up your application” 页面
+这是平台 bootstrap，不是某个项目的 public publication 决定。
 
-以下 UI 映射是 **2026-09-19 的 dated observation**，不是永久 Cloudflare 规范。完整映射与 UI drift 规则见：
+Provisioner 如果不能确认未来 Worker 默认受保护，必须 fail closed。
 
-`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.zh-CN.md`
+不得为了让 Provisioning 更方便而自动创建 public bypass。
 
-当前 Cloudflare 创建流程可能显示以下字段。
+## 5. 项目专属 deployment credential
 
-### Project name
+平台 Provisioner 创建 Worker 后，再创建 account-owned API token，并限制为：
 
-填项目的 Worker / project name。
+```text
+resource: individual Worker
+role: Editor
+```
 
-示例：
+这枚 token 是项目日常部署身份。
 
-`epistemology-textbook`
+它不应拥有：
 
-### Build command
+- 创建无关 Worker 的权限；
+- 修改无关 Worker 的权限；
+- 修改 account-wide Access 的权限；
+- 除非部署契约真实需要，否则不拥有 zone/route 修改权限。
 
-从 `cloudflare-builds.yaml` 复制。
+## 6. Secret Broker 是必需边界
 
-PPF Quarto reference：
+项目 token 与 account ID 需要写入 GitHub Actions secrets，但 token 明文不得经过语言模型。
 
-`bash scripts/cloudflare_build.sh`
+可执行 Provisioner 只返回非秘密 `secretBrokerRequest`。
 
-不要留空，因为 PPF reference build 需要固定 Quarto + canonical Web gate。
+Trusted broker 必须：
 
-### Deploy command
+1. 创建 Cloudflare token；
+2. token 明文只存在于 broker process 内；
+3. 获取 GitHub repository public key，或使用 Provider 提供的安全 Secret 写入机制；
+4. 写入 `CLOUDFLARE_API_TOKEN` 与 `CLOUDFLARE_ACCOUNT_ID`；
+5. 丢弃明文；
+6. 只把非秘密安装状态与 ID 返回给 Agent。
 
-从 machine contract 复制。
+绝不要求使用者把该 token 粘贴进聊天。
 
-PPF reference：
+## 7. 平台 bootstrap 后的 restricted deployment
 
-`wrangler deploy`
+两次平台授权已经存在后，未来新项目通常不应再要求额外账户级 consent。
 
-### Builds for non-production branches
+Agent 可以：
 
-PPF reference 建议：
+- 创建 private GitHub repository；
+- 初始化 PPF / Starter 项目；
+- 创建 Worker；
+- 调用 Secret Broker；
+- 运行 GitHub Actions deployment；
+- 验证匿名访问被 Cloudflare Access 拒绝；
+- 把非秘密 Provider 状态写回项目。
 
-**开启 / 勾选**
+Public release 仍然是独立的人类出版决定。
 
-这样非 production branch 可以运行 preview build。
+## 8. Workers Builds Native 备选路线
 
-### Protect with Cloudflare Access
+明确选择 provider-native Git integration 的项目仍可采用：
 
-不要根据 repository public/private 来决定这一项。
+```text
+AI Agent / operator
+   |
+   +--> Cloudflare
+           |
+           +--> Workers Builds
+                    |
+                    +--> Cloudflare GitHub App
+                            |
+                            +--> selected repository
+```
 
-先读取当前 publication contract：
+这一路线需要 Cloudflare GitHub App authorization。
 
-~~~text
-publication.web.authorization_state
-publication.web.visibility
-publication.web.access
-~~~
+授权存在后，Provider API 可以在支持范围内继续管理 Workers Builds configuration、repository connection、trigger、build 与 monitoring。
 
-Reference mapping：
+Workers Builds 当前 build credential 仍采用 user-token 模型，不得描述成 one-Worker least privilege。
 
-- `visibility: public` + `access.mode: none`：通常保持公开；
-- `visibility: restricted`：按项目 access policy 启用 Cloudflare Access；
-- `visibility: private`：先确认项目定义的 private audience / route policy，再配置 Access 或保持公开 route disabled/staged。
+## 9. Cloudflare MCP
 
-Cloudflare current Workers documentation 还支持在创建后对单个 Worker、production+preview、或指定 hostname/path 配置 Access。因此创建页面中的 checkbox 不是 access policy 的唯一真值源。
+如果客户端支持 Cloudflare 官方 MCP，可用它建立或操作 Cloudflare provisioning principal。
 
-具体 provider mapping 见：
+相关官方入口包括：
 
-`docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`
+```text
+https://mcp.cloudflare.com/mcp
+https://builds.mcp.cloudflare.com/mcp
+```
 
-不要把 password、OTP、token 或其他 secret 写进 `publishing.yaml` 或聊天。
+MCP 不改变授权边界：登录/MFA 与 consent 仍由人完成；secret 仍不能进入聊天/model context。
 
-### Advanced settings → Non-production branch deploy command
+## 10. Bootstrap 之后仍由人保留的 Gate
 
-PPF reference：
+不能因为创建了一个新 repository 或 Worker，就机械地再次把工作交还给人类。
 
-`wrangler versions upload`
+只有动作改变这些保留边界时才回到人类：
 
-### Advanced settings → Path
+- public publication；
+- 新增/扩大 reader audience；
+- 新 canonical domain 或 DNS authority；
+- 新 GitHub organization / App installation scope；
+- 扩大 Cloudflare permission scope；
+- paid-plan / billing change；
+- 没有可信 Secret Broker 时的 secret direct input。
 
-如果项目从 repository 根目录构建：
-
-`/`
-
-如果是 monorepo，则应改成真正的项目目录。
-
-### API token
-
-Workers Builds 可以使用 Cloudflare 自动创建/选择的 **user build token**。
-
-重要：
-
-- 不复制 token secret；
-- 不把 token 写入 Git；
-- 不把 token 发到聊天；
-- 不把 token 写入 `cloudflare-builds.yaml`。
-
-当前 Cloudflare 产品对 Workers Builds 仍是 user-token 模型；详细安全 trade-off 见：
-
-`docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
-
-### Variables
-
-如果 machine contract 没有要求变量：
-
-**留空。**
-
-不要为了“看起来完整”随意创建变量或 secret。
-
-## 5. Production branch 没有显示怎么办
-
-创建页面不一定总会单独显示 production branch 字段。
-
-如果没有显示：
-
-1. 不要因此停止创建；
-2. repository default branch 如果是 `main`，完成后检查 build / deployment 记录；
-3. 确认 Cloudflare 的 build record 显示预期 branch；
-4. 如果需要进一步确认，在 Worker 的 Builds 设置中查看 trigger / branch 配置。
-
-不要为了找一个没显示的字段去改其他无关设置。
-
-## 6. 第一次 Deploy 后验证什么
-
-第一次成功后，不要立刻做 Custom Domain cutover。
-
-先确认：
-
-- Worker 存在；
-- GitHub repository connection 生效；
-- main build PASS；
-- non-production preview PASS；
-- workers.dev / preview URL 可以访问；
-- repository-defined build command 实际执行；
-- GitHub 原 production 仍然正常（如果正在迁移）。
-
-只有这些都通过后，才进入 Custom Domain / canonical URL / legacy-site policy。
-
-## 7. Token 安全与 production profile
-
-Workers Builds 的自动 build token 适合最低人工成本的原生 Git integration，但当前默认权限比纯 static Worker 日常 deploy 所需更宽。
-
-PPF 定义三种 Cloudflare security profile：
-
-- **Profile A — Workers Builds Native**：原生、低人工成本、当前 reference default；
-- **Profile B — Hardened External CI**：GitHub Actions + account-owned per-Worker Editor token；
-- **Profile C — Future Native Granular**：未来 Workers Builds 支持 account-owned per-Worker token 后的理想组合。
-
-详细说明：
-
-`docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
-
-## 8. 在 preview 验证前不要做
-
-- 不绑定正式 Custom Domain；
-- 不改 DNS；
-- 不关闭旧 production；
-- 不修改 canonical URL；
-- 不把 preview 当成正式 production cutover。
-
-如果实际 Cloudflare UI 与本文档不同，不要猜。重新读取当前 provider UI、current official docs 与 repository machine contract，验证真实 build/runtime state，并把新观察反向更新到 dated Observed UI Mapping / runbook。
+完整最小人类契约见 Starter 的 Project Provisioning Contract 与 Cloudflare handoff。
