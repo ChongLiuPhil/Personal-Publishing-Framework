@@ -128,19 +128,26 @@ class Coordinator:
         if not worker.get("workerExists"):
             return {"status": "BLOCKED", "completed": [], "report": report,
                     "blocker": "WORKER_DEPLOYMENT_REQUIRED"}
-        if not isinstance(build_config, dict) or not isinstance(triggers, list) or not triggers:
-            return {"status": "BLOCKED", "completed": [], "report": report,
-                    "blocker": "BUILD_CONFIG_AND_TRIGGERS_REQUIRED"}
-        _reject_build_secrets(build_config)
-        production_branch = manifest["deployment"]["productionBranch"]
-        if not any(production_branch in (item.get("branch_includes") or []) for item in triggers):
-            return {"status": "BLOCKED", "completed": [], "report": report,
-                    "blocker": "PRODUCTION_TRIGGER_REQUIRED"}
-        if manifest["deployment"]["previewDeployments"] and not any(
-            production_branch not in (item.get("branch_includes") or []) for item in triggers
-        ):
-            return {"status": "BLOCKED", "completed": [], "report": report,
-                    "blocker": "PREVIEW_TRIGGER_REQUIRED"}
+        native_builds = manifest["deployment"]["provider"] == "cloudflare-workers-builds"
+        if native_builds:
+            if not isinstance(build_config, dict) or not isinstance(triggers, list) or not triggers:
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "BUILD_CONFIG_AND_TRIGGERS_REQUIRED"}
+            _reject_build_secrets(build_config)
+            production_branch = manifest["deployment"]["productionBranch"]
+            if not any(production_branch in (item.get("branch_includes") or []) for item in triggers):
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "PRODUCTION_TRIGGER_REQUIRED"}
+            if manifest["deployment"]["previewDeployments"] and not any(
+                production_branch not in (item.get("branch_includes") or []) for item in triggers
+            ):
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "PREVIEW_TRIGGER_REQUIRED"}
+        else:
+            secrets = before.get("github", {}).get("deploymentSecrets") or {}
+            if not all(secrets.get(name) is True for name in ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID")):
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "SECRET_BROKER_REQUIRED"}
         # Serialize writers, then re-read to avoid applying a plan made against stale state.
         completed: list[str] = []
         state: dict[str, Any] = {
