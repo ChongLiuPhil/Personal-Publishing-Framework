@@ -80,14 +80,20 @@ def plan_reconciliation(
             wanted = desired_cf["applicationVisibility"]
             if observed == "public" and wanted == "private":
                 security_drift.append("Worker is anonymously reachable while desired application visibility is private.")
-                op("remove-worker-public-bypass", "Remove only the target Worker's bypass; keep account-wide Access enabled.")
+                if access_mode == "account-wide-access":
+                    op("remove-worker-public-bypass", "Remove only the target Worker's bypass; keep account-wide Access enabled.")
+                else:
+                    op("protect-target-worker", "Enable Worker-scoped Access for the target Worker and verify anonymous denial.")
             elif observed == "private" and wanted == "public":
                 if not _website_gate_ok(website_gate):
                     blockers.append("Website publication requires explicit approval and a passing websitePublicationGate.")
                 if cloudflare.get("controlPrivateWorkerAnonymousDenied") is not True:
                     blockers.append("A control private Worker must be verified as anonymously denied before making this Worker public.")
                 if not blockers:
-                    op("add-worker-public-bypass", "Add a bypass scoped only to this Worker, then verify anonymous access and the private control Worker.")
+                    if access_mode == "account-wide-access":
+                        op("add-worker-public-bypass", "Add a bypass scoped only to this Worker, then verify anonymous access and the private control Worker.")
+                    else:
+                        op("remove-target-worker-access", "Remove only this Worker's Access protection after explicit publication approval, then verify anonymous access.")
         if cloudflare.get("previewVisibility") != desired_cf["previewVisibility"]:
             wanted = desired_cf["previewVisibility"]
             if wanted == "public":
