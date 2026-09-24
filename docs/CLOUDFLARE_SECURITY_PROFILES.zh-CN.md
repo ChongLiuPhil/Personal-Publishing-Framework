@@ -1,20 +1,20 @@
 # Cloudflare Deployment Security Profiles（PPF Reference）
 
-**Reviewed:** 2026-09-19
+**Reviewed:** 2026-09-24
 
 本文件只描述 PPF 的 Cloudflare reference implementation，不是 PPF 合规的必需条件。
 
 ## 1. 为什么需要 security profile
 
-真实 pilot 证明：
+Cloudflare 当前能力形成了一个明确的分层：
 
-- Cloudflare Workers Builds + GitHub App 是低人工操作、原生 preview/production trigger 的稳定路线；
-- Cloudflare 当前 Workers 权限模型已经支持 individual Worker + `Editor`；
-- 但 Workers Builds 当前只支持 **user token**；
-- granular Wrangler authorization 的 individual-Worker token 路线依赖 **account-owned API token**；
-- 因此“Workers Builds 原生体验”和“真正 per-Worker least privilege”在当前产品上不能完全同时实现。
+- Workers Builds + Cloudflare GitHub App 是低人工成本的 provider-native Git integration；
+- individual Worker 已可采用 `Editor` 等 granular role；
+- individual-Worker granular authorization 使用 account-owned API token；
+- Workers Builds 的 build credential 当前仍采用 user-token 模型；
+- 因此 provider-native Workers Builds 与“日常凭据只允许修改一个 Worker”仍是两条不同安全路径。
 
-PPF reference implementation 不应掩盖这个 trade-off。
+PPF 应明确记录这个差异，而不是把某一路线描述成所有场景下都最优。
 
 ## 2. Profile A — Workers Builds Native
 
@@ -22,74 +22,74 @@ PPF reference implementation 不应掩盖这个 trade-off。
 GitHub
 -> Cloudflare GitHub App
 -> Workers Builds
--> Cloudflare-managed / selected user build token
+-> provider-managed / selected user build token
 -> wrangler deploy / versions upload
 ```
 
-适合：
-
-- 希望最少人工配置；
-- 希望保留 provider-native Git integration；
-- 希望自动 production / preview builds；
-- 不希望把 Cloudflare deployment secret 放进 GitHub。
+适合强调 provider-native Git integration、自动 preview/production trigger，以及不希望把部署凭据放进 GitHub 的项目。
 
 优点：
 
 - 原生 Git integration；
 - preview 与 production trigger 简单；
-- token 保存在 Cloudflare 侧；
-- 已被 PPF 第一个真实 pilot 验证。
+- build credential 留在 Cloudflare 侧；
+- 已被第一个 PPF 真实 pilot 验证。
 
 当前限制：
 
-- Cloudflare 自动创建的默认 build token 权限比纯 static Worker 日常 deploy 所需更宽；
-- Workers Builds 当前不支持 account-owned token，因此不能采用最新 per-Worker account-owned `Editor` token。
+- native build token 权限比纯 static Worker 日常部署所需更宽；
+- Workers Builds 当前不能使用只限制到一个 Worker 的 account-owned token。
 
 PPF 标记：
 
-`reference-default / operational / broader-than-ideal-token-scope`
+`operational-native / real-pilot-verified / broader-than-ideal-token-scope`
 
-## 3. Profile B — Hardened External CI
+## 3. Profile B — Agent-Provisioned External CI
 
 ```text
-GitHub Actions
--> account-owned Cloudflare API token
--> individual Worker
--> Editor
--> wrangler deploy
+platform provisioner
+-> 创建 private GitHub repository
+-> 验证 account-wide Access
+-> 创建 Cloudflare Worker
+-> 创建仅限该 Worker / Editor 的 account-owned token
+-> trusted secret broker -> GitHub Actions secrets
+-> GitHub Actions -> wrangler deploy
 ```
 
-适合：
+Profile id：
 
-- 明确要求 per-Worker least privilege；
-- 愿意接受更多 secret management 和 CI 配置；
-- 可以由 external CI 接管 deployment。
+`agent-provisioned-external-ci`
+
+当目标是“未来新项目极少重复要求人类参与，同时把日常部署权限限制到单一 Worker”时，这是首选的**新项目自动配置 Profile**。
 
 优点：
 
-- 可以把 token 限制到一个既有 Worker；
-- routine deployment 只需要 `Editor`；
-- 不需要 KV / R2 / D1 权限；
-- 不需要 routine all-zone route write。
+- 平台 Provisioner 身份与项目日常部署身份分离；
+- 项目部署 token 只限制到一个既有 Worker；
+- routine deployment 只需要 Worker `Editor`；
+- 每个新 repository 不需要再做一次 Cloudflare GitHub App 授权；
+- account-wide `all_workers` Access baseline 可以让新项目从一开始保持 private/restricted；
+- Secret Broker 可以把 Cloudflare token 直接安装进 GitHub Actions，明文不进入模型上下文。
 
-代价：
+代价与前置条件：
 
-- 需要创建 account-owned token；
-- 需要把 token 和 account ID 安全存进 CI secret store；
-- production / preview trigger semantics 需要自行实现并验证；
-- 初次人类配置步骤更多。
+- 平台必须先拥有已授权的 GitHub provisioning principal；
+- 平台必须拥有已授权的 Cloudflare provisioning principal，可创建 Worker 与 account-owned token；
+- 创建项目 Worker 前必须验证 account-wide Access；
+- Cloudflare token → GitHub secret 需要 trusted secret broker；
+- 默认关闭 Preview 自动部署，直到受保护 Preview 通过真实验收。
 
 PPF 标记：
 
-`supported-hardened-alternative / pilot-candidate-validate-only`
+`preferred-agent-provisioning / implemented-reference / live-new-project-acceptance-pending`
 
-当前真实 pilot 的证据边界：
+当前证据边界：
 
-- candidate workflow 的 repository/build validation：PASS；
-- PR 场景中的 credential / preview / production deployment steps：SKIPPED；
-- account-owned per-Worker token：未配置；
-- Profile B production deployment：未执行；
-- 因此 **不得** 把 Profile B 描述为 production-tested。
+- schema、模板、GitHub Actions workflow、Provisioner 状态机、reconciliation 路径与测试已经实现；
+- 当前仓库的真实 production 证据属于 Profile A，而不是从零新建项目的 Profile B；
+- 在一个全新项目端到端 pilot 通过前，不得把 Profile B 写成 production-accepted。
+
+详见 [AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md](AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md)。
 
 ## 4. Profile C — Future Native Granular
 
@@ -103,84 +103,99 @@ Cloudflare GitHub App
 -> Editor
 ```
 
-它同时保留：
+这会同时保留 Workers Builds 原生体验和 one-Worker account-owned deployment credential。
 
-- Workers Builds 原生体验；
-- provider-managed preview / production trigger；
-- per-Worker least privilege。
-
-截至本文件 reviewed 日期，Cloudflare Workers Builds 文档仍说明仅支持 user token，account-owned token support 尚未成为当前能力。
+截至本次 reviewed 日期，Workers Builds 的 build credential 文档仍采用 user-token 模型，因此这还不是当前 active reference path。
 
 PPF 标记：
 
-`future-preferred / currently-unavailable`
+`future-native-granular / currently-unavailable-in-workers-builds`
 
 ## 5. Deployment credential security 与 publication access 分离
 
-Profile A / B / C 只回答：
+Profile A / B / C 回答：
 
-> “什么身份和权限可以修改 / deploy Worker？”
+> 哪个身份、用多大权限，可以修改或部署 Worker？
 
 它们不回答：
 
-> “哪些读者可以访问已经部署的 publication？”
+> 哪些读者可以访问已经部署的 publication？
 
-后者属于 PPF `publication.web.visibility` 与 `publication.web.access`，在 Cloudflare reference 中可以映射到 Cloudflare Access。
+后者属于 PPF `publication.web.visibility` 与 `publication.web.access`。
 
-因此这些组合都可能成立：
+因此以下组合都可以成立：
 
-~~~text
-Profile A deployment credential + public publication
-Profile A deployment credential + restricted publication
-Profile B deployment credential + public publication
-Profile B deployment credential + restricted publication
-~~~
+```text
+Profile A credential + public publication
+Profile A credential + restricted publication
+Profile B credential + public publication
+Profile B credential + restricted publication
+```
 
-Deployment credential least privilege 与 reader access control 是两条正交安全轴。
+部署成功永远不能自动推出“已经批准公开”。
 
-具体 reader-access mapping 见：
+## 6. Platform authorization 与 project authorization 分离
 
-`docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md`
+PPF 区分：
 
-## 6. Custom Domain 与 daily deployment 分离
+### Platform authorization
 
-无论使用 A 或 B：
+长期复用的基础设施 authority：
 
-Custom Domain / Route provisioning 不应成为 routine deploy credential 的常驻权限。
+- GitHub provisioning principal；
+- Cloudflare provisioning principal；
+- trusted secret broker。
+
+它们应在受限的平台范围内一次授权，之后被多个项目复用。
+
+### Project authorization
+
+持久化的项目级决定：
+
+- 是否允许 restricted deployment；
+- 是否允许正式 public publication；
+- 哪些 reader 可以访问；
+- 是否可以改变 Custom Domain / canonical identity。
+
+公开发布、扩大读者范围、扩大域名/DNS authority、付费升级默认仍是 human-reserved，除非另有明确预授权。
+
+## 7. Custom Domain 与 routine deployment 分离
+
+无论使用 Profile A 还是 B，domain / route provisioning 都不应成为日常部署身份的常驻权限。
 
 推荐：
 
 ```text
-temporary domain provisioning authority
--> Worker access
--> affected zone Workers Routes Write
--> attach/verify domain
+temporary / platform domain provisioning authority
+-> attach and verify hostname
 
 then
 
-routine deployment identity
--> no zone-route write unless deployment actually changes routing
+routine project deployment identity
+-> one Worker Editor
+-> 除非部署真实改变 routing，否则不拥有 zone-route authority
 ```
 
-## 7. PPF 安全原则
+## 8. PPF 安全原则
 
 Cloudflare reference implementation SHOULD：
 
 1. 明确记录采用哪个 security profile；
-2. 不把 provider-managed broad token 描述成 least privilege；
-3. 不把 token secret 写入 Git、聊天或 machine contract；
-4. 不为了理论 hardening 在没有 rollback path 时破坏已验证 pipeline；
-5. 当 provider-native integration 无法满足所需 credential scope 时，明确提供 external-CI hardened alternative；
-6. provider 产品能力变化后重新评估 profile。
+2. 把平台 provisioning authority 与 routine project deployment authority 分离；
+3. 不把 provider-managed broad token 描述成 least privilege；
+4. token 值不得进入 Git、聊天、公共状态、issue、PR 或日志；
+5. 通过 trusted secret broker 让 token 明文不进入 model context；
+6. 自动创建 restricted Worker 前必须验证 account-wide protection；
+7. public release 与 deployment success 始终分离；
+8. 保留 provider-native Profile，供更重视 convenience 的项目明确选择；
+9. Provider 能力变化后重新评估这些 Profile。
 
-## 8. 选择规则
+## 9. 选择规则
 
-默认采用 **Profile A** 只表示 reference convenience default，不代表它在所有安全环境中最优。
+完成平台 bootstrap 后，未来 Agent 自动配置的新项目优先 **Profile B**。
 
-如果项目在 production 前要求：
+如果项目明确更重视 Workers Builds provider-native Git integration，而可以接受较宽 build-token scope，则采用 **Profile A**。
 
-> routine deploy credential 必须只能修改一个既有 Worker
+只有在 Workers Builds 真正支持所需的 account-owned per-Worker token，并经过真实验证后，才采用 **Profile C**。
 
-则应该采用 **Profile B**，直到 Profile C 被 Cloudflare Workers Builds 正式支持。
-
-最终 production security profile 应由项目责任人确认。
+第一个全新 Profile B 项目仍必须通过 live acceptance，仓库才能把该 Profile 标成 production-accepted。
