@@ -6,6 +6,7 @@
   },
   "github": {
     "owner": "OWNER",
+    "ownerType": "user",
     "repository": "replace-with-project-slug",
     "repositoryVisibility": "private",
     "productionBranch": "main"
