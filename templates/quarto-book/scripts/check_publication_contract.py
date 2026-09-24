@@ -25,44 +25,46 @@ def require(path: str, marker: str) -> None:
 
 def main() -> None:
     # Publication intent stays private/restricted until a durable authorization is materialized.
-    require("publishing.yaml", "integration_mode: github-actions-external-ci")
+    require("publishing.yaml", "integration_mode: workers-builds-git")
     require("publishing.yaml", 'canonical_publish_gate: "make web-publish-check"')
     require("publishing.yaml", "authorization_state: not-authorized")
     require("publishing.yaml", "visibility: restricted")
     require("publishing.yaml", "enabled: false")
+    require("publishing.yaml", "github_app: project-authorization-required")
+    require("publishing.yaml", "repository_connection: unverified")
+    require("publishing.yaml", "build_token: provider-managed-user-token")
 
-    # The installable reference now selects external CI for new Agent-provisioned projects.
-    require("cloudflare-builds.yaml", "mode: github-actions-external-ci")
-    require("cloudflare-builds.yaml", "production_profile: agent-provisioned-external-ci")
-    require("cloudflare-builds.yaml", "github_app: not-required-for-external-ci")
-    require("cloudflare-builds.yaml", "build_token: project-scoped-account-token-via-secret-broker")
+    # The installable reference defaults to one guided Workers Builds connection per project.
+    require("cloudflare-builds.yaml", "mode: workers-builds-git")
+    require("cloudflare-builds.yaml", "production_profile: workers-builds-native")
+    require("cloudflare-builds.yaml", "default: worker-scoped")
+    require("cloudflare-builds.yaml", "cloudflare_git_authorization: human-assisted-once-per-project")
+    require("cloudflare-builds.yaml", "build_token: provider-managed-user-token")
+    require("cloudflare-builds.yaml", "non_production_branch_builds: false")
+    require("cloudflare-builds.yaml", "enabled_by_default: false")
+    require("cloudflare-builds.yaml", "workers_builds_native:")
+    require("cloudflare-builds.yaml", "status: preferred-guided-project-setup")
+
+    # Hardened external CI remains available, but explicitly optional.
     require("cloudflare-builds.yaml", "external_ci:")
+    require("cloudflare-builds.yaml", "status: optional-advanced")
     require("cloudflare-builds.yaml", "workflow: .github/workflows/deploy-cloudflare.yml")
     require("cloudflare-builds.yaml", "plaintext_must_not_enter_model_context: true")
-    require("cloudflare-builds.yaml", "requires: workers-product-admin")
-    require("cloudflare-builds.yaml", "destination: all_workers")
-    require("cloudflare-builds.yaml", "must_be_verified_before_worker_creation: true")
-    require("cloudflare-builds.yaml", "enabled_by_default: false")
-
-    # Native Workers Builds remains a supported, explicitly selectable compatibility profile.
-    require("cloudflare-builds.yaml", "workers_builds_native:")
-    require("cloudflare-builds.yaml", "status: operational-native")
-    require("cloudflare-builds.yaml", "token_type: user-token")
     require("cloudflare-builds.yaml", "hardened_external_ci:")
-    require("cloudflare-builds.yaml", "future_native_granular:")
-    require("cloudflare-builds.yaml", "workers-builds-account-owned-token-not-yet-supported")
+    require("cloudflare-builds.yaml", "requires_secret_broker: true")
+    require("cloudflare-builds.yaml", "acceptance: pending-live-provider-verification")
 
-    # Both profiles share the same repository-owned build gate and pinned deployment toolchain.
+    # Both profiles share the same repository-owned build gate and pinned toolchain.
     require("cloudflare-builds.yaml", 'build: "bash scripts/cloudflare_build.sh"')
-    require("cloudflare-builds.yaml", 'deploy: "wrangler deploy"')
-    require("cloudflare-builds.yaml", 'preview_deploy: "wrangler versions upload"')
+    require("cloudflare-builds.yaml", 'deploy: "npx wrangler deploy"')
+    require("cloudflare-builds.yaml", 'preview_deploy: "npx wrangler versions upload"')
     require("Makefile", "web-publish-check:")
     require("Makefile", "$(QUARTO) render --profile web")
     require("Makefile", "python3 scripts/verify_web_output.py")
     require("scripts/cloudflare_build.sh", "make web-publish-check")
     require("scripts/ensure_quarto.sh", "sha256sum --check --status")
 
-    # External-CI deployment is gated on the durable publication state and project-scoped secrets.
+    # Optional external-CI deployment remains fail-closed and secret-backed.
     require(".github/workflows/deploy-cloudflare.yml", "authorization_state")
     require(".github/workflows/deploy-cloudflare.yml", "CLOUDFLARE_API_TOKEN")
     require(".github/workflows/deploy-cloudflare.yml", "CLOUDFLARE_ACCOUNT_ID")
