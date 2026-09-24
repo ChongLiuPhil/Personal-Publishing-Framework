@@ -22,14 +22,21 @@ class ManifestTests(unittest.TestCase):
         self.assertFalse(manifest["cloudflare"]["publicBypass"])
         self.assertFalse(manifest["policy"]["paidServicesAllowed"])
         self.assertEqual(manifest["schemaVersion"], 2)
-        self.assertEqual(manifest["deployment"]["provider"], "github-actions-cloudflare-workers")
-        self.assertEqual(manifest["deployment"]["securityProfile"], "agent-provisioned-external-ci")
-        self.assertEqual(manifest["deployment"]["credentialStrategy"], "project-scoped-account-token")
-        self.assertTrue(manifest["deployment"]["secretBroker"])
+        self.assertEqual(manifest["cloudflare"]["accessMode"], "worker-scoped-access")
+        self.assertEqual(manifest["deployment"]["provider"], "cloudflare-workers-builds")
+        self.assertEqual(manifest["deployment"]["securityProfile"], "workers-builds-native")
+        self.assertEqual(manifest["deployment"]["credentialStrategy"], "provider-managed-user-token")
+        self.assertFalse(manifest["deployment"]["secretBroker"])
+        self.assertFalse(manifest["deployment"]["previewDeployments"])
 
     def test_external_ci_rejects_broader_or_mismatched_credential_profile(self):
         item = copy.deepcopy(self.base)
-        item["deployment"]["credentialStrategy"] = "provider-managed-user-token"
+        item["deployment"].update(
+            provider="github-actions-cloudflare-workers",
+            securityProfile="agent-provisioned-external-ci",
+            credentialStrategy="provider-managed-user-token",
+            secretBroker=True,
+        )
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "project.infrastructure.json"
             path.write_text(json.dumps(item), encoding="utf-8")
@@ -48,7 +55,7 @@ class ManifestTests(unittest.TestCase):
                 item = copy.deepcopy(self.base)
                 item["github"]["repositoryVisibility"] = repository_visibility
                 item["cloudflare"]["applicationVisibility"] = app_visibility
-                item["cloudflare"]["publicBypass"] = app_visibility == "public"
+                item["cloudflare"]["publicBypass"] = False
                 item["release"]["state"] = "public" if repository_visibility == "public" or app_visibility == "public" else "private"
                 item["release"]["openSource"] = open_source
                 with tempfile.TemporaryDirectory() as directory:
@@ -65,13 +72,23 @@ class ManifestTests(unittest.TestCase):
             path.write_text(json.dumps(item), encoding="utf-8")
             self.assertEqual(load_manifest(path)["cloudflare"]["applicationVisibility"], "private")
 
-    def test_public_app_requires_worker_bypass_and_public_release_state(self):
+    def test_public_app_requires_worker_bypass_under_account_wide_access(self):
         item = copy.deepcopy(self.base)
+        item["cloudflare"]["accessMode"] = "account-wide-access"
         item["cloudflare"]["applicationVisibility"] = "public"
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "project.infrastructure.json"
             path.write_text(json.dumps(item), encoding="utf-8")
             with self.assertRaisesRegex(ValueError, "public bypass"):
+                load_manifest(path)
+
+    def test_worker_scoped_access_rejects_account_wide_public_bypass(self):
+        item = copy.deepcopy(self.base)
+        item["cloudflare"]["publicBypass"] = True
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "project.infrastructure.json"
+            path.write_text(json.dumps(item), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "worker-scoped Access"):
                 load_manifest(path)
 
     def test_worker_slug_and_build_branch_must_match_project(self):
