@@ -3,6 +3,8 @@ import json
 from pathlib import Path
 import unittest
 
+from jsonschema import Draft202012Validator
+
 from providers.infrastructure.manifest import REPO_ROOT
 from providers.infrastructure.provisioning import ProjectProvisioner
 
@@ -75,6 +77,8 @@ class ProvisioningTests(unittest.TestCase):
         self.assertEqual(request["credential"]["role"], "Editor")
         self.assertTrue(request["rules"]["plaintextMustNotEnterModelContext"])
         self.assertNotIn("value", json.dumps(request).lower())
+        schema = json.loads((REPO_ROOT / "schema/secret-broker-request.schema.json").read_text(encoding="utf-8"))
+        self.assertEqual(list(Draft202012Validator(schema).iter_errors(request)), [])
 
     def test_existing_scoped_credential_is_ready_for_ci(self):
         secrets = {"CLOUDFLARE_API_TOKEN": True, "CLOUDFLARE_ACCOUNT_ID": True}
