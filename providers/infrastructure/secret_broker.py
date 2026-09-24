@@ -82,6 +82,8 @@ def _validate_request(request: dict[str, Any]) -> tuple[str, str, str, str, str]
         "plaintextMustNotEnterModelContext",
         "plaintextMustNotEnterGit",
         "discardPlaintextAfterEncryptedWrite",
+        "existingSecretsMustNotBeOverwritten",
+        "rollbackMustRevokeMintedToken",
     )
     if any(rules.get(key) is not True for key in required_rules):
         raise BrokerError("PLAINTEXT_BOUNDARY_NOT_ENFORCED")
