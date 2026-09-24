@@ -22,34 +22,25 @@ Repository visibility 与 application visibility 始终分开。
 
 `release.state: public` 只是期望状态，不构成批准。Repository 公开与 Website 公开使用两个独立 gate。
 
-## Platform bootstrap 与 project provisioning 分离
+## 每项目引导式 bootstrap 与高级平台 Provisioning
 
-低人工目标依赖“长期平台 authority”和“项目日常 deployment authority”分离。
+默认运行模型现在是**每项目一次引导式 bootstrap**。
 
-### Platform bootstrap
+个人 GitHub 账号下的普通新项目：
 
-在受限范围内一次授权：
+1. 创建或确认 private repository；
+2. 通过 Cloudflare 原生 Git integration 连接 Workers Builds；
+3. 在 GitHub / Cloudflare 提示时为当前 repository 完成授权；
+4. 给生成的 Worker 启用 Worker-scoped Cloudflare Access，或复用已经验证的 account-wide Access；
+5. 验证第一次部署，并再做一次 push 证明后续自动部署。
 
-- GitHub provisioning principal；
-- Cloudflare provisioning principal；
-- trusted secret broker；
-- 覆盖 `all_workers` 的 Cloudflare Access baseline。
+这条路线明确允许每个项目一次短人工配置；不要求先建设账户级 Project Provisioner、Trusted Secret Broker 或 account-owned deployment token。
 
-项目级 workflow 不得自行创建、关闭或放宽 account-wide Access baseline。
+`agent-provisioned-external-ci` 仍保留为高级可选 Profile；项目明确选择时，仍可使用原有的平台 authority 分离、Provisioner、Secret Broker 与 scoped-token 设计。
 
-### Project provisioning
+Public release 在两条路线里都不属于默认授权。
 
-每个新项目中，Provisioner 可以：
-
-1. 创建 private repository；
-2. 验证 account-wide Access 后创建 Worker metadata；
-3. 请求项目专属 Cloudflare token；
-4. 由 trusted broker 把 deployment credential 写入 GitHub Actions secrets；
-5. 让 repository CI 完成已授权部署；
-6. 验证 restricted runtime 与 revision；
-7. 只写回非秘密 provider state。
-
-Public release 不属于这项 standing project-creation authority。
+操作者流程见 `docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.zh-CN.md`。
 
 ## 文件与命令
 
@@ -102,9 +93,14 @@ GitHub adapter 可以列出 Secret **名称**判断 readiness，但从不读取 
 
 ### Cloudflare Access
 
-Account-level `all_workers` destination 可以保护现有和未来 Workers。Provisioner 无法验证该 baseline 时必须 fail closed。
+private 项目可以采用两种经过验证的 Access 模式：
 
-生产站公开表现为明确例外，而不是删除 baseline。Preview 除非另行批准，否则继续受保护。
+- `worker-scoped-access` —— 默认引导式配置，直接保护目标 Worker；
+- `account-wide-access` —— 可选，一次保护账户中当前与未来 Workers。
+
+Coordinator 与 reconciliation planner 会记录项目实际期望的模式。只有对应保护已经观察到、且匿名访问真实被 challenge / deny 后，才能声称 private readiness。
+
+默认 Worker-scoped 模式下，如果 Worker 已存在但缺少 Worker-level Access，reconciliation 返回项目级 Access Gate，而不是强制要求账户级 bootstrap。
 
 ### Agent-Provisioned External CI
 
@@ -114,47 +110,69 @@ Installable template 通过 GitHub Actions 执行 `wrangler deploy`。
 
 ### Workers Builds Native
 
-Provider-native Profile 继续支持。Workers Builds 使用 immutable Worker tag、repository connection、trigger 与 user-token build credential。Worker name、Provider ID 与 secret 值必须分开。
+Workers Builds Native 现在是普通新项目的**默认 Profile**。每个项目完成一次 repository connection 后，后续 push 由 Cloudflare 自动构建并部署。
 
-不得把 Workers Builds build credential 描述成 one-Worker least privilege。
+Workers Builds 使用 immutable Worker tag、repository connection、trigger 与 Provider 管理的 user-token build credential。Worker name、Provider ID 与 secret 值必须分开。
+
+不得把 Workers Builds build credential 描述成 one-Worker least privilege。默认引导式路线接受这一取舍，因为使用者会明确批准该项目连接。
+
+### Agent-Provisioned External CI
+
+平台 Cloudflare principal 可以使用 Workers product-level Admin 创建 Worker metadata；日常 deployment 再切换为只限制到该 Worker 的 account-owned `Editor` token。
+
+Installable template 继续保留 GitHub Actions deployment workflow 供这个高级可选 Profile 使用，但它不再是默认项目接入路线。
 
 ## Human gate
 
-平台 bootstrap 已完成后，在已经批准范围内新增普通项目不应重复要求账户级 authorization。
+默认路线明确允许每个项目一次短人工 bootstrap。
 
-这些情况才返回人类：
+需要时返回人类完成：
 
-- 新 GitHub organization / App installation scope；
-- 新 Cloudflare permission scope；
-- 缺少 account-wide Access baseline；
+- 创建/确认个人账号下的 private repository；
+- 为该 repository 授权 Cloudflare Git integration；
+- 启用 Worker-scoped Access 或选择已批准的 Access policy；
+- 确认第一次 restricted deployment。
+
+项目 bootstrap 完成以后，普通 push 不应再要求重新授权 GitHub / Cloudflare。
+
+这些动作始终必须回到人类：
+
 - public publication；
+- source repository public / open-source transition；
 - 扩大 reader audience；
 - Custom Domain / DNS authority；
-- paid-plan change；
-- trusted broker 无法执行时的 direct secret input。
+- 扩大 Provider permission scope；
+- paid-plan / billing change；
+- 高级 Profile 无法完成可信 secret transfer 时的 direct secret input。
 
 ## 验证
 
-Restricted deployment 完成必须同时满足：
+默认引导式项目部署完成必须同时满足：
 
 - desired 与 actual repository / Worker identity 一致；
 - repository 仍为 private；
-- account-wide Access 继续启用；
-- GitHub Actions deployment Secret metadata 已安装，但没有读取 Secret 值；
+- Cloudflare Git connection 指向正确 repository；
+- production branch 正确；
+- Worker-scoped Access（或已验证 account-wide Access）保护项目；
 - 部署 revision 正确；
 - 匿名访问 production 被拒绝或 challenge；
-- 已启用 Preview 时匿名 Preview 也被拒绝/challenge；
+- 已启用 Preview 时匿名 Preview 也被拒绝 / challenge；
 - direct asset 不能绕过 Access；
-- rollback 已记录；
+- 第二次 source push 能自动触发部署且无需重新授权；
+- rollback / restore 证据已记录；
 - Git、log、PR、issue 与 chat 中不存在 credential value。
 
-Repository CI 和模拟测试不能替代真实新项目 live acceptance。
+Repository CI 与模拟测试不能替代真实项目 live verification。
 
 ## 当前实现边界
 
-External-CI 实现现已进入 schema、Quarto template、GitHub Actions workflow、provider adapter、Provisioner、reconciliation planner、原子 Secret Broker 编排、安全 Broker result schema 与测试。Provider-specific Cloudflare granular-token issuer adapter 仍是 live-acceptance-pending，因为 PPF 不会硬编码未经验证的 Specified-Worker policy-resource encoding。
+经过真实 pilot 验证的 Workers Builds Native 路线现在是默认接入 Profile，因为它已经有运行证据，而且 Cloudflare 原生 Git workflow 能减少每项目配置量。
 
-现有真实 pilot 证明的是 Workers Builds Native 路线。新的 External-CI 路线仍需一个全新项目端到端 pilot，之后才能标记为 production-accepted。
+Infrastructure schema 现在同时表达 Worker-scoped 与 account-wide Access；reference template 默认 `workers-builds-native`、private source、Worker-scoped Access，并在显式启用与保护之前关闭 preview。
+
+External-CI 实现继续保留在 schema、可选 GitHub Actions workflow、provider adapter、Provisioner、reconciliation planner、原子 Secret Broker 编排、安全 Broker result schema 与测试中。其 Provider-specific Cloudflare granular-token issuer 仍是 live-acceptance-pending。
+
+
 
 当前 Provider reference 于 2026-09-24 重新核对：
 
