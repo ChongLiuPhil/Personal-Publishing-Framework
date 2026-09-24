@@ -22,14 +22,16 @@ class GitHubAdapter:
             raise
 
     def ensure_repository(self, owner: str, repository: str, visibility: str,
-                          approval: dict[str, Any] | None = None) -> dict[str, Any]:
+                          approval: dict[str, Any] | None = None,
+                          owner_type: str = "user") -> dict[str, Any]:
         if visibility not in {"private", "public"}:
             raise ValueError("unsupported GitHub visibility")
+        if owner_type not in {"user", "organization"}:
+            raise ValueError("unsupported GitHub owner type")
         current = self.read_repository(owner, repository)
         if current is None:
             _require_public_approval(visibility, approval)
-            identity = self.client.request("GET", "/user")
-            create_path = "/user/repos" if identity.get("login", "").casefold() == owner.casefold() else f"/orgs/{quote(owner, safe='')}/repos"
+            create_path = "/user/repos" if owner_type == "user" else f"/orgs/{quote(owner, safe='')}/repos"
             return self.client.request("POST", create_path, {
                 "name": repository, "private": visibility == "private", "auto_init": False,
             })
