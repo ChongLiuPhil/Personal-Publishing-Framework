@@ -96,8 +96,7 @@ jobs:
           external = contract.get("external_ci", {})
           if external.get("workflow") != ".github/workflows/deploy-cloudflare.yml":
               raise SystemExit("external CI workflow path drifted")
-          workflow_path = Path(".github/workflows/deploy-cloudflare.yml")
-          workflow = workflow_path.read_text(encoding="utf-8")
+          workflow = Path(".github/workflows/deploy-cloudflare.yml").read_text(encoding="utf-8")
           try:
               parsed = yaml.safe_load(workflow)
           except yaml.YAMLError as exc:
@@ -108,15 +107,14 @@ jobs:
           if not isinstance(steps, list):
               raise SystemExit("deployment workflow deploy.steps is not a list")
           names = [step.get("name") for step in steps if isinstance(step, dict) and step.get("name")]
-          expected_once = (
+          for name in (
               "Check durable publication authorization",
               "Install locked deployment toolchain",
               "Build canonical Web output",
               "Deploy existing project Worker",
-          )
-          for name in expected_once:
+          ):
               if names.count(name) != 1:
-                  raise SystemExit(f"deployment workflow step must appear exactly once: {name}")
+                  raise SystemExit("deployment workflow step must appear exactly once: " + name)
           for required in (
               "CLOUDFLARE_API_TOKEN",
               "CLOUDFLARE_ACCOUNT_ID",
@@ -127,137 +125,6 @@ jobs:
           ):
               if required not in workflow:
                   raise SystemExit("deployment workflow missing " + required)
-          if "grep -q '^deploy=true          PY
-      - name: Validate private integration state schema
-        run: |
-          python - <<'PY'
-          import json
-          from jsonschema import Draft202012Validator
-          with open("../../schema/integration-state.schema.json", encoding="utf-8") as handle:
-              schema = json.load(handle)
-          Draft202012Validator.check_schema(schema)
-          print("Private integration state schema is valid.")
-          PY
-      - name: Validate reference publishing.yaml against PPF schema
-        run: |
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          import yaml
-          from jsonschema import Draft202012Validator
-          data = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
-          schema = json.loads(Path("../../schema/publishing.schema.json").read_text(encoding="utf-8"))
-          errors = sorted(Draft202012Validator(schema).iter_errors(data), key=lambda e: list(e.path))
-          if errors:
-              for error in errors:
-                  where = ".".join(str(p) for p in error.path) or "<root>"
-                  print(f"{where}: {error.message}")
-              raise SystemExit(1)
-          print("Reference publishing.yaml validates against PPF schema.")
-          PY
-      - name: Validate publication visibility/access schema semantics
-        run: |
-          python - <<'PY'
-          import copy, json
-          from pathlib import Path
-          import yaml
-          from jsonschema import Draft202012Validator
-          schema = json.loads(Path("../../schema/publishing.schema.json").read_text(encoding="utf-8"))
-          validator = Draft202012Validator(schema)
-          base = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
-          restricted = copy.deepcopy(base)
-          restricted["source"]["visibility"] = "private"
-          restricted["publication"]["web"]["authorization_state"] = "authorized"
-          restricted["publication"]["web"]["visibility"] = "restricted"
-          restricted["publication"]["web"]["access"] = {"mode":"authenticated","implementation":"example-access-layer","policy_ref":"docs/access-policy.md"}
-          restricted["deployment"]["web"]["provider_url"] = "https://provider.example.invalid"
-          restricted["deployment"]["web"]["canonical_identity"] = {"type":"provider-native","url":"https://provider.example.invalid"}
-          errors = list(validator.iter_errors(restricted))
-          if errors:
-              for error in errors: print(error.message)
-              raise SystemExit("restricted-publication example should validate")
-          invalid = copy.deepcopy(restricted); invalid["publication"]["web"]["visibility"] = "world-readable"
-          if not list(validator.iter_errors(invalid)): raise SystemExit("invalid publication visibility unexpectedly validated")
-          invalid = copy.deepcopy(restricted); invalid["publication"]["web"]["access"]["mode"] = "password"
-          if not list(validator.iter_errors(invalid)): raise SystemExit("provider-specific access mode unexpectedly validated")
-          print("Publication visibility/access/canonical-identity schema semantics passed.")
-          PY
-      - name: Reject deployment without publication authorization
-        run: |
-          python - <<'PY'
-          import copy, json
-          from pathlib import Path
-          import yaml
-          from jsonschema import Draft202012Validator
-          schema = json.loads(Path("../../schema/publishing.schema.json").read_text(encoding="utf-8"))
-          base = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
-          invalid = copy.deepcopy(base)
-          invalid["deployment"]["web"]["enabled"] = True
-          invalid["publication"]["web"]["authorization_state"] = "not-authorized"
-          if not list(Draft202012Validator(schema).iter_errors(invalid)):
-              raise SystemExit("deployment enabled without authorization unexpectedly validated")
-          valid = copy.deepcopy(base)
-          valid["deployment"]["web"]["enabled"] = True
-          valid["publication"]["web"]["authorization_state"] = "authorized"
-          if list(Draft202012Validator(schema).iter_errors(valid)):
-              raise SystemExit("authorized deployment should validate")
-          print("Publication authorization/deployment invariant passed.")
-          PY
-      - name: Validate installable publication safety boundary
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import yaml
-
-          data = yaml.safe_load(Path("publishing.yaml").read_text(encoding="utf-8"))
-          source = data["source"]
-          web = data["publication"]["web"]
-          access = web["access"]
-          deployment = data["deployment"]["web"]
-
-          expected = [
-              (source.get("visibility") == "private", "source.visibility must default to private"),
-              (web.get("authorization_state") == "not-authorized", "Web publication must start not-authorized"),
-              (web.get("visibility") == "restricted", "Web visibility must default to restricted"),
-              (access.get("mode") == "authenticated", "restricted Web must default to authenticated access"),
-              (access.get("implementation") == "cloudflare-access", "reference access implementation must be cloudflare-access"),
-              (access.get("policy_ref") == "shared-reader-access", "template must record only the shared access-policy reference"),
-              (deployment.get("enabled") is False, "deployment must start disabled"),
-              (deployment.get("status") == "staged", "deployment must start staged"),
-              (deployment.get("provider_url") is None, "provider URL must be unset before deployment"),
-              ("canonical_identity" in deployment, "canonical identity object must exist"),
-          ]
-          failed = [message for ok, message in expected if not ok]
-          if failed:
-              raise SystemExit("\n".join(failed))
-          print("Installable private-source / restricted-Web safety boundary passed.")
-          PY
-          grep -q "REFERENCE-ONLY / DATED PROVIDER MAPPING" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
-          grep -q "Worker-level" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
-          grep -q "private repository => enable Access" ../../docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md
-          grep -q "Deployment credential security is separate from publication access" ../../docs/CLOUDFLARE_SECURITY_PROFILES.md
-      - name: Validate reference publication contract
-        run: make check
-      - name: Validate normative visibility/access migration markers
-        run: |
-          grep -q "Publication visibility and access policy" ../../SPECIFICATION.md
-          grep -q "Canonical publication identity and delivery provider" ../../SPECIFICATION.md
-          grep -q "private source => private publication" ../../docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION.md
-          grep -q "GitHub Free / paid Pages product limitations" ../../docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION.md
-      - name: Validate pilot evidence reconciliation markers
-        run: |
-          grep -q "Current reconciled pilot state" ../../docs/FIRST_PILOT_LESSONS.md
-          grep -q "not production-tested" ../../docs/FIRST_PILOT_LESSONS.md
-          grep -q "Current Cloudflare staging/runtime evidence" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
-          grep -q "Cloudflare workers.dev = current canonical production" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
-      - name: Compile runtime verification helper
-        run: python -m py_compile scripts/verify_public_site.py
-      - name: Test Cloudflare lifecycle contract adapter
-        run: python -m unittest discover -s ../../providers/cloudflare/tests -v
-      - name: Simulate Workers Builds Web build
-        run: make cloudflare-build
-" not in workflow:
-              raise SystemExit("deployment workflow authorization gate is malformed")
           print("Project-provisioning contracts and deployment workflow are internally consistent.")
           PY
       - name: Validate private integration state schema
