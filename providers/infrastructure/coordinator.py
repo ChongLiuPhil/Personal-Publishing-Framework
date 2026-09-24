@@ -60,6 +60,12 @@ class Coordinator:
             "builds": {},
             "inventory": {"workerNames": sorted(x.get("id", "") for x in self.workers.inventory())},
         }
+        if repo is not None:
+            try:
+                actual["github"]["deploymentSecrets"] = self.github.deployment_secret_status(owner, repository)
+            except ProviderError as exc:
+                actual["github"]["deploymentSecrets"] = None
+                actual["github"]["deploymentSecretReadError"] = exc.code
         try:
             hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME")
             if worker and hostname:
