@@ -141,6 +141,21 @@ class AdapterTests(unittest.TestCase):
         adapter.ensure_trigger("tag", trigger)
         self.assertEqual([x[1] for x in transport.calls], ["GET", "POST"])
 
+    def test_worker_state_detects_worker_scoped_access(self):
+        path = "https://api.cloudflare.com/client/v4/accounts/acct/access/apps"
+        app = {
+            "id": "worker-access-app",
+            "destinations": [{"type": "worker", "worker_id": "worker-id-1"}],
+            "policies": [{"decision": "allow"}],
+        }
+        transport = FakeTransport({("GET", path): (200, {"success": True, "result": [app]})})
+        adapter = AccessAdapter(ApiClient("https://api.cloudflare.com/client/v4", "token", transport), "acct")
+        state = adapter.worker_state("worker-id-1", "project.example.workers.dev")
+        self.assertTrue(state["workerScopedProtection"])
+        self.assertFalse(state["accountWideProtection"])
+        self.assertEqual(state["applicationVisibility"], "private")
+        self.assertEqual(state["previewVisibility"], "private")
+
     def test_account_access_is_read_only_from_project_apply_surface(self):
         client = ApiClient("https://api.cloudflare.com/client/v4", "token", FakeTransport({}))
         adapter = AccessAdapter(client, "acct")
