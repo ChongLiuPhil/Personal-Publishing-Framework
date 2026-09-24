@@ -59,10 +59,11 @@ class GitHubAdapter:
             "CLOUDFLARE_ACCOUNT_ID": "CLOUDFLARE_ACCOUNT_ID" in names,
         }
 
-    def rollback_visibility(self, owner: str, repository: str, previous_visibility: str) -> dict[str, Any]:
+    def rollback_visibility(self, owner: str, repository: str, previous_visibility: str,
+                            owner_type: str = "user") -> dict[str, Any]:
         if previous_visibility not in {"private", "public"}:
             raise ValueError("rollback requires a recorded previous visibility")
-        return self.ensure_repository(owner, repository, previous_visibility)
+        return self.ensure_repository(owner, repository, previous_visibility, owner_type=owner_type)
 
 def _require_public_approval(visibility: str, approval: dict[str, Any] | None) -> None:
     if visibility == "public" and not (
