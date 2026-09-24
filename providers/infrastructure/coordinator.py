@@ -55,7 +55,7 @@ class Coordinator:
             "cloudflare": {
                 "workerExists": worker is not None,
                 "workerId": worker.get("id") if worker else None,
-                "workerTag": worker.get("tag") if worker else None,
+                "workerTag": (worker.get("tag") or worker.get("id")) if worker else None,
             },
             "builds": {},
             "inventory": {"workerNames": sorted(x.get("id", "") for x in self.workers.inventory())},
@@ -83,9 +83,10 @@ class Coordinator:
         except ProviderError as exc:
             actual["cloudflare"]["accountWideProtection"] = None
             actual["cloudflare"]["accessReadError"] = exc.code
-        if worker and worker.get("tag"):
-            config = self.builds.read_config(worker["tag"])
-            triggers = self.builds.triggers(worker["tag"])
+        worker_tag = (worker.get("tag") or worker.get("id")) if worker else None
+        if worker_tag:
+            config = self.builds.read_config(worker_tag)
+            triggers = self.builds.triggers(worker_tag)
             actual["builds"].update({
                 "workerConfig": config,
                 "repositoryConnectionUuid": (config or {}).get("repo_connection_uuid"),
@@ -164,8 +165,13 @@ class Coordinator:
             try:
                 repo = before["github"]
                 if repo.get("repositoryVisibility") != manifest["github"]["repositoryVisibility"]:
-                    self.github.ensure_repository(manifest["github"]["owner"], manifest["github"]["repository"],
-                                                  manifest["github"]["repositoryVisibility"], release_gate)
+                    self.github.ensure_repository(
+                        manifest["github"]["owner"],
+                        manifest["github"]["repository"],
+                        manifest["github"]["repositoryVisibility"],
+                        release_gate,
+                        owner_type=manifest["github"]["ownerType"],
+                    )
                     completed.append("github.repository_visibility")
                 if manifest["cloudflare"]["applicationVisibility"] == "public":
                     hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME", "")
@@ -263,8 +269,12 @@ class Coordinator:
         try:
             gh = previous.get("github", {})
             if "github.repository_visibility" in state["completed"] and gh.get("repositoryVisibility"):
-                self.github.rollback_visibility(manifest["github"]["owner"], manifest["github"]["repository"],
-                                                gh["repositoryVisibility"])
+                self.github.rollback_visibility(
+                    manifest["github"]["owner"],
+                    manifest["github"]["repository"],
+                    gh["repositoryVisibility"],
+                    owner_type=manifest["github"]["ownerType"],
+                )
                 completed.append("github.repository_visibility")
             if "cloudflare.production_public_exception" in state["completed"]:
                 hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME", "")
