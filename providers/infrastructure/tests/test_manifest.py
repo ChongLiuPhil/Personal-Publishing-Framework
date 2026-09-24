@@ -21,6 +21,20 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(manifest["cloudflare"]["previewVisibility"], "private")
         self.assertFalse(manifest["cloudflare"]["publicBypass"])
         self.assertFalse(manifest["policy"]["paidServicesAllowed"])
+        self.assertEqual(manifest["schemaVersion"], 2)
+        self.assertEqual(manifest["deployment"]["provider"], "github-actions-cloudflare-workers")
+        self.assertEqual(manifest["deployment"]["securityProfile"], "agent-provisioned-external-ci")
+        self.assertEqual(manifest["deployment"]["credentialStrategy"], "project-scoped-account-token")
+        self.assertTrue(manifest["deployment"]["secretBroker"])
+
+    def test_external_ci_rejects_broader_or_mismatched_credential_profile(self):
+        item = copy.deepcopy(self.base)
+        item["deployment"]["credentialStrategy"] = "provider-managed-user-token"
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "project.infrastructure.json"
+            path.write_text(json.dumps(item), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                load_manifest(path)
 
     def test_two_visibility_dimensions_are_independent(self):
         cases = [

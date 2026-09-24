@@ -8,15 +8,14 @@ It demonstrates:
 QMD / Markdown / BibTeX
         |
         +--> GitHub Actions
-        |      make web-publish-check
-        |      (independent quality validation)
+        |      validate -> make web-publish-check
+        |      deploy   -> durable publication authorization gate
+        |               -> project-scoped Worker Editor credential
+        |               -> wrangler deploy
         |
-        +--> Cloudflare Workers Builds
-        |      bash scripts/cloudflare_build.sh
-        |        -> pinned Quarto
-        |        -> make web-publish-check
-        |      preview -> wrangler versions upload
-        |      main    -> wrangler deploy
+        +--> Cloudflare Worker
+        |      account-wide Access baseline
+        |      restricted by default
         |
         +--> explicit request
                EPUB / PDF / DOCX / LaTeX
@@ -40,26 +39,18 @@ GitHub Actions and Cloudflare Workers Builds both call the same gate so validati
 
 ## GitHub Actions responsibility
 
-`.github/workflows/web.yml` performs independent validation only:
+`.github/workflows/web.yml` performs independent validation:
 
 - checkout;
 - Python;
 - Quarto;
 - `make web-publish-check`.
 
-It does **not** hold a Cloudflare token and does not perform Cloudflare production deployment.
+`.github/workflows/deploy-cloudflare.yml` is the authorized production deployment workflow for the preferred external-CI profile. It reads the durable `publishing.yaml` state, remains a no-op until Web deployment is both authorized and enabled, then builds and runs `wrangler deploy` with repository-scoped Cloudflare secrets.
 
-`.github/workflows/cloudflare-contract-ci.yml` additionally simulates the Workers Builds environment with:
+`.github/workflows/cloudflare-contract-ci.yml` validates the locked Cloudflare/Wrangler build contract from a clean runner. It does **not** deploy.
 
-- Node 24;
-- Wrangler 4.135.0;
-- Python;
-- checksum-verified Quarto 1.10.18;
-- `make cloudflare-build`.
-
-This workflow also does **not** deploy. It proves that the template can build from a clean runner.
-
-## Workers Builds machine contract
+## Cloudflare integration machine contract
 
 `cloudflare-builds.yaml` records the account-side configuration expected by the PPF reference implementation:
 
@@ -77,7 +68,7 @@ This workflow also does **not** deploy. It proves that the template can build fr
 
 **Cloudflare does not automatically consume this YAML file.**
 
-It is a PPF machine contract that an AI agent or human operator applies to Cloudflare Workers Builds.
+It is a PPF machine contract used by the Agent/provisioner and CI. In the preferred external-CI profile it describes GitHub Actions deployment, the secret-broker boundary, Worker creation authority, and the Access precondition; in the native profile it can still describe Workers Builds configuration.
 
 ## Source visibility / publication visibility / access / canonical identity
 
@@ -123,27 +114,28 @@ When restricted/private Web access is needed, the Cloudflare reference may use C
 
 That file is a dated provider reference, not a PPF conformance requirement.
 
-## Recommended account connection
+## Recommended platform connection
 
-The default reference route is:
+For future Agent-provisioned projects, the preferred route is:
 
 ```text
-AI Agent
-   |
-   +--> Cloudflare OAuth / MCP
-
-Cloudflare
-   |
-   +--> Workers Builds
-            |
-            +--> Cloudflare GitHub App
-                    |
-                    +--> selected repository
+one GitHub provisioning authorization
++ one Cloudflare provisioning authorization
+        |
+        v
+Project Provisioner
+-> private repository
+-> protected Worker
+-> secret broker
+-> GitHub Actions deploy
 ```
 
-See the nontechnical authorization guide:
+A new repository inside the already approved scope should not require another Cloudflare GitHub App authorization.
 
-`docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`
+See:
+
+- `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`
+- `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`
 
 Live UI fields are only dated implementation observations. The Observed UI Mapping from the 2026-09-19 pilot is documented in:
 
@@ -151,12 +143,7 @@ Live UI fields are only dated implementation observations. The Observed UI Mappi
 
 If provider UI differs, do not guess. Re-read the current UI, official documentation, and downstream machine contract, then verify through actual build/runtime state.
 
-When the AI client supports Cloudflare MCP, the ideal human role is reduced to:
-
-1. authorize AI ↔ Cloudflare;
-2. authorize Cloudflare ↔ the selected GitHub repository.
-
-The AI should then configure Worker / Builds / triggers / preview state from the machine contract where its client exposes the required Cloudflare tools.
+When the execution environment supports Cloudflare MCP/API and GitHub App/API capabilities, the human role should normally reduce to the two platform authorizations. The Agent then provisions later projects inside those approved scopes. Public release, new reader scope, new domain/DNS authority, and permission expansion remain separate human gates.
 
 ## Cloudflare security profiles
 
@@ -164,17 +151,15 @@ Native Workers Builds Git integration and true per-Worker least privilege are no
 
 The PPF reference provides:
 
-- **Profile A — Workers Builds Native**: reference default with minimal manual setup, but a broader managed user-token scope than a pure static Worker needs;
-- **Profile B — Hardened External CI**: GitHub Actions + account-owned individual-Worker `Editor` token;
-- **Profile C — Future Native Granular**: the preferred native combination once Workers Builds supports account-owned per-Worker tokens.
+- **Profile A — Workers Builds Native**: operational provider-native profile with real pilot evidence, but broader build-token scope;
+- **Profile B — Agent-Provisioned External CI**: preferred new-project automation profile; GitHub Actions + account-owned individual-Worker `Editor` token through a trusted secret broker;
+- **Profile C — Future Native Granular**: future native combination once Workers Builds supports account-owned per-Worker tokens.
 
 See:
 
 `docs/CLOUDFLARE_SECURITY_PROFILES.md`
 
-The project owner should explicitly select the production security profile before final cutover.
-
-In the first real pilot, Profile B was validated only as a **candidate / validate-only PASS**. No account-owned deployment credential was configured and no Profile B production deployment was executed, so it must not be described as production-tested.
+The template now selects Profile B for new Agent-provisioned projects. Repository implementation and CI validation are present, but no clean new-project Profile B production acceptance has yet been recorded; it must not be described as production-tested until that pilot succeeds.
 
 ## Runtime verification reference
 
@@ -198,13 +183,13 @@ It does **not** replace:
 
 Downstream projects should add those gates for their actual structure.
 
-## External-CI fallback
+## External CI is the new-project provisioning default
 
-If a project cannot use Workers Builds Git integration, or explicitly requires per-Worker least privilege, it may use:
+The installable template now uses:
 
-`GitHub Actions + Wrangler + scoped Cloudflare token`
+`GitHub Actions + Wrangler + account-owned individual-Worker Editor token`
 
-This remains supported but is not the default template path.
+for Agent-provisioned new projects. Workers Builds Native remains supported as an explicit provider-native profile and as the currently verified real pilot.
 
 Any token:
 
@@ -244,11 +229,12 @@ Before adopting the template:
 5. add project-specific source/output validation;
 6. replace sample QMD, bibliography, and assets;
 7. pass the GitHub reference contract CI;
-8. complete Cloudflare OAuth / GitHub App account authorization;
-9. validate preview / workers.dev first;
-10. confirm the private-source / restricted-Web safety defaults, or explicitly authorize and record any intended deviation;
-11. distinguish provider URL from canonical identity;
-12. only then decide Custom Domain, canonical URL, and production cutover.
+8. verify the platform GitHub and Cloudflare provisioning principals and the account-wide Access baseline;
+9. let the trusted secret broker install the project-scoped Worker deployment credential without exposing its value;
+10. run the restricted workers.dev deployment and verify anonymous denial before enabling previews;
+11. confirm the private-source / restricted-Web safety defaults, or explicitly authorize and record any intended deviation;
+12. distinguish provider URL from canonical identity;
+13. only then decide Custom Domain, canonical URL, and public cutover.
 
 ## Output directories
 

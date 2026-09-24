@@ -77,6 +77,21 @@ def validate_semantics(manifest: dict[str, Any]) -> None:
     if cloudflare["customDomain"] and re.search(r"(?i)(^|\.)workers\.dev$", cloudflare["customDomain"]):
         raise ValueError("workers.dev cannot be declared as a custom domain")
 
+    if deployment.get("provider") == "github-actions-cloudflare-workers":
+        if deployment.get("securityProfile") != "agent-provisioned-external-ci":
+            raise ValueError("external CI requires securityProfile: agent-provisioned-external-ci")
+        if deployment.get("credentialStrategy") != "project-scoped-account-token":
+            raise ValueError("external CI requires project-scoped-account-token credentials")
+        if deployment.get("secretBroker") is not True:
+            raise ValueError("external CI requires secretBroker: true")
+    if deployment.get("provider") == "cloudflare-workers-builds":
+        profile = deployment.get("securityProfile")
+        credential = deployment.get("credentialStrategy")
+        if profile is not None and profile != "workers-builds-native":
+            raise ValueError("Workers Builds requires securityProfile: workers-builds-native")
+        if credential is not None and credential != "provider-managed-user-token":
+            raise ValueError("Workers Builds requires provider-managed-user-token credentials")
+
 
 def main(argv: list[str] | None = None) -> int:
     import argparse

@@ -20,11 +20,32 @@ class WorkersAdapter:
         return cls(*_client_from_env())
 
     def inventory(self) -> list[dict[str, Any]]:
-        result = self.client.request("GET", f"/accounts/{self.account_id}/workers/scripts")
-        return result if isinstance(result, list) else []
+        result = self.client.request("GET", f"/accounts/{self.account_id}/workers/workers")
+        if isinstance(result, list):
+            return result
+        if isinstance(result, dict) and isinstance(result.get("workers"), list):
+            return result["workers"]
+        return []
 
     def read_worker(self, name: str) -> dict[str, Any] | None:
-        return next((x for x in self.inventory() if x.get("id") == name or x.get("script") == name), None)
+        return next((x for x in self.inventory() if x.get("name") == name or x.get("id") == name), None)
+
+    def ensure_worker(self, name: str) -> dict[str, Any]:
+        current = self.read_worker(name)
+        if current is not None:
+            return current
+        created = self.client.request(
+            "POST",
+            f"/accounts/{self.account_id}/workers/workers",
+            {
+                "name": name,
+                "subdomain": {"enabled": True, "previews_enabled": False},
+                "observability": {"enabled": True},
+            },
+        )
+        if not isinstance(created, dict):
+            raise ProviderError("WORKER_CREATE_INVALID_RESPONSE")
+        return created
 
     def require_existing(self, name: str) -> dict[str, Any]:
         result = self.read_worker(name)

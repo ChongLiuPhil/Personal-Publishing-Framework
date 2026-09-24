@@ -32,8 +32,9 @@ def load_contract(root: Path):
     wrangler = json.loads(wrangler_path.read_text(encoding="utf-8"))
     if not all(isinstance(value, dict) for value in (build, publishing, wrangler)):
         raise ValueError("project contract files must each contain a mapping")
-    if build.get("mode") != "workers-builds-git":
-        raise ValueError("unsupported mode; expected workers-builds-git")
+    mode = build.get("mode")
+    if mode not in {"workers-builds-git", "github-actions-external-ci"}:
+        raise ValueError("unsupported Cloudflare integration mode")
     access_baseline = build.get("platform_security", {}).get("worker_access", {})
     if access_baseline != {
         "baseline": "account-wide",
@@ -180,24 +181,35 @@ def doctor(root: Path) -> int:
     if not account or not os.environ.get("CLOUDFLARE_API_TOKEN"):
         print("BLOCKED: Cloudflare API credentials are not available to this process")
         return 2
-    scripts, error = api_get(root, "/workers/scripts")
-    if error:
-        print(f"BLOCKED: live Worker inventory failed: {error}")
-        return 2
-    worker = next((item for item in (scripts or []) if item.get("id") == wrangler["name"] or item.get("script_name") == wrangler["name"]), None)
-    triggers, trigger_error = (None, None)
-    if worker:
-        tag = worker.get("tag") or worker.get("script_tag")
-        if not tag:
-            print("BLOCKED: Worker response has no Builds script tag; cannot inspect trigger state")
+    mode = build.get("mode")
+    if mode == "workers-builds-git":
+        scripts, error = api_get(root, "/workers/scripts")
+        if error:
+            print(f"BLOCKED: live Worker inventory failed: {error}")
             return 2
-        triggers, trigger_error = api_get(root, f"/builds/workers/{quote(tag, safe='')}/triggers")
-    if trigger_error:
-        print(f"BLOCKED: build trigger inspection failed: {trigger_error}")
-        return 2
-    print(f"PASS: account API accessible; target_exists={worker is not None}")
-    print(f"INFO: worker_build_triggers={len(triggers or [])}; match repository and branch before claiming Git integration")
-    print("INFO: GitHub App repository authorization must be verified separately")
+        worker = next((item for item in (scripts or []) if item.get("id") == wrangler["name"] or item.get("script_name") == wrangler["name"]), None)
+        triggers, trigger_error = (None, None)
+        if worker:
+            tag = worker.get("tag") or worker.get("script_tag")
+            if not tag:
+                print("BLOCKED: Worker response has no Builds script tag; cannot inspect trigger state")
+                return 2
+            triggers, trigger_error = api_get(root, f"/builds/workers/{quote(tag, safe='')}/triggers")
+        if trigger_error:
+            print(f"BLOCKED: build trigger inspection failed: {trigger_error}")
+            return 2
+        print(f"PASS: account API accessible; target_exists={worker is not None}")
+        print(f"INFO: worker_build_triggers={len(triggers or [])}; match repository and branch before claiming Git integration")
+        print("INFO: Workers Builds GitHub App repository authorization must be verified separately")
+    else:
+        workers, error = api_get(root, "/workers/workers")
+        if error:
+            print(f"BLOCKED: live Worker inventory failed: {error}")
+            return 2
+        worker = next((item for item in (workers or []) if item.get("name") == wrangler["name"]), None)
+        print(f"PASS: account API accessible; target_exists={worker is not None}")
+        print("INFO: external CI does not require a Cloudflare GitHub App; account-wide Access verification belongs to the platform provisioner")
+    print(f"INFO: integration_mode={mode}")
     print(f"INFO: visibility={publishing['publication']['web']['visibility']}")
     return 0
 
@@ -220,7 +232,9 @@ def plan(root: Path) -> int:
         "previews_enabled": bool(wrangler.get("preview_urls", False)),
         "canonical_cutover": publishing.get("deployment", {}).get("web", {}).get("cutover_state") == "ACTIVE",
         "preserves_existing_provider_and_dns": True,
-        "requires_workers_builds_github_app": True,
+        "integration_mode": build.get("mode"),
+        "requires_workers_builds_github_app": build.get("mode") == "workers-builds-git",
+        "requires_trusted_secret_broker": build.get("mode") == "github-actions-external-ci",
     }
     print(json.dumps(report, indent=2))
     return 0
@@ -254,6 +268,43 @@ def apply(root: Path, holding: bool = False) -> int:
     return 0
 
 
+def _anonymous_probe(url: str) -> dict:
+    class NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            return None
+
+    opener = urllib.request.build_opener(NoRedirect)
+    request = urllib.request.Request(url, headers={"User-Agent": "PPF-Cloudflare-Verify/2.0"})
+    try:
+        with opener.open(request, timeout=20) as response:
+            return {
+                "status": response.status,
+                "final_url": response.geturl(),
+                "location": response.headers.get("Location", ""),
+            }
+    except urllib.error.HTTPError as exc:
+        return {
+            "status": exc.code,
+            "final_url": exc.geturl(),
+            "location": exc.headers.get("Location", "") if exc.headers else "",
+        }
+    except (urllib.error.URLError, TimeoutError, ValueError):
+        return {"error": "NETWORK_ERROR"}
+
+
+def _access_denied(probe: dict) -> bool:
+    status = probe.get("status")
+    if status in {401, 403}:
+        return True
+    if status in {301, 302, 303, 307, 308}:
+        location = probe.get("location") or ""
+        parsed = urlsplit(location)
+        return "/cdn-cgi/access/login" in location or (
+            isinstance(parsed.hostname, str) and parsed.hostname.endswith(".cloudflareaccess.com")
+        )
+    return False
+
+
 def verify(url: str, root: Path) -> int:
     try:
         _, publishing, wrangler, _ = load_contract(root)
@@ -269,24 +320,35 @@ def verify(url: str, root: Path) -> int:
     if https_origin(url) != expected_origin:
         print("FAIL: verification URL must match the configured production Worker origin")
         return 2
-    try:
-        request = urllib.request.Request(url, headers={"User-Agent": "PPF-Cloudflare-Verify/1.0"})
-        with urllib.request.urlopen(request, timeout=20) as response:
-            status, final_url = response.status, response.geturl()
-    except urllib.error.HTTPError as exc:
-        status, final_url = exc.code, exc.geturl()
-    except (urllib.error.URLError, TimeoutError, ValueError):
+
+    probe = _anonymous_probe(url)
+    if probe.get("error"):
         print("FAIL: candidate URL could not be reached")
         return 1
-    if https_origin(final_url) != expected_origin:
-        print("FAIL: verification redirected outside the configured production Worker origin")
-        return 1
-    ok = 200 <= status < 300
+
+    status = probe.get("status")
+    final_url = probe.get("final_url") or url
+    visibility = publishing.get("publication", {}).get("web", {}).get("visibility")
+    denied = _access_denied(probe)
+
+    if visibility == "public":
+        if isinstance(status, int) and 200 <= status < 300 and https_origin(final_url) != expected_origin:
+            print("FAIL: verification redirected outside the configured production Worker origin")
+            return 1
+        ok = isinstance(status, int) and 200 <= status < 300
+        expectation = "anonymous-success"
+    else:
+        ok = denied
+        expectation = "anonymous-denied-or-challenged"
+
     record = {
         "checked_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
-        "url": final_url,
+        "url": url,
         "http_status": status,
         "source_revision": os.environ.get("GITHUB_SHA"),
+        "visibility": visibility,
+        "expected_anonymous_behavior": expectation,
+        "anonymous_denied": denied,
         "result": "PASS" if ok else "FAIL",
     }
     state_path = root / ".ppf" / "cloudflare-deployment.json"

@@ -55,11 +55,17 @@ class Coordinator:
             "cloudflare": {
                 "workerExists": worker is not None,
                 "workerId": worker.get("id") if worker else None,
-                "workerTag": worker.get("tag") if worker else None,
+                "workerTag": (worker.get("tag") or worker.get("id")) if worker else None,
             },
             "builds": {},
             "inventory": {"workerNames": sorted(x.get("id", "") for x in self.workers.inventory())},
         }
+        if repo is not None:
+            try:
+                actual["github"]["deploymentSecrets"] = self.github.deployment_secret_status(owner, repository)
+            except ProviderError as exc:
+                actual["github"]["deploymentSecrets"] = None
+                actual["github"]["deploymentSecretReadError"] = exc.code
         try:
             hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME")
             if worker and hostname:
@@ -77,9 +83,10 @@ class Coordinator:
         except ProviderError as exc:
             actual["cloudflare"]["accountWideProtection"] = None
             actual["cloudflare"]["accessReadError"] = exc.code
-        if worker and worker.get("tag"):
-            config = self.builds.read_config(worker["tag"])
-            triggers = self.builds.triggers(worker["tag"])
+        worker_tag = (worker.get("tag") or worker.get("id")) if worker else None
+        if worker_tag:
+            config = self.builds.read_config(worker_tag)
+            triggers = self.builds.triggers(worker_tag)
             actual["builds"].update({
                 "workerConfig": config,
                 "repositoryConnectionUuid": (config or {}).get("repo_connection_uuid"),
@@ -122,19 +129,26 @@ class Coordinator:
         if not worker.get("workerExists"):
             return {"status": "BLOCKED", "completed": [], "report": report,
                     "blocker": "WORKER_DEPLOYMENT_REQUIRED"}
-        if not isinstance(build_config, dict) or not isinstance(triggers, list) or not triggers:
-            return {"status": "BLOCKED", "completed": [], "report": report,
-                    "blocker": "BUILD_CONFIG_AND_TRIGGERS_REQUIRED"}
-        _reject_build_secrets(build_config)
-        production_branch = manifest["deployment"]["productionBranch"]
-        if not any(production_branch in (item.get("branch_includes") or []) for item in triggers):
-            return {"status": "BLOCKED", "completed": [], "report": report,
-                    "blocker": "PRODUCTION_TRIGGER_REQUIRED"}
-        if manifest["deployment"]["previewDeployments"] and not any(
-            production_branch not in (item.get("branch_includes") or []) for item in triggers
-        ):
-            return {"status": "BLOCKED", "completed": [], "report": report,
-                    "blocker": "PREVIEW_TRIGGER_REQUIRED"}
+        native_builds = manifest["deployment"]["provider"] == "cloudflare-workers-builds"
+        if native_builds:
+            if not isinstance(build_config, dict) or not isinstance(triggers, list) or not triggers:
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "BUILD_CONFIG_AND_TRIGGERS_REQUIRED"}
+            _reject_build_secrets(build_config)
+            production_branch = manifest["deployment"]["productionBranch"]
+            if not any(production_branch in (item.get("branch_includes") or []) for item in triggers):
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "PRODUCTION_TRIGGER_REQUIRED"}
+            if manifest["deployment"]["previewDeployments"] and not any(
+                production_branch not in (item.get("branch_includes") or []) for item in triggers
+            ):
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "PREVIEW_TRIGGER_REQUIRED"}
+        else:
+            secrets = before.get("github", {}).get("deploymentSecrets") or {}
+            if not all(secrets.get(name) is True for name in ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID")):
+                return {"status": "BLOCKED", "completed": [], "report": report,
+                        "blocker": "SECRET_BROKER_REQUIRED"}
         # Serialize writers, then re-read to avoid applying a plan made against stale state.
         completed: list[str] = []
         state: dict[str, Any] = {
@@ -151,8 +165,13 @@ class Coordinator:
             try:
                 repo = before["github"]
                 if repo.get("repositoryVisibility") != manifest["github"]["repositoryVisibility"]:
-                    self.github.ensure_repository(manifest["github"]["owner"], manifest["github"]["repository"],
-                                                  manifest["github"]["repositoryVisibility"], release_gate)
+                    self.github.ensure_repository(
+                        manifest["github"]["owner"],
+                        manifest["github"]["repository"],
+                        manifest["github"]["repositoryVisibility"],
+                        release_gate,
+                        owner_type=manifest["github"].get("ownerType", "user"),
+                    )
                     completed.append("github.repository_visibility")
                 if manifest["cloudflare"]["applicationVisibility"] == "public":
                     hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME", "")
@@ -207,15 +226,39 @@ class Coordinator:
         for label, url in urls.items():
             if url:
                 probes[label] = _anonymous_probe("https://" + url.removeprefix("https://").removeprefix("http://"))
-        public_ok = probes.get("production", {}).get("statusCode") == 200
-        protected_ok = all(
-            bool(urls[key]) and probes.get(key, {}).get("denied") is True
-            for key in ("preview", "controlWorker")
+        desired_visibility = manifest["cloudflare"]["applicationVisibility"]
+        production_probe = probes.get("production", {})
+        production_ok = (
+            production_probe.get("statusCode") == 200
+            if desired_visibility == "public"
+            else production_probe.get("denied") is True
         )
-        verified = report["status"] == "PLAN_READY" and not report["operations"] and public_ok and protected_ok
+        preview_ok = (
+            True
+            if not manifest["deployment"]["previewDeployments"]
+            else bool(urls["preview"]) and probes.get("preview", {}).get("denied") is True
+        )
+        control_ok = (
+            True
+            if desired_visibility == "private"
+            else bool(urls["controlWorker"]) and probes.get("controlWorker", {}).get("denied") is True
+        )
+        verified = (
+            report["status"] == "PLAN_READY"
+            and not report["operations"]
+            and bool(urls["production"])
+            and production_ok
+            and preview_ok
+            and control_ok
+        )
+        required_inputs = ["production"]
+        if manifest["deployment"]["previewDeployments"]:
+            required_inputs.append("preview")
+        if desired_visibility == "public":
+            required_inputs.append("controlWorker")
         return {"status": "VERIFIED" if verified else "NOT_VERIFIED", "actual": actual, "plan": report,
                 "anonymousProbes": probes,
-                "missingProbeInputs": [key for key, value in urls.items() if not value]}
+                "missingProbeInputs": [key for key in required_inputs if not urls.get(key)]}
 
     def rollback(self, manifest: dict[str, Any]) -> dict[str, Any]:
         state = self.store.read(manifest["project"]["id"])
@@ -226,8 +269,12 @@ class Coordinator:
         try:
             gh = previous.get("github", {})
             if "github.repository_visibility" in state["completed"] and gh.get("repositoryVisibility"):
-                self.github.rollback_visibility(manifest["github"]["owner"], manifest["github"]["repository"],
-                                                gh["repositoryVisibility"])
+                self.github.rollback_visibility(
+                    manifest["github"]["owner"],
+                    manifest["github"]["repository"],
+                    gh["repositoryVisibility"],
+                    owner_type=manifest["github"].get("ownerType", "user"),
+                )
                 completed.append("github.repository_visibility")
             if "cloudflare.production_public_exception" in state["completed"]:
                 hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME", "")

@@ -3,73 +3,304 @@
   "$id": "https://raw.githubusercontent.com/ChongLiuPhil/Personal-Publishing-Framework/main/schema/project.infrastructure.schema.json",
   "title": "PPF project infrastructure desired state",
   "type": "object",
-  "required": ["schemaVersion", "project", "github", "cloudflare", "deployment", "release", "policy"],
+  "required": [
+    "schemaVersion",
+    "project",
+    "github",
+    "cloudflare",
+    "deployment",
+    "release",
+    "policy"
+  ],
   "properties": {
-    "schemaVersion": { "const": 1 },
+    "schemaVersion": {
+      "enum": [
+        1,
+        2
+      ]
+    },
     "project": {
       "type": "object",
-      "required": ["id", "slug"],
+      "required": [
+        "id",
+        "slug"
+      ],
       "properties": {
-        "id": { "type": "string", "minLength": 1 },
-        "slug": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" }
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        }
       },
       "additionalProperties": false
     },
     "github": {
       "type": "object",
-      "required": ["owner", "repository", "repositoryVisibility", "productionBranch"],
+      "required": [
+        "owner",
+        "repository",
+        "repositoryVisibility",
+        "productionBranch"
+      ],
       "properties": {
-        "owner": { "type": "string", "minLength": 1 },
-        "repository": { "type": "string", "pattern": "^[a-zA-Z0-9._-]+$" },
-        "repositoryVisibility": { "enum": ["private", "public"] },
-        "productionBranch": { "type": "string", "minLength": 1 }
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "repository": {
+          "type": "string",
+          "pattern": "^[a-zA-Z0-9._-]+$"
+        },
+        "repositoryVisibility": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        },
+        "productionBranch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ownerType": {
+          "enum": [
+            "user",
+            "organization"
+          ]
+        }
       },
       "additionalProperties": false
     },
     "cloudflare": {
       "type": "object",
-      "required": ["platform", "worker", "applicationVisibility", "previewVisibility", "accessMode", "publicBypass", "customDomain"],
+      "required": [
+        "platform",
+        "worker",
+        "applicationVisibility",
+        "previewVisibility",
+        "accessMode",
+        "publicBypass",
+        "customDomain"
+      ],
       "properties": {
-        "platform": { "const": "workers" },
-        "worker": { "type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$" },
-        "applicationVisibility": { "enum": ["private", "public"] },
-        "previewVisibility": { "enum": ["private", "public"] },
-        "accessMode": { "const": "account-wide-access" },
-        "publicBypass": { "type": "boolean" },
-        "customDomain": { "type": ["string", "null"], "format": "hostname" }
+        "platform": {
+          "const": "workers"
+        },
+        "worker": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+        },
+        "applicationVisibility": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        },
+        "previewVisibility": {
+          "enum": [
+            "private",
+            "public"
+          ]
+        },
+        "accessMode": {
+          "const": "account-wide-access"
+        },
+        "publicBypass": {
+          "type": "boolean"
+        },
+        "customDomain": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "hostname"
+        }
       },
       "additionalProperties": false
     },
     "deployment": {
       "type": "object",
-      "required": ["provider", "productionBranch", "previewDeployments", "previewProtection"],
+      "required": [
+        "provider",
+        "productionBranch",
+        "previewDeployments",
+        "previewProtection"
+      ],
       "properties": {
-        "provider": { "const": "cloudflare-workers-builds" },
-        "productionBranch": { "type": "string", "minLength": 1 },
-        "previewDeployments": { "type": "boolean" },
-        "previewProtection": { "type": "boolean" }
+        "provider": {
+          "enum": [
+            "cloudflare-workers-builds",
+            "github-actions-cloudflare-workers"
+          ]
+        },
+        "productionBranch": {
+          "type": "string",
+          "minLength": 1
+        },
+        "previewDeployments": {
+          "type": "boolean"
+        },
+        "previewProtection": {
+          "type": "boolean"
+        },
+        "securityProfile": {
+          "enum": [
+            "workers-builds-native",
+            "agent-provisioned-external-ci"
+          ]
+        },
+        "credentialStrategy": {
+          "enum": [
+            "provider-managed-user-token",
+            "project-scoped-account-token"
+          ]
+        },
+        "secretBroker": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "release": {
       "type": "object",
-      "required": ["state", "openSource"],
+      "required": [
+        "state",
+        "openSource"
+      ],
       "properties": {
-        "state": { "enum": ["private", "release_candidate", "public", "release_blocked"] },
-        "openSource": { "type": "boolean" }
+        "state": {
+          "enum": [
+            "private",
+            "release_candidate",
+            "public",
+            "release_blocked"
+          ]
+        },
+        "openSource": {
+          "type": "boolean"
+        }
       },
       "additionalProperties": false
     },
     "policy": {
       "type": "object",
-      "required": ["privateByDefault", "paidServicesAllowed", "requiresApprovedPublicTransition"],
+      "required": [
+        "privateByDefault",
+        "paidServicesAllowed",
+        "requiresApprovedPublicTransition"
+      ],
       "properties": {
-        "privateByDefault": { "const": true },
-        "paidServicesAllowed": { "type": "boolean" },
-        "requiresApprovedPublicTransition": { "const": true }
+        "privateByDefault": {
+          "const": true
+        },
+        "paidServicesAllowed": {
+          "type": "boolean"
+        },
+        "requiresApprovedPublicTransition": {
+          "const": true
+        }
       },
       "additionalProperties": false
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "schemaVersion": {
+            "const": 2
+          }
+        },
+        "required": [
+          "schemaVersion"
+        ]
+      },
+      "then": {
+        "properties": {
+          "deployment": {
+            "required": [
+              "provider",
+              "productionBranch",
+              "previewDeployments",
+              "previewProtection",
+              "securityProfile",
+              "credentialStrategy",
+              "secretBroker"
+            ]
+          },
+          "github": {
+            "required": [
+              "ownerType"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "deployment": {
+            "properties": {
+              "provider": {
+                "const": "cloudflare-workers-builds"
+              }
+            },
+            "required": [
+              "provider"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "deployment": {
+            "properties": {
+              "securityProfile": {
+                "const": "workers-builds-native"
+              },
+              "credentialStrategy": {
+                "const": "provider-managed-user-token"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "deployment": {
+            "properties": {
+              "provider": {
+                "const": "github-actions-cloudflare-workers"
+              }
+            },
+            "required": [
+              "provider"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "deployment": {
+            "properties": {
+              "securityProfile": {
+                "const": "agent-provisioned-external-ci"
+              },
+              "credentialStrategy": {
+                "const": "project-scoped-account-token"
+              },
+              "secretBroker": {
+                "const": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

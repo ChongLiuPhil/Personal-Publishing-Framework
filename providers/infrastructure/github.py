@@ -22,14 +22,16 @@ class GitHubAdapter:
             raise
 
     def ensure_repository(self, owner: str, repository: str, visibility: str,
-                          approval: dict[str, Any] | None = None) -> dict[str, Any]:
+                          approval: dict[str, Any] | None = None,
+                          owner_type: str = "user") -> dict[str, Any]:
         if visibility not in {"private", "public"}:
             raise ValueError("unsupported GitHub visibility")
+        if owner_type not in {"user", "organization"}:
+            raise ValueError("unsupported GitHub owner type")
         current = self.read_repository(owner, repository)
         if current is None:
             _require_public_approval(visibility, approval)
-            identity = self.client.request("GET", "/user")
-            create_path = "/user/repos" if identity.get("login", "").casefold() == owner.casefold() else f"/orgs/{quote(owner, safe='')}/repos"
+            create_path = "/user/repos" if owner_type == "user" else f"/orgs/{quote(owner, safe='')}/repos"
             return self.client.request("POST", create_path, {
                 "name": repository, "private": visibility == "private", "auto_init": False,
             })
@@ -41,10 +43,27 @@ class GitHubAdapter:
         self.client.request("PATCH", path, {"private": visibility == "private"})
         return self.read_repository(owner, repository) or {}
 
-    def rollback_visibility(self, owner: str, repository: str, previous_visibility: str) -> dict[str, Any]:
+    def repository_secret_names(self, owner: str, repository: str) -> set[str]:
+        path = f"/repos/{quote(owner, safe='')}/{quote(repository, safe='')}/actions/secrets?per_page=100"
+        result = self.client.request("GET", path)
+        if isinstance(result, dict):
+            rows = result.get("secrets", [])
+        else:
+            rows = []
+        return {str(item.get("name")) for item in rows if isinstance(item, dict) and item.get("name")}
+
+    def deployment_secret_status(self, owner: str, repository: str) -> dict[str, bool]:
+        names = self.repository_secret_names(owner, repository)
+        return {
+            "CLOUDFLARE_API_TOKEN": "CLOUDFLARE_API_TOKEN" in names,
+            "CLOUDFLARE_ACCOUNT_ID": "CLOUDFLARE_ACCOUNT_ID" in names,
+        }
+
+    def rollback_visibility(self, owner: str, repository: str, previous_visibility: str,
+                            owner_type: str = "user") -> dict[str, Any]:
         if previous_visibility not in {"private", "public"}:
             raise ValueError("rollback requires a recorded previous visibility")
-        return self.ensure_repository(owner, repository, previous_visibility)
+        return self.ensure_repository(owner, repository, previous_visibility, owner_type=owner_type)
 
 def _require_public_approval(visibility: str, approval: dict[str, Any] | None) -> None:
     if visibility == "public" and not (

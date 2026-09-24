@@ -1,5 +1,5 @@
 schema_version: 1
-mode: workers-builds-git
+mode: github-actions-external-ci
 worker_runtime: workers-static-assets
 access_modes:
   public:
@@ -25,7 +25,7 @@ git:
   provider: github
   repository: OWNER/REPOSITORY
   production_branch: main
-  non_production_branch_builds: true
+  non_production_branch_builds: false
   root_directory: "/"
 
 commands:
@@ -45,31 +45,31 @@ worker:
 
 connection:
   cloudflare_account: unverified
-  github_app: unverified
-  repository_connection: unverified
-  worker_target: unverified
-  production_trigger: unverified
-  preview_trigger: unverified
-  build_token: unverified
+  github_app: not-required-for-external-ci
+  repository_connection: not-required-for-external-ci
+  worker_target: provisioner-created
+  production_trigger: github-actions-main
+  preview_trigger: disabled-until-protected
+  build_token: project-scoped-account-token-via-secret-broker
 
 validation:
   repository_contract_ci: not-run
-  first_preview_build: not-run
+  first_preview_build: not-applicable-until-enabled
   workers_dev_http: not-run
   production_cutover: blocked
 
 security:
   credentials_in_repository: prohibited
-  github_app_repository_scope: selected-repositories-only
-  production_profile: human-selection-required
+  native_profile_github_app_repository_scope: selected-repositories-only
+  production_profile: agent-provisioned-external-ci
   profiles:
     workers_builds_native:
-      status: reference-default
+      status: operational-native
       token_type: user-token
       least_privilege: false
       caveat: workers-builds-currently-supports-user-tokens-only
     hardened_external_ci:
-      status: supported-alternative
+      status: preferred-agent-provisioning
       token_type: account-owned-api-token
       desired_scope: individual-worker
       desired_role: editor
@@ -81,6 +81,27 @@ security:
       desired_role: editor
       blocker: workers-builds-account-owned-token-not-yet-supported
 
+external_ci:
+  provider: github-actions
+  workflow: .github/workflows/deploy-cloudflare.yml
+  deploy_on:
+    branch: main
+  required_repository_secrets:
+    - CLOUDFLARE_API_TOKEN
+    - CLOUDFLARE_ACCOUNT_ID
+  credential_contract:
+    token_owner: account
+    scope: individual-worker
+    role: Editor
+    creation: platform-secret-broker
+    plaintext_must_not_enter_model_context: true
+  worker_creation:
+    executor: platform-provisioner
+    requires: workers-product-admin
+  access_precondition:
+    destination: all_workers
+    must_be_verified_before_worker_creation: true
+
 lifecycle:
   operations: [doctor, plan, apply, verify, rollback]
   state_record: .ppf/cloudflare-deployment.json
@@ -89,7 +110,7 @@ lifecycle:
   preserve_existing_provider_until_explicit_cutover: true
 
 preview:
-  enabled_by_default: true
+  enabled_by_default: false
   enable_only_after:
     - account-wide-access-verified
     - preview-anonymous-denial-verified

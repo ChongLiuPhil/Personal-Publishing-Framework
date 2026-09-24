@@ -6,7 +6,7 @@ ROOT=Path(__file__).resolve().parents[1]
 manifest=ROOT/"template-manifest.yaml"
 body=manifest.read_text(encoding="utf-8")
 for marker in (
-    "template_version: 0.1.1-draft",
+    "template_version: 0.1.2-draft",
     "upstream_managed:",
     "merge_managed:",
     "project_owned:",
@@ -26,6 +26,7 @@ for path in (
     "package.json","package-lock.json",
     "scripts/cloudflare_build.sh","scripts/ensure_quarto.sh",
     ".github/workflows/web.yml",".github/workflows/cloudflare-contract-ci.yml",
+    ".github/workflows/deploy-cloudflare.yml",
 ):
     if not (ROOT/path).is_file():
         raise SystemExit(f"ERROR: reference template missing {path}")

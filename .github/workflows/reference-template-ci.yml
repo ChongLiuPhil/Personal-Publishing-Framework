@@ -15,6 +15,8 @@ on:
       - "docs/CLOUDFLARE_OBSERVED_UI_MAPPING*.md"
       - "docs/CLOUDFLARE_GITHUB_AUTHORIZATION*.md"
       - "docs/CLOUDFLARE_SECURITY_PROFILES*.md"
+      - "docs/AGENT_PROVISIONED_EXTERNAL_CI*.md"
+      - "docs/AGENT_PROVISIONED_EXTERNAL_CI*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
       - "docs/REFERENCE_IMPLEMENTATION_AUDIT*.md"
       - "docs/TEMPLATE_ADOPTION_AND_UPGRADE*.md"
@@ -71,6 +73,33 @@ jobs:
         run: python ../../providers/infrastructure/manifest.py project.infrastructure.json
       - name: Test infrastructure manifest safety and visibility matrix
         run: cd ../.. && python -m unittest discover -s providers/infrastructure/tests -v
+      - name: Validate project-provisioning contracts
+        run: |
+          python -m py_compile ../../providers/infrastructure/provisioning.py
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          import yaml
+          from jsonschema import Draft202012Validator
+          broker_schema = json.loads(Path("../../schema/secret-broker-request.schema.json").read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(broker_schema)
+          infra = json.loads(Path("project.infrastructure.json").read_text(encoding="utf-8"))
+          if infra["deployment"]["provider"] != "github-actions-cloudflare-workers":
+              raise SystemExit("reference template must use external CI provisioning")
+          if infra["deployment"]["securityProfile"] != "agent-provisioned-external-ci":
+              raise SystemExit("reference template has wrong provisioning security profile")
+          contract = yaml.safe_load(Path("cloudflare-builds.yaml").read_text(encoding="utf-8"))
+          if contract.get("mode") != "github-actions-external-ci":
+              raise SystemExit("Cloudflare integration contract has wrong mode")
+          external = contract.get("external_ci", {})
+          if external.get("workflow") != ".github/workflows/deploy-cloudflare.yml":
+              raise SystemExit("external CI workflow path drifted")
+          workflow = Path(".github/workflows/deploy-cloudflare.yml").read_text(encoding="utf-8")
+          for required in ("CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID", "authorization_state", "wrangler deploy"):
+              if required not in workflow:
+                  raise SystemExit("deployment workflow missing " + required)
+          print("Project-provisioning contracts are internally consistent.")
+          PY
       - name: Validate private integration state schema
         run: |
           python - <<'PY'
@@ -178,7 +207,7 @@ jobs:
           grep -q "REFERENCE-ONLY / DATED PROVIDER MAPPING" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
           grep -q "Worker-level" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
           grep -q "private repository => enable Access" ../../docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md
-          grep -q "deployment-credential security from publication access" ../../docs/CLOUDFLARE_SECURITY_PROFILES.md
+          grep -q "Deployment credential security is separate from publication access" ../../docs/CLOUDFLARE_SECURITY_PROFILES.md
       - name: Validate reference publication contract
         run: make check
       - name: Validate normative visibility/access migration markers

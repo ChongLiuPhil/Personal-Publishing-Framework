@@ -1,248 +1,195 @@
-# Cloudflare ↔ GitHub One-Time Authorization Guide (PPF Reference)
+# GitHub + Cloudflare Platform Authorization Guide (PPF Reference)
 
-This guide is for an operator with no technical background.
+**Reviewed:** 2026-09-24
 
-The goal is not to teach APIs, Wrangler, or CI. The human should complete only the account-owner authorization actions that cannot safely be delegated. After that, an AI agent or maintainer should continue from the repository's `cloudflare-builds.yaml`.
+The goal is to minimize repeated human authorization for future projects while keeping provider authority bounded.
 
-## 1. Recommended route
+PPF now distinguishes two supported routes:
+
+1. **Agent-provisioned external CI** — preferred for future projects created by an AI Agent.
+2. **Workers Builds Native** — provider-native alternative with existing real-pilot evidence.
+
+`cloudflare-builds.yaml` remains a PPF machine contract. Cloudflare does not automatically consume it.
+
+## 1. Preferred route for future agent-provisioned projects
 
 ```text
-AI Agent
-   |
-   +--> Cloudflare OAuth / MCP      (when the client supports it)
-
-Cloudflare
-   |
-   +--> Workers Builds
-            |
-            +--> Cloudflare GitHub App
-                    |
-                    +--> selected repository only
+Human
+  |
+  +-- authorize GitHub provisioning principal once
+  |
+  +-- authorize Cloudflare provisioning principal once
+          |
+          v
+      Project Provisioner
+       /            \
+ GitHub              Cloudflare
+ private repo        all_workers baseline check
+ workflow            Worker creation
+ repo secrets <---- trusted secret broker
+       \             /
+        GitHub Actions
+             |
+        wrangler deploy
 ```
 
-Cloudflare API MCP:
+No Cloudflare GitHub App installation is required for each new project in this profile.
 
-`https://mcp.cloudflare.com/mcp`
+See [AGENT_PROVISIONED_EXTERNAL_CI.md](AGENT_PROVISIONED_EXTERNAL_CI.md).
 
-Workers Builds MCP:
+## 2. One-time GitHub platform authorization
 
-`https://builds.mcp.cloudflare.com/mcp`
+Use a clearly bounded GitHub user account or organization scope.
 
-`cloudflare-builds.yaml` is a **PPF machine contract**. Cloudflare does not automatically consume it; an AI agent or human operator applies its values to Workers Builds.
+Authorize a provisioning GitHub App with only the capabilities needed by the implementation. Typical required repository permissions are:
 
-## 2. Authorize AI ↔ Cloudflare (optional but recommended)
+```text
+Administration: write
+Contents: write
+Workflows: write
+Actions: write
+Secrets: write
+Pull requests: write
+Metadata: read
+```
 
-If the AI client supports MCP:
+The exact permission set must be verified against the operations actually implemented.
 
-1. Open Plugins / Connectors / MCP / Integrations.
-2. Add the official Cloudflare MCP.
-3. Sign in to Cloudflare.
-4. If permission selection is available, keep only the permissions required for Workers / Workers Builds management.
-5. Complete OAuth authorization.
+Credential type must match the repository owner:
 
-Completion criterion:
+- personal user owner -> GitHub App user access token (or another supported user-authorized fine-grained token) for `POST /user/repos`;
+- organization owner -> GitHub App installation access token or user access token for `POST /orgs/{org}/repos`.
 
-> The AI agent can actually read Cloudflare account, Workers, or Workers Builds state.
-
-If the client cannot expose Cloudflare MCP, PPF still works; use the Dashboard fallback.
-
-## 3. Authorize Cloudflare ↔ GitHub
-
-1. Open the Cloudflare Dashboard.
-2. Go to **Workers & Pages**.
-3. Choose **Create application → Import a repository**, or connect Git from the Builds settings of an existing Worker.
-4. Select GitHub.
-5. GitHub shows the Cloudflare Workers & Pages App authorization page.
-6. If **All repositories** or **Only select repositories** is offered, choose **Only select repositories**.
-7. Select only the repository required by the project.
-8. Return to Cloudflare.
+The project infrastructure manifest records `github.ownerType`; do not infer organization/user from an arbitrary token by calling unrelated identity endpoints.
 
 Completion criterion:
 
-> Cloudflare can see the project repository without receiving access to unrelated repositories.
+> The provisioning principal can create and configure a private project repository inside the approved scope without another repository-by-repository human authorization.
 
-### After this one-time authorization
+Do not authorize unrelated accounts merely for convenience.
 
-The human should stop doing routine build configuration manually. Current Cloudflare Workers Builds documentation exposes an API for repository connections, triggers, environment variables, build execution, and build monitoring after the GitHub App authorization exists.
+## 3. One-time Cloudflare platform authorization
 
-For API automation, use a **user-scoped** token with:
+Authorize one Cloudflare provisioning principal through an API token, OAuth, or an official MCP connection supported by the executing client.
 
-~~~text
-Workers Builds Configuration: Edit
-Workers Scripts: Read
-~~~
+The platform principal may need authority to inspect account/Worker inventory, read Access applications, create Worker metadata, read deployment/observability state, perform separately authorized Access changes, and attach a domain only after domain/DNS authority is granted.
 
-The first permission manages builds/triggers/configuration; the second is used to resolve the Worker's immutable tag. Keep this API token in the executing tool's secure secret store, not in Git or chat.
+Creating a new Worker requires Workers product-level Admin. Routine deployment must not continue using that broad identity.
 
-For Access application/policy automation, use a separate token with:
+Creating **account-owned API tokens** is more privileged: Cloudflare's current account-token API requires Super Administrator authority for token creation/update. Isolate that authority inside the trusted Secret Broker/provisioning service; do not grant it to project CI or the language-model-facing Agent.
 
-~~~text
-Access: Apps and Policies Write
-~~~
+Completion criterion:
 
-Add `Access: Organizations, Identity Providers, and Groups Write` only if the agent must create or modify the OTP/identity-provider configuration.
+> The provisioner can verify the account-wide Access baseline and create a Worker, while project deployments can later use a credential restricted to that Worker.
 
-The canonical minimal-human execution contract lives in the Starter:
-https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/CLOUDFLARE_MINIMAL_HUMAN_HANDOFF.md
+## 4. Account-wide private baseline before project creation
 
-## 4. The “Set up your application” page
+Before provisioning new project Workers, configure and verify a Cloudflare Access application whose destination covers `all_workers` or an equivalent account-wide baseline.
 
-The UI mapping below is a **dated observation from 2026-09-19**, not a permanent Cloudflare specification. See the full mapping and UI-drift rule in:
+This is a platform bootstrap action, not a per-project publication decision.
 
-`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md`
+A project provisioner must fail closed if it cannot verify that future Workers will be protected by default.
 
-The current Cloudflare creation flow may show the following fields.
+Do not create a public bypass merely to make provisioning easier.
 
-### Project name
+## 5. Project-scoped deployment credential
 
-Use the Worker / project name.
+After the platform principal creates the Worker, create an account-owned API token scoped to:
 
-Example:
+```text
+resource: individual Worker
+role: Editor
+```
 
-`epistemology-textbook`
+The token is the recurring project deployment identity.
 
-### Build command
+It should not have authority to:
 
-Copy from `cloudflare-builds.yaml`.
+- create unrelated Workers;
+- modify unrelated Workers;
+- change account-wide Access;
+- change zones/routes unless the deployment contract actually requires that authority.
 
-PPF Quarto reference:
+## 6. Secret broker requirement
 
-`bash scripts/cloudflare_build.sh`
+The project token and account ID belong in GitHub Actions secrets, but token plaintext must not pass through the language model.
 
-Do not leave it blank for the reference template: the build installs pinned Quarto and invokes the canonical Web gate.
+The executable provisioner returns only a non-secret `secretBrokerRequest`.
 
-### Deploy command
+A trusted broker must:
 
-Copy from the machine contract.
+1. create the Cloudflare token;
+2. hold plaintext only inside the broker process;
+3. obtain the GitHub repository public key or otherwise use the provider's secure secret-write mechanism;
+4. write `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`;
+5. discard token plaintext;
+6. return only non-secret installation status and IDs.
 
-PPF reference:
+Never ask the user to paste this token into chat.
 
-`wrangler deploy`
+## 7. Restricted deployment after platform bootstrap
 
-### Builds for non-production branches
+After the two platform authorizations exist, a new project should normally require no additional account-level consent.
 
-PPF reference recommendation:
+The Agent may:
 
-**Enable it.**
+- create the private GitHub repository;
+- initialize the PPF/Starter project;
+- create the Worker;
+- request the secret broker;
+- run the GitHub Actions deployment;
+- verify anonymous Access denial;
+- write non-secret provider state back to the project.
 
-This allows non-production branches to produce preview builds.
+Public release is still a separate human publication decision.
 
-### Protect with Cloudflare Access
+## 8. Workers Builds Native alternative
 
-Do not decide this from repository public/private status.
+For projects that deliberately choose provider-native Git integration:
 
-Read the publication contract first:
+```text
+AI Agent / operator
+   |
+   +--> Cloudflare
+           |
+           +--> Workers Builds
+                    |
+                    +--> Cloudflare GitHub App
+                            |
+                            +--> selected repository
+```
 
-~~~text
-publication.web.authorization_state
-publication.web.visibility
-publication.web.access
-~~~
+The Cloudflare GitHub App authorization is required for this route.
 
-Reference mapping:
+After that authorization, Workers Builds configuration, repository connection, triggers, builds, and monitoring can be managed through the provider API where supported.
 
-- `visibility: public` + `access.mode: none`: normally remain public;
-- `visibility: restricted`: enable Cloudflare Access according to the project's access policy;
-- `visibility: private`: first define the private audience / route policy, then configure Access or keep the public route disabled/staged.
+Workers Builds currently uses a user-token model for its build credential. Do not describe that credential as one-Worker least privilege.
 
-Current Cloudflare Workers documentation also supports configuring Access after creation for one Worker, production+preview, or a specific hostname/path. The creation-page checkbox is therefore not the sole source of access-policy truth.
+## 9. Cloudflare MCP
 
-See:
+When the client supports official Cloudflare MCP, it is a useful way to establish or operate the Cloudflare provisioning principal.
 
-`docs/CLOUDFLARE_ACCESS_PROFILE.md`
+Relevant official endpoints include:
 
-for the provider mapping.
+```text
+https://mcp.cloudflare.com/mcp
+https://builds.mcp.cloudflare.com/mcp
+```
 
-Do not put passwords, OTPs, tokens, or other secrets in `publishing.yaml` or chat.
+MCP availability does not change the authorization boundary: login/MFA and consent remain human-owned; secrets must remain outside chat/model context.
 
-### Advanced settings → Non-production branch deploy command
+## 10. Human-reserved gates after bootstrap
 
-PPF reference:
+Do not return to the human for ordinary project creation merely because a new repository or Worker exists inside the approved platform scope.
 
-`wrangler versions upload`
+Return to the human when the action changes a reserved boundary, including:
 
-### Advanced settings → Path
+- public publication;
+- new/expanded reader audience;
+- new canonical domain or DNS authority;
+- new GitHub organization/App installation scope;
+- new Cloudflare permission scope;
+- paid-plan/billing change;
+- direct secret input if a trusted broker is unavailable.
 
-For a project built from repository root:
-
-`/`
-
-Use the actual project directory for a monorepo.
-
-### API token
-
-Workers Builds can create/select a Cloudflare **user build token**.
-
-Important:
-
-- do not copy the token secret;
-- do not commit it to Git;
-- do not paste it into chat;
-- do not store it in `cloudflare-builds.yaml`.
-
-Workers Builds currently uses the user-token model. See:
-
-`docs/CLOUDFLARE_SECURITY_PROFILES.md`
-
-for the security trade-off.
-
-### Variables
-
-If the machine contract requires no variables:
-
-**leave them empty.**
-
-Do not invent variables or secrets merely to fill the form.
-
-## 5. What if Production branch is not shown?
-
-The creation page may not always display a separate production-branch field.
-
-If it is absent:
-
-1. do not block setup because of that field;
-2. if the repository default branch is `main`, finish setup and inspect the resulting build/deployment record;
-3. verify that the expected branch appears in Cloudflare's build record;
-4. inspect the Worker's Builds trigger settings if further confirmation is needed.
-
-Do not change unrelated settings merely to find a field that is not present.
-
-## 6. What to verify after the first Deploy
-
-Do not move directly to Custom Domain cutover.
-
-First verify:
-
-- Worker exists;
-- GitHub repository connection works;
-- main build passes;
-- non-production preview passes;
-- workers.dev / preview URL works;
-- repository-defined build command actually runs;
-- the previous production remains healthy during migration.
-
-Only then proceed to Custom Domain / canonical URL / legacy-site policy.
-
-## 7. Token security and production profile
-
-The Workers Builds managed build-token path minimizes manual setup, but its default scope is broader than the routine deployment needs of a pure static Worker.
-
-PPF defines three Cloudflare security profiles:
-
-- **Profile A — Workers Builds Native**: native, low-manual-work reference default;
-- **Profile B — Hardened External CI**: GitHub Actions + account-owned per-Worker Editor token;
-- **Profile C — Future Native Granular**: ideal Workers Builds + account-owned per-Worker token combination once supported.
-
-See:
-
-`docs/CLOUDFLARE_SECURITY_PROFILES.md`
-
-## 8. Do not do these before preview validation
-
-- do not attach the final Custom Domain;
-- do not change DNS;
-- do not retire the old production site;
-- do not change the canonical URL;
-- do not treat preview as production cutover.
-
-If the live Cloudflare UI differs from this guide, do not guess. Re-read the current provider UI, current official documentation, and repository machine contract; verify actual build/runtime state; then update the dated Observed UI Mapping / runbook with the new observation.
+For the full minimal-human contract, see the Starter project-provisioning contract and Cloudflare handoff.
