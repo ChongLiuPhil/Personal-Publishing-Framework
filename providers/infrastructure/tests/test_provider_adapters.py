@@ -40,6 +40,30 @@ class AdapterTests(unittest.TestCase):
         methods = [call[1] for call in transport.calls]
         self.assertEqual(methods, ["GET", "PATCH", "GET"])
 
+    def test_github_user_repository_creation_uses_user_endpoint(self):
+        repo = "https://api.github.com/repos/alice/project"
+        create = "https://api.github.com/user/repos"
+        transport = FakeTransport({
+            ("GET", repo): (404, {"message": "not found"}),
+            ("POST", create): (201, {"id": 8, "private": True}),
+        })
+        adapter = GitHubAdapter(ApiClient("https://api.github.com", "token", transport))
+        result = adapter.ensure_repository("alice", "project", "private", owner_type="user")
+        self.assertEqual(result["id"], 8)
+        self.assertEqual([x[1] for x in transport.calls], ["GET", "POST"])
+
+    def test_github_organization_repository_creation_uses_org_endpoint(self):
+        repo = "https://api.github.com/repos/research-org/project"
+        create = "https://api.github.com/orgs/research-org/repos"
+        transport = FakeTransport({
+            ("GET", repo): (404, {"message": "not found"}),
+            ("POST", create): (201, {"id": 9, "private": True}),
+        })
+        adapter = GitHubAdapter(ApiClient("https://api.github.com", "token", transport))
+        result = adapter.ensure_repository("research-org", "project", "private", owner_type="organization")
+        self.assertEqual(result["id"], 9)
+        self.assertEqual([x[1] for x in transport.calls], ["GET", "POST"])
+
     def test_existing_github_repository_is_not_mutated_twice(self):
         base = "https://api.github.com/repos/a/b"
         transport = FakeTransport({("GET", base): (200, {"private": True, "id": 7})})
