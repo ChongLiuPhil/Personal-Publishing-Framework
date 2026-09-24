@@ -39,7 +39,7 @@ Human
 
 ## 2. 一次性 GitHub 平台授权
 
-优先使用专门的 GitHub organization，或其他范围清楚的 App installation scope。
+使用边界清楚的 GitHub user account 或 organization scope。
 
 Provisioning GitHub App 只申请实现真正需要的权限。典型 repository permission 包括：
 
@@ -55,27 +55,28 @@ Metadata: read
 
 实际权限必须根据实现的具体 API 操作复核，不能为了方便扩大。
 
+Credential type 必须与 repository owner 匹配：
+
+- personal user owner -> 使用 GitHub App user access token（或其他受支持的 user-authorized fine-grained token）调用 `POST /user/repos`；
+- organization owner -> 可使用 GitHub App installation access token 或 user access token 调用 `POST /orgs/{org}/repos`。
+
+Project infrastructure manifest 显式记录 `github.ownerType`；不要为了判断 user/org 而让 installation token 去调用不适用的 identity endpoint。
+
 完成标准：
 
 > Provisioner 能在已批准范围内创建和配置 private project repository，而不要求人类逐仓库重新授权。
 
-不要为了方便把 App 安装到无关 organization/account。
+不要为了方便授权无关 account。
 
 ## 3. 一次性 Cloudflare 平台授权
 
 通过 API token、OAuth 或执行客户端支持的 Cloudflare 官方 MCP，建立一个 Cloudflare provisioning principal。
 
-该平台身份可能需要：
-
-- 检查 account 与 Worker inventory；
-- 读取 Access application；
-- 创建 Worker metadata；
-- 创建 account-owned API token；
-- 读取 deployment / observability 状态；
-- 在另有授权时创建或修改 Access application；
-- 只有在明确得到 domain/DNS authority 时才绑定域名。
+该平台身份可能需要检查 account / Worker inventory、读取 Access application、创建 Worker metadata、读取 deployment / observability state、在另有授权时修改 Access，以及只在明确得到 domain/DNS authority 时绑定域名。
 
 新建 Worker 需要 Workers product-level Admin。日常 project deployment 不能继续使用这一广泛身份。
+
+创建 **account-owned API token** 的 authority 更高：Cloudflare 当前 account-token API 对 token 创建/更新要求 Super Administrator authority。这项 authority 必须隔离在 trusted Secret Broker / provisioning service 内，不能授予 project CI 或语言模型面对的 Agent。
 
 完成标准：
 
