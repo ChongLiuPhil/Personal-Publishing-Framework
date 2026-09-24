@@ -93,7 +93,7 @@ The first reference implementation is expected to use:
 - HTML as the default continuously published format
 - GitHub Actions as an independent validation gate
 - a repository-owned `make web-publish-check` as the canonical Web publication gate
-- Cloudflare Workers Builds + the GitHub App as the default reference delivery integration for new projects; Cloudflare Pages remains supported for existing projects
+- GitHub Actions + a project-scoped Cloudflare account-owned token as the preferred delivery path for **new agent-provisioned projects**; Workers Builds + the Cloudflare GitHub App remains the operational provider-native profile with real pilot evidence, and Cloudflare Pages remains supported for existing projects
 - `project.infrastructure.json` as the machine-readable GitHub/Cloudflare desired-state manifest, with private-by-default visibility and a read-only reconciliation planner
 - Cloudflare Workers Static Assets as a Web delivery layer
 - EPUB, PDF, DOCX, and LaTeX as on-demand publication artifacts
@@ -133,8 +133,8 @@ It implements the PPF model as:
 ```text
 Git canonical source
 -> repository-owned Web gate
--> GitHub Actions independent validation
--> Cloudflare Workers Builds
+-> GitHub Actions validation + authorized deployment
+-> project-scoped Cloudflare Worker Editor credential
 -> Cloudflare Workers Static Assets
 
 explicit request
@@ -148,7 +148,7 @@ The reference implementation is intentionally separate from the normative specif
 
 **Working version: v0.1.0-draft**
 
-The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, and a reusable Workers Builds ↔ GitHub integration extracted from that pilot. PPF now continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md` and `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`.
+The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, the verified Workers Builds native path, and an implemented `agent-provisioned-external-ci` reference profile for future low-touch project creation. The external-CI profile still requires one clean end-to-end new-project pilot before it may be called production-accepted. PPF continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md`, `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`, and `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`.
 
 
 For the reusable GitHub–Cloudflare desired-state and reconciliation contract, see [`docs/GITHUB_CLOUDFLARE_INTEGRATION.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.md).
@@ -169,7 +169,7 @@ For projects that need to compose AHICP with PPF and the public Vault Interface,
 
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter
 
-The Starter handles composition, revision locking, checks, and upgrade planning only. This repository remains authoritative for its own specification and templates.
+The Starter handles composition, revision locking, project-provisioning intent, checks, and upgrade planning. PPF remains authoritative for the executable publishing and provider-infrastructure implementation.
 
 ## Licensing
 
