@@ -59,10 +59,22 @@ def plan_reconciliation(
                 blockers.append("Repository publication requires explicit approval and all publicationReleaseGate checks.")
 
     if not cloudflare.get("workerExists", False):
-        op("create-worker", "Worker is absent; create it only after checking the account inventory and target slug.")
-    if not cloudflare.get("accountWideProtection", False):
-        blockers.append("BOOTSTRAP_REQUIRED: account-wide Access protection is not verified; do not create public bypasses or claim private readiness.")
-    if cloudflare.get("accountWideProtection") is True and cloudflare.get("workerExists"):
+        op("create-worker", "Worker is absent; create or import it from the intended repository before claiming deployment readiness.")
+
+    access_mode = desired_cf["accessMode"]
+    if access_mode == "account-wide-access":
+        access_ready = cloudflare.get("accountWideProtection") is True
+        if not access_ready:
+            blockers.append("BOOTSTRAP_REQUIRED: account-wide Access protection is not verified.")
+    else:
+        access_ready = cloudflare.get("workerScopedProtection") is True
+        if cloudflare.get("workerExists") and not access_ready:
+            blockers.append("PROJECT_ACCESS_REQUIRED: protect the target Worker with Cloudflare Access before claiming private readiness.")
+            op("protect-target-worker", "Enable Worker-scoped Cloudflare Access for production and previews, then verify anonymous denial.")
+        elif not cloudflare.get("workerExists"):
+            op("protect-target-worker-after-creation", "After the Worker exists, enable Worker-scoped Cloudflare Access before treating the Web publication as private.")
+
+    if access_ready and cloudflare.get("workerExists"):
         if cloudflare.get("applicationVisibility") != desired_cf["applicationVisibility"]:
             observed = cloudflare.get("applicationVisibility")
             wanted = desired_cf["applicationVisibility"]
@@ -107,7 +119,9 @@ def plan_reconciliation(
         "repositoryVisibility": {"desired": desired_github["repositoryVisibility"], "actual": github.get("repositoryVisibility")},
         "applicationVisibility": {"desired": desired_cf["applicationVisibility"], "actual": cloudflare.get("applicationVisibility")},
         "previewVisibility": {"desired": desired_cf["previewVisibility"], "actual": cloudflare.get("previewVisibility")},
+        "accessMode": desired_cf["accessMode"],
         "accountWideProtection": cloudflare.get("accountWideProtection"),
+        "workerScopedProtection": cloudflare.get("workerScopedProtection"),
         "securityDrift": security_drift,
         "blockers": list(dict.fromkeys(blockers)),
         "warnings": list(dict.fromkeys(warnings)),
