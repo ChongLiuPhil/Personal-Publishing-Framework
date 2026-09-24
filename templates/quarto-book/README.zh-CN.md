@@ -8,15 +8,14 @@
 QMD / Markdown / BibTeX
         |
         +--> GitHub Actions
-        |      make web-publish-check
-        |      (独立质量验证)
+        |      validation -> make web-publish-check
+        |      deployment -> durable publication authorization gate
+        |                 -> project-scoped Worker Editor credential
+        |                 -> wrangler deploy
         |
-        +--> Cloudflare Workers Builds
-        |      bash scripts/cloudflare_build.sh
-        |        -> pinned Quarto
-        |        -> make web-publish-check
-        |      preview -> wrangler versions upload
-        |      main    -> wrangler deploy
+        +--> Cloudflare Worker
+        |      account-wide Access baseline
+        |      restricted by default
         |
         +--> 明确请求
                EPUB / PDF / DOCX / LaTeX
@@ -40,26 +39,18 @@ GitHub Actions 与 Cloudflare Workers Builds 都调用这一 gate，避免维护
 
 ## GitHub Actions 的职责
 
-`.github/workflows/web.yml` 只做独立 validation：
+`.github/workflows/web.yml` 负责独立 validation：
 
 - checkout；
 - Python；
 - Quarto；
 - `make web-publish-check`。
 
-它**不**持有 Cloudflare token，也不负责 Cloudflare production deployment。
+`.github/workflows/deploy-cloudflare.yml` 是首选 External-CI Profile 的 production deployment workflow。它读取持久化 `publishing.yaml`，只有 Web deployment 同时处于 authorized + enabled 时才构建并使用 repository-scoped Cloudflare secrets 执行 `wrangler deploy`；否则保持 no-op。
 
-`.github/workflows/cloudflare-contract-ci.yml` 进一步模拟 Workers Builds 环境：
+`.github/workflows/cloudflare-contract-ci.yml` 从干净 runner 验证锁定的 Cloudflare/Wrangler build contract，但不会部署。
 
-- Node 24；
-- Wrangler 4.135.0；
-- Python；
-- checksum-verified Quarto 1.10.18；
-- `make cloudflare-build`。
-
-这个 workflow 仍然**不会部署**；它证明模板从空白 runner 能够构建。
-
-## Workers Builds 机器契约
+## Cloudflare integration 机器契约
 
 `cloudflare-builds.yaml` 记录 PPF reference implementation 期望的 account-side 配置：
 
@@ -77,7 +68,7 @@ GitHub Actions 与 Cloudflare Workers Builds 都调用这一 gate，避免维护
 
 **Cloudflare 不会自动读取这个 YAML。**
 
-它是 PPF 的 machine contract，供 AI Agent 或人类操作者把参数配置到 Cloudflare Workers Builds。
+它是 PPF machine contract，供 Agent / Provisioner 与 CI 使用。首选 External-CI Profile 中，它描述 GitHub Actions deployment、Secret Broker 边界、Worker creation authority 与 Access 前置条件；Native Profile 中仍可描述 Workers Builds 配置。
 
 ## Source visibility / publication visibility / access / canonical identity
 
@@ -123,27 +114,28 @@ restricted Web + authenticated access
 
 该文件是 dated provider reference，不是 PPF conformance requirement。
 
-## 推荐账户接入
+## 推荐平台接入
 
-默认参考路线：
+未来 Agent 自动配置的新项目，首选路线是：
 
 ```text
-AI Agent
-   |
-   +--> Cloudflare OAuth / MCP
-
-Cloudflare
-   |
-   +--> Workers Builds
-            |
-            +--> Cloudflare GitHub App
-                    |
-                    +--> selected repository
+一次 GitHub provisioning authorization
++ 一次 Cloudflare provisioning authorization
+        |
+        v
+Project Provisioner
+-> private repository
+-> protected Worker
+-> secret broker
+-> GitHub Actions deploy
 ```
 
-详细无技术背景操作说明：
+已批准平台范围内的新 repository 不应再次要求 Cloudflare GitHub App 授权。
 
-`docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`
+详见：
+
+- `docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`
+- `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`
 
 真实 UI 字段只是 dated implementation observation。2026-09-19 pilot 的 Observed UI Mapping 见：
 
@@ -151,12 +143,7 @@ Cloudflare
 
 如果 provider UI 与该映射不同，不得猜；应重新读取当前 UI、official docs 与 downstream machine contract，并通过实际 build/runtime state 反向验证。
 
-当 AI 客户端支持 Cloudflare MCP 时，理想的人类动作只剩：
-
-1. 授权 AI ↔ Cloudflare；
-2. 授权 Cloudflare ↔ 指定 GitHub repository。
-
-其余 Worker / Builds / trigger / preview 配置应尽量由 AI 根据机器契约完成。
+当执行环境具备 Cloudflare MCP/API 与 GitHub App/API 能力时，人类通常只需完成两项平台级授权。随后 Agent 在已批准范围内配置后续项目。Public release、新 reader scope、新 domain/DNS authority 与 permission expansion 继续保持独立 human gate。
 
 ## Cloudflare security profiles
 
@@ -164,17 +151,15 @@ Workers Builds 的原生 Git integration 与真正 per-Worker least privilege �
 
 PPF reference 提供：
 
-- **Profile A — Workers Builds Native**：默认参考路线，最低人工成本，但 managed user build token scope 比纯 static Worker 所需更宽；
-- **Profile B — Hardened External CI**：GitHub Actions + account-owned individual-Worker `Editor` token；
-- **Profile C — Future Native Granular**：等待 Workers Builds 支持 account-owned per-Worker token。
+- **Profile A — Workers Builds Native**：已有真实 pilot 证据的 provider-native Profile，但 build-token scope 较宽；
+- **Profile B — Agent-Provisioned External CI**：未来新项目自动配置的首选 Profile；GitHub Actions + trusted secret broker 安装的 account-owned individual-Worker `Editor` token；
+- **Profile C — Future Native Granular**：等待 Workers Builds 支持 account-owned per-Worker token 的未来原生组合。
 
 详见：
 
 `docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
 
-正式 production cutover 前，应由项目责任人明确采用的 security profile。
-
-其中 Profile B 在首个真实 pilot 中仅验证到 **candidate / validate-only PASS**；没有配置 account-owned deployment credential，也没有执行 Profile B production deployment，因此不得写成 production-tested。
+模板现在为 Agent 自动配置的新项目选择 Profile B。Repository implementation 与 CI validation 已存在，但还没有记录一次从空白项目开始的 Profile B production acceptance；在该 pilot 通过前不得写成 production-tested。
 
 ## Runtime verification reference
 
@@ -198,13 +183,13 @@ python scripts/verify_public_site.py https://example.invalid \
 
 这些 gate 应由 downstream 项目根据实际结构补充。
 
-## 外部 CI fallback
+## External CI 是新项目 Provisioning 默认
 
-如果项目不能使用 Workers Builds Git integration，或项目明确要求 per-Worker least privilege，可以采用：
+可安装模板现在为 Agent 自动配置的新项目采用：
 
-`GitHub Actions + Wrangler + scoped Cloudflare token`
+`GitHub Actions + Wrangler + account-owned individual-Worker Editor token`
 
-这仍然是支持的实现，但不是本模板的默认路径。
+Workers Builds Native 继续作为明确选择的 provider-native Profile，也是当前已有真实 pilot 证据的路径。
 
 任何 token：
 
@@ -242,11 +227,12 @@ Cloudflare build wrapper 不假设 provider 预装 Quarto。它下载固定 rele
 5. 根据项目增加 source/output validation；
 6. 替换示例 QMD、bibliography 与 assets；
 7. 运行 GitHub reference contract CI；
-8. 完成 Cloudflare OAuth / GitHub App account authorization；
-9. 先通过 preview / workers.dev 验证；
-10. 确认 private-source / restricted-Web 安全默认，或明确授权并记录任何有意偏离；
-11. 区分 provider URL 与 canonical identity；
-12. 最后才决定 Custom Domain、canonical URL 与 production cutover。
+8. 验证平台 GitHub / Cloudflare provisioning principal 与 account-wide Access baseline；
+9. 由 trusted secret broker 安装项目专属 Worker deployment credential，token 值不得进入模型；
+10. 先部署 restricted workers.dev 并验证匿名拒绝，再决定是否启用 Preview；
+11. 确认 private-source / restricted-Web 安全默认，或明确授权并记录有意偏离；
+12. 区分 provider URL 与 canonical identity；
+13. 最后才决定 Custom Domain、canonical URL 与 public cutover。
 
 ## 输出目录
 
