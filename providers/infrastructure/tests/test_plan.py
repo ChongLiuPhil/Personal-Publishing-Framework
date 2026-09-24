@@ -22,7 +22,7 @@ GATE = {
 
 def actual_state():
     return {
-        "github": {"repositoryExists": True, "repositoryId": "123", "repositoryVisibility": "private"},
+        "github": {"repositoryExists": True, "repositoryId": "123", "repositoryVisibility": "private", "deploymentSecrets": {"CLOUDFLARE_API_TOKEN": True, "CLOUDFLARE_ACCOUNT_ID": True}},
         "cloudflare": {
             "workerExists": True,
             "workerId": "sample-worker",
@@ -93,6 +93,19 @@ class ReconciliationPlanTests(unittest.TestCase):
         self.assertEqual(report["status"], "PLAN_READY")
         self.assertEqual(report["repositoryVisibility"]["desired"], "private")
         self.assertIn("add-worker-public-bypass", [op["operation"] for op in report["operations"]])
+
+    def test_external_ci_missing_project_secret_plans_secret_broker_operation(self):
+        actual = actual_state()
+        actual["github"]["deploymentSecrets"]["CLOUDFLARE_API_TOKEN"] = False
+        report = plan_reconciliation(self.desired, actual)
+        self.assertIn(
+            "install-project-scoped-deployment-credential",
+            [op["operation"] for op in report["operations"]],
+        )
+        self.assertNotIn(
+            "ensure-repository-connection",
+            [op["operation"] for op in report["operations"]],
+        )
 
     def test_account_wide_protection_failure_is_bootstrap_gate(self):
         actual = actual_state()
