@@ -76,6 +76,8 @@ class ProvisioningTests(unittest.TestCase):
         self.assertEqual(request["credential"]["scope"], "individual-worker")
         self.assertEqual(request["credential"]["role"], "Editor")
         self.assertTrue(request["rules"]["plaintextMustNotEnterModelContext"])
+        self.assertTrue(request["rules"]["existingSecretsMustNotBeOverwritten"])
+        self.assertTrue(request["rules"]["rollbackMustRevokeMintedToken"])
         self.assertNotIn("value", json.dumps(request).lower())
         schema = json.loads((REPO_ROOT / "schema/secret-broker-request.schema.json").read_text(encoding="utf-8"))
         self.assertEqual(list(Draft202012Validator(schema).iter_errors(request)), [])
