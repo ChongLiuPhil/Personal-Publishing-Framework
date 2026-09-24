@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "project": {
     "id": "replace-with-stable-project-id",
     "slug": "replace-with-project-slug"
@@ -20,10 +20,13 @@
     "customDomain": null
   },
   "deployment": {
-    "provider": "cloudflare-workers-builds",
+    "provider": "github-actions-cloudflare-workers",
     "productionBranch": "main",
-    "previewDeployments": true,
-    "previewProtection": true
+    "previewDeployments": false,
+    "previewProtection": true,
+    "securityProfile": "agent-provisioned-external-ci",
+    "credentialStrategy": "project-scoped-account-token",
+    "secretBroker": true
   },
   "release": {
     "state": "private",
