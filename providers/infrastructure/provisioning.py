@@ -111,7 +111,7 @@ class ProjectProvisioner:
                 owner,
                 repository,
                 "private",
-                owner_type=manifest["github"]["ownerType"],
+                owner_type=manifest["github"].get("ownerType", "user"),
             )
             completed.append("github.repository")
 
