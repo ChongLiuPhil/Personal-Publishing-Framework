@@ -126,24 +126,30 @@ class AccessAdapter:
             raise ProviderError("ACCESS_BASELINE_CONFLICT")
         return rows[0] if rows else None
 
-    def worker_state(self, worker_id: str, production_hostname: str) -> dict[str, Any]:
+    def worker_state(self, worker_id: str, production_hostname: str = "") -> dict[str, Any]:
         apps = self.inventory()
         baseline = self.account_baseline()
-        production_public = any(
+        worker_scoped = any(
+            dest.get("type") == "worker" and dest.get("worker_id") == worker_id
+            for app in apps for dest in app.get("destinations", [])
+        )
+        production_public = bool(production_hostname) and any(
             dest.get("type") == "public" and dest.get("uri") == production_hostname
             and any(policy.get("decision") == "bypass" for policy in app.get("policies", []))
             for app in apps for dest in app.get("destinations", [])
         )
-        preview_protected = baseline is not None or any(
+        preview_protected = baseline is not None or worker_scoped or any(
             dest.get("type") in {"all_preview_workers", "preview_worker"}
             and (dest.get("type") == "all_preview_workers" or dest.get("worker_id") == worker_id)
             for app in apps for dest in app.get("destinations", [])
         )
+        private_protection = baseline is not None or worker_scoped
         return {
             "accountWideProtection": baseline is not None,
             "accountWideAccessAppId": baseline.get("id") if baseline else None,
-            "applicationVisibility": "public" if production_public else "private" if baseline else None,
-            "previewVisibility": "private" if preview_protected else None,
+            "workerScopedProtection": worker_scoped,
+            "applicationVisibility": "public" if production_public else "private" if private_protection else "public",
+            "previewVisibility": "private" if preview_protected else "public",
             "publicExceptionAppExists": production_public,
         }
 

@@ -1,7 +1,7 @@
 """Provider-backed doctor/plan/apply/verify/rollback orchestration.
 
-The account-wide Access baseline is intentionally an owner-operated UI gate. Per-project
-operations refuse to run until the baseline is discovered and verified.
+Private projects may use Worker-scoped Access or an account-wide Access baseline.
+Access changes that broaden publication remain owner-operated human gates.
 """
 from __future__ import annotations
 import argparse
@@ -67,15 +67,17 @@ class Coordinator:
                 actual["github"]["deploymentSecrets"] = None
                 actual["github"]["deploymentSecretReadError"] = exc.code
         try:
-            hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME")
-            if worker and hostname:
+            hostname = os.environ.get("PPF_PRODUCTION_HOSTNAME", "")
+            if worker:
                 actual["cloudflare"].update(self.access.worker_state(worker.get("id", ""), hostname))
-                public_probe = _anonymous_probe("https://" + hostname.removeprefix("https://").removeprefix("http://"))
-                actual["cloudflare"]["publicAnonymousReachable"] = public_probe.get("statusCode") == 200
+                if hostname:
+                    public_probe = _anonymous_probe("https://" + hostname.removeprefix("https://").removeprefix("http://"))
+                    actual["cloudflare"]["publicAnonymousReachable"] = public_probe.get("statusCode") == 200
             else:
                 baseline = self.access.account_baseline()
                 actual["cloudflare"]["accountWideProtection"] = baseline is not None
                 actual["cloudflare"]["accountAccessAppId"] = baseline.get("id") if baseline else None
+                actual["cloudflare"]["workerScopedProtection"] = False
             control_url = os.environ.get("PPF_CONTROL_WORKER_URL")
             if control_url:
                 probe = _anonymous_probe("https://" + control_url.removeprefix("https://").removeprefix("http://"))
@@ -98,14 +100,25 @@ class Coordinator:
 
     def doctor(self, manifest: dict[str, Any]) -> dict[str, Any]:
         actual = self.read_actual(manifest)
-        baseline = actual["cloudflare"]["accountWideProtection"]
+        cloudflare = actual["cloudflare"]
+        mode = manifest["cloudflare"]["accessMode"]
+        if cloudflare.get("accessReadError"):
+            status = "ACCESS_READ_BLOCKED"
+        elif mode == "account-wide-access":
+            status = "READY" if cloudflare.get("accountWideProtection") is True else "ACCOUNT_ACCESS_REQUIRED"
+        elif not cloudflare.get("workerExists"):
+            status = "WORKER_DEPLOYMENT_REQUIRED"
+        else:
+            status = "READY" if cloudflare.get("workerScopedProtection") is True else "WORKER_ACCESS_REQUIRED"
         return {
-            "status": "READY" if baseline is True else "ACCOUNT_ACCESS_REQUIRED" if baseline is False else "ACCESS_READ_BLOCKED",
+            "status": status,
             "projectId": manifest["project"]["id"],
             "workerInventory": actual["inventory"]["workerNames"],
-            "targetWorkerExists": actual["cloudflare"]["workerExists"],
-            "accountWideAccess": baseline,
-            "accessReadError": actual["cloudflare"].get("accessReadError"),
+            "targetWorkerExists": cloudflare["workerExists"],
+            "accessMode": mode,
+            "accountWideAccess": cloudflare.get("accountWideProtection"),
+            "workerScopedAccess": cloudflare.get("workerScopedProtection"),
+            "accessReadError": cloudflare.get("accessReadError"),
             "actual": actual,
             "mutationsApplied": False,
         }
@@ -122,10 +135,17 @@ class Coordinator:
         if report["blockers"]:
             return {"status": "BLOCKED", "completed": [], "report": report,
                     "blocker": "RELEASE_OR_SECURITY_GATE"}
-        if before["cloudflare"].get("accountWideProtection") is not True:
+        worker = before["cloudflare"]
+        access_mode = manifest["cloudflare"]["accessMode"]
+        if access_mode == "account-wide-access" and worker.get("accountWideProtection") is not True:
             return {"status": "BLOCKED", "completed": [], "report": report,
                     "blocker": "ACCOUNT_ACCESS_REQUIRED"}
-        worker = before["cloudflare"]
+        if access_mode == "worker-scoped-access" and worker.get("workerExists") and worker.get("workerScopedProtection") is not True:
+            return {"status": "BLOCKED", "completed": [], "report": report,
+                    "blocker": "WORKER_ACCESS_REQUIRED"}
+        if access_mode == "worker-scoped-access" and manifest["cloudflare"]["applicationVisibility"] == "public":
+            return {"status": "BLOCKED", "completed": [], "report": report,
+                    "blocker": "WORKER_ACCESS_PUBLICATION_UI_REQUIRED"}
         if not worker.get("workerExists"):
             return {"status": "BLOCKED", "completed": [], "report": report,
                     "blocker": "WORKER_DEPLOYMENT_REQUIRED"}

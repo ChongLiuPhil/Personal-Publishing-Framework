@@ -3,13 +3,13 @@
 **Status:** implemented reference profile; live new-project acceptance pending  
 **Profile id:** `agent-provisioned-external-ci`
 
-This profile is the preferred path when the objective is to create future projects with minimal repeated human involvement while keeping routine deployment credentials scoped to one existing Worker.
+This profile is an optional advanced path when a project specifically prioritizes minimal repeated human involvement and one-Worker deployment credentials over the simpler per-project Workers Builds setup.
 
 It complements, rather than deletes, the provider-native Workers Builds profile.
 
 ## 1. Target experience
 
-After platform bootstrap, a human should be able to give an agent a project request and let the agent perform the routine infrastructure work:
+When this advanced profile has completed its platform bootstrap, a human should be able to give an agent a project request and let the agent perform the routine infrastructure work:
 
 ```text
 project request
@@ -166,7 +166,7 @@ Public release uses the separate PPF publication gate and must not be inferred f
 
 It is appropriate when minimal provider setup is more important than one-Worker credential isolation. Workers Builds currently uses a user-token model for build credentials.
 
-The external-CI profile is preferred for agent-provisioned projects because the provisioning principal can create the Worker first and then install a token scoped to that Worker only.
+The external-CI profile remains attractive for deliberately agent-provisioned projects because the provisioning principal can create the Worker first and then install a token scoped to that Worker only. It is not the default onboarding path for ordinary personal-account projects.
 
 ## 10. Current evidence boundary
 

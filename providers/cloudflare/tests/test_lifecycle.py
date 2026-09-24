@@ -62,7 +62,7 @@ class ContractTests(unittest.TestCase):
         policy = provider.yaml.safe_load(contract.read_text(encoding="utf-8"))
         self.assertFalse(policy["git"]["non_production_branch_builds"])
         self.assertFalse(policy["preview"]["enabled_by_default"])
-        self.assertIn("account-wide-access-verified", policy["preview"]["enable_only_after"])
+        self.assertIn("access-protection-verified", policy["preview"]["enable_only_after"])
         self.assertIn("preview-anonymous-denial-verified", policy["preview"]["enable_only_after"])
         self.assertNotIn("shared-password", policy["access_modes"])
 

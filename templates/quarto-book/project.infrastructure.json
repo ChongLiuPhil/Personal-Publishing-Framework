@@ -16,18 +16,18 @@
     "worker": "replace-with-project-slug",
     "applicationVisibility": "private",
     "previewVisibility": "private",
-    "accessMode": "account-wide-access",
+    "accessMode": "worker-scoped-access",
     "publicBypass": false,
     "customDomain": null
   },
   "deployment": {
-    "provider": "github-actions-cloudflare-workers",
+    "provider": "cloudflare-workers-builds",
     "productionBranch": "main",
     "previewDeployments": false,
     "previewProtection": true,
-    "securityProfile": "agent-provisioned-external-ci",
-    "credentialStrategy": "project-scoped-account-token",
-    "secretBroker": true
+    "securityProfile": "workers-builds-native",
+    "credentialStrategy": "provider-managed-user-token",
+    "secretBroker": false
   },
   "release": {
     "state": "private",

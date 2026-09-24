@@ -3,7 +3,7 @@
 **状态：** 已实现的参考 Profile；全新项目线上验收仍待完成  
 **Profile id：** `agent-provisioned-external-ci`
 
-当目标是让未来新项目尽量不重复要求人类操作，同时把日常部署权限严格限制在单个已有 Worker 上时，本 Profile 是首选路径。
+当某个项目明确优先要求“尽量不重复人工操作 + 日常部署权限严格限制到单个 Worker”，并愿意维护额外基础设施时，本 Profile 是高级可选路径；普通个人账号新项目默认采用更简单的每项目 Workers Builds 配置。
 
 它补充而不是删除原生 Workers Builds Profile。
 
@@ -164,13 +164,13 @@ restricted 项目不能因为 CI 成功就宣称完成。必须确认：
 
 当最少 Provider 配置比单 Worker 权限隔离更重要时仍可采用。Workers Builds 当前 build credential 仍采用 user-token 模型。
 
-Agent 自动配置的新项目优先 external-CI，因为 Provisioner 可以先创建 Worker，再给该 Worker 安装精确范围的部署 token。
+对明确选择高级 Agent Provisioning 的项目，external-CI 仍有优势，因为 Provisioner 可以先创建 Worker，再给该 Worker 安装精确范围的部署 token；但它不再是普通个人账号新项目的默认接入路线。
 
 ## 10. 当前证据边界
 
 仓库实现与 CI 能证明契约内部一致。Project Provisioner 与原子 Secret Broker 编排已经实现并可测试，但 Cloudflare granular-token issuer adapter 仍需真实 Provider acceptance；这些证据仍不能证明“新建项目端到端线上路径”已经真实通过。
 
-把本 Profile 从“已实现参考 Profile”升级为“已验证默认”之前，必须用一个全新项目完成：
+把本 Profile 从“已实现高级可选 Profile”升级为“production-accepted”之前，必须用一个全新项目完成：
 
 ```text
 新 private repo

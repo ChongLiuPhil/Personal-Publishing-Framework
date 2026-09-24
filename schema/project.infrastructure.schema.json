@@ -105,7 +105,10 @@
           ]
         },
         "accessMode": {
-          "const": "account-wide-access"
+          "enum": [
+            "worker-scoped-access",
+            "account-wide-access"
+          ]
         },
         "publicBypass": {
           "type": "boolean"

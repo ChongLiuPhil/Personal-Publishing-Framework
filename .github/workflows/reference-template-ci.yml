@@ -86,16 +86,26 @@ jobs:
           broker_schema = json.loads(Path("../../schema/secret-broker-request.schema.json").read_text(encoding="utf-8"))
           Draft202012Validator.check_schema(broker_schema)
           infra = json.loads(Path("project.infrastructure.json").read_text(encoding="utf-8"))
-          if infra["deployment"]["provider"] != "github-actions-cloudflare-workers":
-              raise SystemExit("reference template must use external CI provisioning")
-          if infra["deployment"]["securityProfile"] != "agent-provisioned-external-ci":
-              raise SystemExit("reference template has wrong provisioning security profile")
+          if infra["deployment"]["provider"] != "cloudflare-workers-builds":
+              raise SystemExit("reference template must use Workers Builds native by default")
+          if infra["deployment"]["securityProfile"] != "workers-builds-native":
+              raise SystemExit("reference template has wrong default security profile")
+          if infra["deployment"]["credentialStrategy"] != "provider-managed-user-token":
+              raise SystemExit("reference template has wrong default credential strategy")
+          if infra["deployment"]["secretBroker"] is not False:
+              raise SystemExit("native default must not require the Secret Broker")
+          if infra["cloudflare"]["accessMode"] != "worker-scoped-access":
+              raise SystemExit("reference template must default to per-project Worker Access")
           contract = yaml.safe_load(Path("cloudflare-builds.yaml").read_text(encoding="utf-8"))
-          if contract.get("mode") != "github-actions-external-ci":
-              raise SystemExit("Cloudflare integration contract has wrong mode")
+          if contract.get("mode") != "workers-builds-git":
+              raise SystemExit("Cloudflare integration contract must default to Workers Builds Git")
+          if contract.get("git", {}).get("non_production_branch_builds") is not False:
+              raise SystemExit("default native profile must keep non-production builds disabled")
           external = contract.get("external_ci", {})
+          if external.get("status") != "optional-advanced":
+              raise SystemExit("external CI must remain an optional advanced profile")
           if external.get("workflow") != ".github/workflows/deploy-cloudflare.yml":
-              raise SystemExit("external CI workflow path drifted")
+              raise SystemExit("optional external CI workflow path drifted")
           workflow = Path(".github/workflows/deploy-cloudflare.yml").read_text(encoding="utf-8")
           try:
               parsed = yaml.safe_load(workflow)

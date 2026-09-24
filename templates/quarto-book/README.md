@@ -9,12 +9,11 @@ QMD / Markdown / BibTeX
         |
         +--> GitHub Actions
         |      validate -> make web-publish-check
-        |      deploy   -> durable publication authorization gate
-        |               -> project-scoped Worker Editor credential
-        |               -> wrangler deploy
         |
-        +--> Cloudflare Worker
-        |      account-wide Access baseline
+        +--> Cloudflare Workers Builds
+        |      connected private GitHub repository
+        |      build -> deploy on main push
+        |      Worker-scoped Access by default
         |      restricted by default
         |
         +--> explicit request
@@ -46,7 +45,7 @@ GitHub Actions and Cloudflare Workers Builds both call the same gate so validati
 - Quarto;
 - `make web-publish-check`.
 
-`.github/workflows/deploy-cloudflare.yml` is the authorized production deployment workflow for the preferred external-CI profile. It reads the durable `publishing.yaml` state, remains a no-op until Web deployment is both authorized and enabled, then builds and runs `wrangler deploy` with repository-scoped Cloudflare secrets.
+`.github/workflows/deploy-cloudflare.yml` is retained for the optional advanced external-CI profile. It is not the default production path. The default path uses Cloudflare Workers Builds after the project repository has been connected once.
 
 `.github/workflows/cloudflare-contract-ci.yml` validates the locked Cloudflare/Wrangler build contract from a clean runner. It does **not** deploy.
 
@@ -68,7 +67,7 @@ GitHub Actions and Cloudflare Workers Builds both call the same gate so validati
 
 **Cloudflare does not automatically consume this YAML file.**
 
-It is a PPF machine contract used by the Agent/provisioner and CI. In the preferred external-CI profile it describes GitHub Actions deployment, the secret-broker boundary, Worker creation authority, and the Access precondition; in the native profile it can still describe Workers Builds configuration.
+It is a PPF machine contract used by the Agent and CI. The reference default describes Workers Builds Git integration, the one-time project connection, Worker-scoped Access, and preview safety. The optional `external_ci` block preserves the hardened GitHub Actions + Trusted Secret Broker profile.
 
 ## Source visibility / publication visibility / access / canonical identity
 
@@ -114,52 +113,40 @@ When restricted/private Web access is needed, the Cloudflare reference may use C
 
 That file is a dated provider reference, not a PPF conformance requirement.
 
-## Recommended platform connection
+## Recommended project connection
 
-For future Agent-provisioned projects, the preferred route is:
+For an ordinary new project, the preferred route is:
 
 ```text
-one GitHub provisioning authorization
-+ one Cloudflare provisioning authorization
-        |
-        v
-Project Provisioner
--> private repository
--> protected Worker
--> secret broker
--> GitHub Actions deploy
+private GitHub repository
+-> one project-level Cloudflare Git authorization
+-> Workers Builds
+-> Worker-scoped Access
+-> verify first restricted deployment
+-> make a second push
+-> confirm automatic redeployment without renewed authorization
 ```
 
-A new repository inside the already approved scope should not require another Cloudflare GitHub App authorization.
+This deliberately allows a short human bootstrap once per project. Account-wide automation is optional, not required.
 
 See:
 
-- `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`
+- `docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md`
 - `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`
 
-Live UI fields are only dated implementation observations. The Observed UI Mapping from the 2026-09-19 pilot is documented in:
-
-`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md`
-
-If provider UI differs, do not guess. Re-read the current UI, official documentation, and downstream machine contract, then verify through actual build/runtime state.
-
-When the execution environment supports Cloudflare MCP/API and GitHub App/API capabilities, the human role should normally reduce to the two platform authorizations. The Agent then provisions later projects inside those approved scopes. Public release, new reader scope, new domain/DNS authority, and permission expansion remain separate human gates.
+Live UI fields are dated implementation observations. If provider UI differs, do not guess: re-read current official documentation and verify against actual build/runtime state.
 
 ## Cloudflare security profiles
 
-Native Workers Builds Git integration and true per-Worker least privilege are not currently the same Cloudflare path.
+Native Workers Builds Git integration and true per-Worker least-privilege deployment credentials are still different Cloudflare paths.
 
 The PPF reference provides:
 
-- **Profile A — Workers Builds Native**: operational provider-native profile with real pilot evidence, but broader build-token scope;
-- **Profile B — Agent-Provisioned External CI**: preferred new-project automation profile; GitHub Actions + account-owned individual-Worker `Editor` token through a trusted secret broker;
-- **Profile C — Future Native Granular**: future native combination once Workers Builds supports account-owned per-Worker tokens.
+- **Profile A — Workers Builds Native**: **default guided project setup**, real-pilot verified, provider-managed build credential with broader-than-ideal scope;
+- **Profile B — Agent-Provisioned External CI**: optional advanced profile using GitHub Actions + account-owned individual-Worker `Editor` token through a trusted Secret Broker;
+- **Profile C — Future Native Granular**: future native combination if Workers Builds gains the required account-owned per-Worker credential path.
 
-See:
-
-`docs/CLOUDFLARE_SECURITY_PROFILES.md`
-
-The template now selects Profile B for new Agent-provisioned projects. Repository implementation and CI validation are present, but no clean new-project Profile B production acceptance has yet been recorded; it must not be described as production-tested until that pilot succeeds.
+The installable template selects Profile A by default. Profile B remains implemented but must not be described as production-accepted until its live Provider acceptance is complete.
 
 ## Runtime verification reference
 
@@ -183,20 +170,17 @@ It does **not** replace:
 
 Downstream projects should add those gates for their actual structure.
 
-## External CI is the new-project provisioning default
+## Workers Builds Native is the new-project default
 
-The installable template now uses:
+The installable template now uses the native Workers Builds Git integration for ordinary new projects. The user may complete one short project connection and Access setup; after that, normal pushes should deploy automatically.
 
-`GitHub Actions + Wrangler + account-owned individual-Worker Editor token`
+The advanced external-CI profile remains available when stronger credential isolation is worth the additional infrastructure.
 
-for Agent-provisioned new projects. Workers Builds Native remains supported as an explicit provider-native profile and as the currently verified real pilot.
-
-Any token:
+Any credential:
 
 - must not enter Git;
 - must not be written into chat or README files;
-- should use the least privilege needed;
-- should separate one-time provisioning authority from recurring deployment authority.
+- should use the least privilege supported by the selected profile.
 
 ## Pinned toolchain
 
@@ -229,12 +213,13 @@ Before adopting the template:
 5. add project-specific source/output validation;
 6. replace sample QMD, bibliography, and assets;
 7. pass the GitHub reference contract CI;
-8. verify the platform GitHub and Cloudflare provisioning principals and the account-wide Access baseline;
-9. let the trusted secret broker install the project-scoped Worker deployment credential without exposing its value;
-10. run the restricted workers.dev deployment and verify anonymous denial before enabling previews;
-11. confirm the private-source / restricted-Web safety defaults, or explicitly authorize and record any intended deviation;
-12. distinguish provider URL from canonical identity;
-13. only then decide Custom Domain, canonical URL, and public cutover.
+8. connect the private repository to Cloudflare Workers Builds and authorize that repository if prompted;
+9. protect the Worker with Worker-scoped Access, or verify an already-existing account-wide Access policy;
+10. run the first restricted deployment and verify anonymous denial before enabling previews;
+11. make a second harmless push and confirm Workers Builds redeploys without renewed authorization;
+12. confirm the private-source / restricted-Web safety defaults, or explicitly authorize and record any intended deviation;
+13. distinguish provider URL from canonical identity;
+14. only then decide Custom Domain, canonical URL, and public cutover.
 
 ## Output directories
 

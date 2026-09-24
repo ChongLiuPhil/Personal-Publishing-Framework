@@ -54,8 +54,14 @@ def validate_semantics(manifest: dict[str, Any]) -> None:
         raise ValueError("policy.privateByDefault must remain true")
     if cloudflare["applicationVisibility"] == "private" and cloudflare["publicBypass"]:
         raise ValueError("a private Worker must not have a public bypass")
-    if cloudflare["applicationVisibility"] == "public" and not cloudflare["publicBypass"]:
+    if (
+        cloudflare["accessMode"] == "account-wide-access"
+        and cloudflare["applicationVisibility"] == "public"
+        and not cloudflare["publicBypass"]
+    ):
         raise ValueError("a public Worker under account-wide Access requires a Worker-specific public bypass")
+    if cloudflare["accessMode"] == "worker-scoped-access" and cloudflare["publicBypass"]:
+        raise ValueError("worker-scoped Access must not declare an account-wide public bypass")
     if cloudflare["previewVisibility"] == "private" and not deployment["previewProtection"]:
         raise ValueError("private previews must have previewProtection enabled")
     if cloudflare["previewVisibility"] == "public" and deployment["previewProtection"]:

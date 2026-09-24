@@ -8,8 +8,9 @@ https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/doc
 
 然后读取 PPF 的 provider-specific runbook：
 
-1. docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md — 未来新项目首选的最小人类 Provisioning Profile；
-2. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md — 两项平台级授权与 Workers Builds Native 备选路线；
+1. docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.zh-CN.md — 个人账号 private 项目的默认引导式配置流程；
+2. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md — 每项目 Git 授权、Access 配置与可选高级 External-CI 路线；
+3. docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md — 需要更强 deployment-credential 隔离时使用的高级可选 Profile；
 3. docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md — deployment credential profile 与最小权限权衡；
 4. docs/CLOUDFLARE_ACCESS_PROFILE.zh-CN.md — reader access 映射；
 5. docs/CLOUDFLARE_OBSERVED_UI_MAPPING.zh-CN.md — 带日期的 Cloudflare UI 观察。

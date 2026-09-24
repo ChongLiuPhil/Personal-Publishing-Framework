@@ -91,7 +91,7 @@ PPF 规范人的作品如何被持续维护、发展、分享和出版。它**�
 - HTML 作为默认持续发布格式；
 - GitHub Actions 作为独立 验证关卡；
 - repository-owned `make web-publish-check` 作为统一 Web publication gate；
-- GitHub Actions + project-scoped Cloudflare account-owned token 作为**未来 Agent 自动新建项目**的首选交付路径；Workers Builds + Cloudflare GitHub App 继续作为已有真实 pilot 证据的 provider-native Profile，Cloudflare Pages 继续支持已有项目；
+- Workers Builds + Cloudflare Git integration 作为个人 GitHub 账号下普通**新项目**的首选交付路径；每个项目允许一次有文档可照做的连接配置，并使用 Provider 管理的凭据。GitHub Actions + project-scoped Cloudflare token 继续作为可选高级 Profile；Cloudflare Pages 继续支持已有项目；
 - `project.infrastructure.json` 作为 GitHub/Cloudflare 期望状态清单，默认 private，并通过只读协调规划器比较实际状态；
 - Cloudflare Workers Static Assets 作为 Web delivery layer；
 - EPUB、PDF、DOCX、LaTeX 作为按需生成的 发布产物。
@@ -144,7 +144,7 @@ Git canonical source
 
 **Working version: v0.1.0-draft**
 
-当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot、经过验证的 Workers Builds native 路径、面向未来低人工新项目的 `agent-provisioned-external-ci` 参考 Profile，以及可执行的原子 Trusted Secret Broker 编排状态机。Cloudflare granular-token issuer adapter 与完整 External-CI 路线仍须完成一个全新项目端到端 pilot 后，才能标记为 production-accepted。PPF 自身用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`；平台授权见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`；新 Profile 见 `docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`；Secret Broker 见 `docs/TRUSTED_SECRET_BROKER.zh-CN.md`。
+当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot，以及经过验证的 Workers Builds Native 路径；该路线现在是默认的“每项目一次引导式配置”接入方式。`agent-provisioned-external-ci` 与原子 Trusted Secret Broker 继续作为可选高级基础设施保留；Cloudflare granular-token issuer 仍需 live Provider acceptance，之后高级 Profile 才能标记为 production-accepted。默认配置流程见 `docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.zh-CN.md`；Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`。
 
 
 可复用的 GitHub–Cloudflare 期望状态与协调契约见 [`docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md)。

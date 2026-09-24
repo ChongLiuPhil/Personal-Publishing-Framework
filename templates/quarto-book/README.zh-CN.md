@@ -9,12 +9,11 @@ QMD / Markdown / BibTeX
         |
         +--> GitHub Actions
         |      validation -> make web-publish-check
-        |      deployment -> durable publication authorization gate
-        |                 -> project-scoped Worker Editor credential
-        |                 -> wrangler deploy
         |
-        +--> Cloudflare Worker
-        |      account-wide Access baseline
+        +--> Cloudflare Workers Builds
+        |      连接 private GitHub repository
+        |      main push -> build -> deploy
+        |      默认 Worker-scoped Access
         |      restricted by default
         |
         +--> 明确请求
@@ -46,7 +45,7 @@ GitHub Actions 与 Cloudflare Workers Builds 都调用这一 gate，避免维护
 - Quarto；
 - `make web-publish-check`。
 
-`.github/workflows/deploy-cloudflare.yml` 是首选 External-CI Profile 的 production deployment workflow。它读取持久化 `publishing.yaml`，只有 Web deployment 同时处于 authorized + enabled 时才构建并使用 repository-scoped Cloudflare secrets 执行 `wrangler deploy`；否则保持 no-op。
+`.github/workflows/deploy-cloudflare.yml` 继续保留给可选的高级 External-CI Profile，但不再是默认 production 路径。默认路径是在每个项目完成一次 repository connection 后使用 Cloudflare Workers Builds。
 
 `.github/workflows/cloudflare-contract-ci.yml` 从干净 runner 验证锁定的 Cloudflare/Wrangler build contract，但不会部署。
 
@@ -68,7 +67,7 @@ GitHub Actions 与 Cloudflare Workers Builds 都调用这一 gate，避免维护
 
 **Cloudflare 不会自动读取这个 YAML。**
 
-它是 PPF machine contract，供 Agent / Provisioner 与 CI 使用。首选 External-CI Profile 中，它描述 GitHub Actions deployment、Secret Broker 边界、Worker creation authority 与 Access 前置条件；Native Profile 中仍可描述 Workers Builds 配置。
+它是 PPF machine contract，供 Agent 与 CI 使用。Reference 默认描述 Workers Builds Git integration、每项目一次连接、Worker-scoped Access 与 Preview 安全；可选 `external_ci` 区块保留 GitHub Actions + Trusted Secret Broker 高级 Profile。
 
 ## Source visibility / publication visibility / access / canonical identity
 
@@ -114,52 +113,40 @@ restricted Web + authenticated access
 
 该文件是 dated provider reference，不是 PPF conformance requirement。
 
-## 推荐平台接入
+## 推荐项目接入
 
-未来 Agent 自动配置的新项目，首选路线是：
+普通新项目的首选路线是：
 
 ```text
-一次 GitHub provisioning authorization
-+ 一次 Cloudflare provisioning authorization
-        |
-        v
-Project Provisioner
--> private repository
--> protected Worker
--> secret broker
--> GitHub Actions deploy
+private GitHub repository
+-> 每项目一次 Cloudflare Git 授权
+-> Workers Builds
+-> Worker-scoped Access
+-> 验证第一次 restricted deployment
+-> 再 push 一次
+-> 确认无需重新授权即可自动部署
 ```
 
-已批准平台范围内的新 repository 不应再次要求 Cloudflare GitHub App 授权。
+这条路线明确允许每个项目一次短人工 bootstrap；账户级全自动属于可选优化，不再是前置条件。
 
 详见：
 
-- `docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`
+- `docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.zh-CN.md`
 - `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`
 
-真实 UI 字段只是 dated implementation observation。2026-09-19 pilot 的 Observed UI Mapping 见：
-
-`docs/CLOUDFLARE_OBSERVED_UI_MAPPING.zh-CN.md`
-
-如果 provider UI 与该映射不同，不得猜；应重新读取当前 UI、official docs 与 downstream machine contract，并通过实际 build/runtime state 反向验证。
-
-当执行环境具备 Cloudflare MCP/API 与 GitHub App/API 能力时，人类通常只需完成两项平台级授权。随后 Agent 在已批准范围内配置后续项目。Public release、新 reader scope、新 domain/DNS authority 与 permission expansion 继续保持独立 human gate。
+真实 UI 字段属于 dated implementation observation。如果 Provider UI 变化，不得猜；应重新读取当前官方文档，并通过实际 build/runtime state 验证。
 
 ## Cloudflare security profiles
 
-Workers Builds 的原生 Git integration 与真正 per-Worker least privilege 在当前 Cloudflare 产品上不是完全同一个路径。
+Workers Builds 原生 Git integration 与真正 per-Worker least-privilege deployment credential 仍是不同路径。
 
 PPF reference 提供：
 
-- **Profile A — Workers Builds Native**：已有真实 pilot 证据的 provider-native Profile，但 build-token scope 较宽；
-- **Profile B — Agent-Provisioned External CI**：未来新项目自动配置的首选 Profile；GitHub Actions + trusted secret broker 安装的 account-owned individual-Worker `Editor` token；
-- **Profile C — Future Native Granular**：等待 Workers Builds 支持 account-owned per-Worker token 的未来原生组合。
+- **Profile A — Workers Builds Native**：**默认每项目引导式配置**，已有真实 pilot；Provider 管理的 build credential 权限范围较理想最小权限更宽；
+- **Profile B — Agent-Provisioned External CI**：高级可选 Profile；GitHub Actions + Trusted Secret Broker 安装的 account-owned individual-Worker `Editor` token；
+- **Profile C — Future Native Granular**：如果未来 Workers Builds 支持所需 account-owned per-Worker credential，则可采用的未来原生组合。
 
-详见：
-
-`docs/CLOUDFLARE_SECURITY_PROFILES.zh-CN.md`
-
-模板现在为 Agent 自动配置的新项目选择 Profile B。Repository implementation 与 CI validation 已存在，但还没有记录一次从空白项目开始的 Profile B production acceptance；在该 pilot 通过前不得写成 production-tested。
+Installable template 默认选择 Profile A。Profile B 继续保留实现，但在 live Provider acceptance 完成前不得写成 production-accepted。
 
 ## Runtime verification reference
 
@@ -183,20 +170,17 @@ python scripts/verify_public_site.py https://example.invalid \
 
 这些 gate 应由 downstream 项目根据实际结构补充。
 
-## External CI 是新项目 Provisioning 默认
+## Workers Builds Native 是新项目默认
 
-可安装模板现在为 Agent 自动配置的新项目采用：
+Installable template 现在为普通新项目默认使用 Workers Builds 原生 Git integration。使用者可以完成一次短的项目连接与 Access 配置；之后普通 push 应自动部署。
 
-`GitHub Actions + Wrangler + account-owned individual-Worker Editor token`
+需要更强 credential isolation 时，仍可显式选择高级 External-CI Profile。
 
-Workers Builds Native 继续作为明确选择的 provider-native Profile，也是当前已有真实 pilot 证据的路径。
-
-任何 token：
+任何 credential：
 
 - 不得进入 Git；
 - 不得写进聊天或 README；
-- 应采用满足任务所需的最小权限；
-- 一次性 provisioning 权限应与长期 deployment 权限分离。
+- 应使用所选 Profile 当前能够支持的最小权限。
 
 ## 固定工具链
 
@@ -227,12 +211,13 @@ Cloudflare build wrapper 不假设 provider 预装 Quarto。它下载固定 rele
 5. 根据项目增加 source/output validation；
 6. 替换示例 QMD、bibliography 与 assets；
 7. 运行 GitHub reference contract CI；
-8. 验证平台 GitHub / Cloudflare provisioning principal 与 account-wide Access baseline；
-9. 由 trusted secret broker 安装项目专属 Worker deployment credential，token 值不得进入模型；
-10. 先部署 restricted workers.dev 并验证匿名拒绝，再决定是否启用 Preview；
-11. 确认 private-source / restricted-Web 安全默认，或明确授权并记录有意偏离；
-12. 区分 provider URL 与 canonical identity；
-13. 最后才决定 Custom Domain、canonical URL 与 public cutover。
+8. 把 private repository 连接到 Cloudflare Workers Builds，并在提示时授权当前 repository；
+9. 给 Worker 启用 Worker-scoped Access，或验证已有 account-wide Access 确实覆盖它；
+10. 完成第一次 restricted deployment，并在启用 Preview 前验证匿名拒绝；
+11. 再做一次无害 push，确认 Workers Builds 无需重新授权即可自动部署；
+12. 确认 private-source / restricted-Web 安全默认，或明确授权并记录有意偏离；
+13. 区分 provider URL 与 canonical identity；
+14. 最后才决定 Custom Domain、canonical URL 与 public cutover。
 
 ## 输出目录
 

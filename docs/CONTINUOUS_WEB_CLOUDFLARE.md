@@ -8,8 +8,9 @@ Before a Cloudflare operation, read that shared contract first. For the shortest
 
 Then use the PPF provider-specific runbooks:
 
-1. docs/AGENT_PROVISIONED_EXTERNAL_CI.md — preferred minimum-human provisioning profile for future projects.
-2. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md — the two platform-level authorizations and the Workers Builds native alternative.
+1. docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md — default guided setup for a personal-account private project.
+2. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md — per-project Git authorization, Access setup, and the optional advanced External-CI route.
+3. docs/AGENT_PROVISIONED_EXTERNAL_CI.md — optional advanced profile for stronger deployment-credential isolation.
 3. docs/CLOUDFLARE_SECURITY_PROFILES.md — deployment credential profiles and least-privilege trade-offs.
 4. docs/CLOUDFLARE_ACCESS_PROFILE.md — reader-access mapping.
 5. docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md — dated Cloudflare UI observations.

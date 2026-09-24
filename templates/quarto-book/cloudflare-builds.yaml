@@ -1,5 +1,5 @@
 schema_version: 1
-mode: github-actions-external-ci
+mode: workers-builds-git
 worker_runtime: workers-static-assets
 access_modes:
   public:
@@ -14,12 +14,11 @@ access_modes:
 
 platform_security:
   worker_access:
-    baseline: account-wide
-    destination: all_workers
+    default: worker-scoped
     private_by_default: true
-    public_exception: worker-scoped-bypass
+    account_wide_access: optional
     previews_protected_by_default: true
-    bootstrap_required_before_worker_creation: true
+    project_bootstrap_required: true
 
 git:
   provider: github
@@ -30,8 +29,8 @@ git:
 
 commands:
   build: "bash scripts/cloudflare_build.sh"
-  deploy: "wrangler deploy"
-  preview_deploy: "wrangler versions upload"
+  deploy: "npx wrangler deploy"
+  preview_deploy: "npx wrangler versions upload"
 
 toolchain:
   node: "24"
@@ -44,48 +43,48 @@ worker:
   static_assets_directory: ./_book
 
 connection:
-  cloudflare_account: unverified
-  github_app: not-required-for-external-ci
-  repository_connection: not-required-for-external-ci
-  worker_target: provisioner-created
-  production_trigger: github-actions-main
-  preview_trigger: disabled-until-protected
-  build_token: project-scoped-account-token-via-secret-broker
+  cloudflare_account: project-setup-required
+  github_app: project-setup-required
+  repository_connection: project-setup-required
+  worker_target: create-by-import-or-connect-existing
+  production_trigger: main
+  preview_trigger: disabled-by-default
+  build_token: provider-managed-user-token
 
 validation:
   repository_contract_ci: not-run
-  first_preview_build: not-applicable-until-enabled
-  workers_dev_http: not-run
+  first_production_build: not-run
+  restricted_anonymous_denial: not-run
+  second_push_auto_deploy: not-run
   production_cutover: blocked
 
 security:
   credentials_in_repository: prohibited
-  native_profile_github_app_repository_scope: selected-repositories-only
-  production_profile: agent-provisioned-external-ci
+  production_profile: workers-builds-native
+  project_setup:
+    github_repository_visibility: private
+    cloudflare_git_authorization: human-assisted-once-per-project
+    worker_access: worker-scoped-or-account-wide
+    public_release: explicit-human-gate
   profiles:
     workers_builds_native:
-      status: operational-native
+      status: preferred-guided-project-setup
       token_type: user-token
       least_privilege: false
-      caveat: workers-builds-currently-supports-user-tokens-only
+      caveat: workers-builds-currently-supports-provider-managed-user-token
     hardened_external_ci:
-      status: preferred-agent-provisioning
+      status: optional-advanced
       token_type: account-owned-api-token
       desired_scope: individual-worker
       desired_role: editor
       least_privilege: true
-    future_native_granular:
-      status: currently-unavailable
-      desired_token_type: account-owned-api-token
-      desired_scope: individual-worker
-      desired_role: editor
-      blocker: workers-builds-account-owned-token-not-yet-supported
+      requires_secret_broker: true
+      acceptance: pending-live-provider-verification
 
 external_ci:
+  status: optional-advanced
   provider: github-actions
   workflow: .github/workflows/deploy-cloudflare.yml
-  deploy_on:
-    branch: main
   required_repository_secrets:
     - CLOUDFLARE_API_TOKEN
     - CLOUDFLARE_ACCOUNT_ID
@@ -93,14 +92,8 @@ external_ci:
     token_owner: account
     scope: individual-worker
     role: Editor
-    creation: platform-secret-broker
+    creation: trusted-secret-broker
     plaintext_must_not_enter_model_context: true
-  worker_creation:
-    executor: platform-provisioner
-    requires: workers-product-admin
-  access_precondition:
-    destination: all_workers
-    must_be_verified_before_worker_creation: true
 
 lifecycle:
   operations: [doctor, plan, apply, verify, rollback]
@@ -112,5 +105,5 @@ lifecycle:
 preview:
   enabled_by_default: false
   enable_only_after:
-    - account-wide-access-verified
+    - access-protection-verified
     - preview-anonymous-denial-verified

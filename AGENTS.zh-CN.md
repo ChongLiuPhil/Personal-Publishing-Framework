@@ -6,12 +6,12 @@
 2. [`ecosystem.yaml`](ecosystem.yaml)
 3. [统一跨仓库 Agent 调取契约](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.zh-CN.md)
 4. 涉及 Continuous Web 或 Cloudflare 时，先阅读 [`docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.zh-CN.md) 与 Starter 最小人类/Work 交接，再读取适用的 PPF provider-specific runbook
-5. 面对**新项目**时，读取 [`docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`](docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md)、[`docs/TRUSTED_SECRET_BROKER.zh-CN.md`](docs/TRUSTED_SECRET_BROKER.zh-CN.md) 与 Starter 的 Project Provisioning Contract；平台 bootstrap 已完成后，优先采用 `agent-provisioned-external-ci`
+5. 面对**新项目**时，读取 [`docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.zh-CN.md`](docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.zh-CN.md)、[`docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`](docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md) 与 Starter 的 Project Provisioning Contract；默认采用 `workers-builds-native` 的每项目一次引导式配置，只有项目显式选择高级 Profile 时才读取 External-CI / Secret Broker 契约
 6. 当 PPF 作为完整 Inquiry Publishing Stack 的一层时，读取项目的 AHICP 入口和所选 Starter profile
 
 由网页 AI Agent 为 GitHub 仓库配置 Cloudflare 时，还必须遵循 [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md)（English: [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md)）。
 
-对于包含原创或未发布内容的新项目，安全默认值是：canonical 源仓库 private，同时 Continuous Web 保持 restricted + authenticated。当通过完整 Inquiry Publishing Stack 采用时，默认组合是完整 PPF + 完整 AHICP + Vault Interface；精简 profile 必须由人类明确选择。两项平台 provisioning principal 已授权、account-wide Access 已验证后，不得仅因为在已批准范围内新增另一个项目 repository 或 Worker 就反复要求账户级 consent。
+对于包含原创或未发布内容的新项目，安全默认值是：canonical 源仓库 private，同时 Continuous Web 保持 restricted + authenticated。当通过完整 Inquiry Publishing Stack 采用时，默认组合是完整 PPF + 完整 AHICP + Vault Interface；精简 profile 必须由人类明确选择。默认允许每个项目一次短而明确的 GitHub / Cloudflare 人工 bootstrap；该项目连接和 Access 验证完成后，后续普通 push 不应再要求重复授权。
 
 从任意 PPF 公共入口进入时，在跨组件配置前恢复四组件生态。公共链接只授权读取公共信息，绝不授权私人状态访问。
 

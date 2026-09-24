@@ -55,6 +55,16 @@ class FakeAccess:
 class ProvisioningTests(unittest.TestCase):
     def setUp(self):
         self.manifest = json.loads(TEMPLATE.read_text(encoding="utf-8"))
+        # ProjectProvisioner is the optional advanced external-CI provisioner.
+        # The installable template now defaults to guided Workers Builds Native,
+        # so these tests select the advanced profile explicitly.
+        self.manifest["cloudflare"]["accessMode"] = "account-wide-access"
+        self.manifest["deployment"].update(
+            provider="github-actions-cloudflare-workers",
+            securityProfile="agent-provisioned-external-ci",
+            credentialStrategy="project-scoped-account-token",
+            secretBroker=True,
+        )
 
     def test_platform_access_baseline_blocks_before_mutation(self):
         github = FakeGitHub()
