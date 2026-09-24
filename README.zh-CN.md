@@ -144,7 +144,7 @@ Git canonical source
 
 **Working version: v0.1.0-draft**
 
-当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot、经过验证的 Workers Builds native 路径，以及面向未来低人工新项目的 `agent-provisioned-external-ci` 参考 Profile。External-CI Profile 仍须完成一个全新项目端到端 pilot 后，才能标记为 production-accepted。PPF 自身用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`；平台授权见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`；新 Profile 见 `docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`。
+当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot、经过验证的 Workers Builds native 路径、面向未来低人工新项目的 `agent-provisioned-external-ci` 参考 Profile，以及可执行的原子 Trusted Secret Broker 编排状态机。Cloudflare granular-token issuer adapter 与完整 External-CI 路线仍须完成一个全新项目端到端 pilot 后，才能标记为 production-accepted。PPF 自身用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`；平台授权见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`；新 Profile 见 `docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`；Secret Broker 见 `docs/TRUSTED_SECRET_BROKER.zh-CN.md`。
 
 
 可复用的 GitHub–Cloudflare 期望状态与协调契约见 [`docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md)。
