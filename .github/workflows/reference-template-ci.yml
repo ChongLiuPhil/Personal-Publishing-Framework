@@ -207,7 +207,7 @@ jobs:
           grep -q "REFERENCE-ONLY / DATED PROVIDER MAPPING" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
           grep -q "Worker-level" ../../docs/CLOUDFLARE_ACCESS_PROFILE.md
           grep -q "private repository => enable Access" ../../docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md
-          grep -q "deployment-credential security from publication access" ../../docs/CLOUDFLARE_SECURITY_PROFILES.md
+          grep -q "Deployment credential security is separate from publication access" ../../docs/CLOUDFLARE_SECURITY_PROFILES.md
       - name: Validate reference publication contract
         run: make check
       - name: Validate normative visibility/access migration markers
