@@ -83,6 +83,8 @@ def request():
             "plaintextMustNotEnterModelContext": True,
             "plaintextMustNotEnterGit": True,
             "discardPlaintextAfterEncryptedWrite": True,
+            "existingSecretsMustNotBeOverwritten": True,
+            "rollbackMustRevokeMintedToken": True,
         },
     }
 
