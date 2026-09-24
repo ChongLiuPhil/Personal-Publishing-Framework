@@ -332,7 +332,10 @@ def verify(url: str, root: Path) -> int:
     denied = _access_denied(probe)
 
     if visibility == "public":
-        ok = isinstance(status, int) and 200 <= status < 300 and https_origin(final_url) == expected_origin
+        if isinstance(status, int) and 200 <= status < 300 and https_origin(final_url) != expected_origin:
+            print("FAIL: verification redirected outside the configured production Worker origin")
+            return 1
+        ok = isinstance(status, int) and 200 <= status < 300
         expectation = "anonymous-success"
     else:
         ok = denied
