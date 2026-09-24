@@ -41,7 +41,6 @@
       "type": "object",
       "required": [
         "owner",
-        "ownerType",
         "repository",
         "repositoryVisibility",
         "productionBranch"
@@ -230,6 +229,11 @@
               "securityProfile",
               "credentialStrategy",
               "secretBroker"
+            ]
+          },
+          "github": {
+            "required": [
+              "ownerType"
             ]
           }
         }
