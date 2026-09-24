@@ -170,7 +170,7 @@ class Coordinator:
                         manifest["github"]["repository"],
                         manifest["github"]["repositoryVisibility"],
                         release_gate,
-                        owner_type=manifest["github"]["ownerType"],
+                        owner_type=manifest["github"].get("ownerType", "user"),
                     )
                     completed.append("github.repository_visibility")
                 if manifest["cloudflare"]["applicationVisibility"] == "public":
@@ -273,7 +273,7 @@ class Coordinator:
                     manifest["github"]["owner"],
                     manifest["github"]["repository"],
                     gh["repositoryVisibility"],
-                    owner_type=manifest["github"]["ownerType"],
+                    owner_type=manifest["github"].get("ownerType", "user"),
                 )
                 completed.append("github.repository_visibility")
             if "cloudflare.production_public_exception" in state["completed"]:
