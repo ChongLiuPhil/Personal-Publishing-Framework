@@ -8,15 +8,16 @@ Before a Cloudflare operation, read that shared contract first. For the shortest
 
 Then use the PPF provider-specific runbooks:
 
-1. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md — detailed account-owner and GitHub App authorization flow.
-2. docs/CLOUDFLARE_SECURITY_PROFILES.md — deployment credential profiles and least-privilege trade-offs.
-3. docs/CLOUDFLARE_ACCESS_PROFILE.md — reader-access mapping.
-4. docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md — dated Cloudflare UI observations.
+1. docs/AGENT_PROVISIONED_EXTERNAL_CI.md — preferred minimum-human provisioning profile for future projects.
+2. docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md — the two platform-level authorizations and the Workers Builds native alternative.
+3. docs/CLOUDFLARE_SECURITY_PROFILES.md — deployment credential profiles and least-privilege trade-offs.
+4. docs/CLOUDFLARE_ACCESS_PROFILE.md — reader-access mapping.
+5. docs/CLOUDFLARE_OBSERVED_UI_MAPPING.md — dated Cloudflare UI observations.
 
 ## Agent requirement
 
 If human interaction is necessary, provide numbered operator-level instructions with the exact target account/project/domain, current UI path, non-secret values to select, secret boundary, completion evidence, verification step, and rollback.
 
-Do not ask the human to paste a password, token, private key, recovery code, or other secret into chat. If the live Cloudflare UI differs from the dated runbook, verify the current UI or official documentation rather than guessing.
+Do not ask the human to paste a password, token, private key, recovery code, or other secret into chat. For agent-provisioned external CI, the project deployment token must move through a trusted secret broker directly into GitHub Actions secrets; the model receives only non-secret installation status. If the live Cloudflare UI differs from the dated runbook, verify the current UI or official documentation rather than guessing.
 
 For any newly configured original or unpublished PPF project, the safe default posture is private source + restricted Continuous Web + authenticated access-policy reference. Moving the Web output to public requires explicit human authorization and does not require making the source repository public.
