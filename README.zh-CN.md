@@ -91,7 +91,7 @@ PPF 规范人的作品如何被持续维护、发展、分享和出版。它**�
 - HTML 作为默认持续发布格式；
 - GitHub Actions 作为独立 验证关卡；
 - repository-owned `make web-publish-check` 作为统一 Web publication gate；
-- Cloudflare Workers Builds + GitHub App 作为新项目默认参考交付集成；Cloudflare Pages 继续支持已有项目，不自动迁移；
+- GitHub Actions + project-scoped Cloudflare account-owned token 作为**未来 Agent 自动新建项目**的首选交付路径；Workers Builds + Cloudflare GitHub App 继续作为已有真实 pilot 证据的 provider-native Profile，Cloudflare Pages 继续支持已有项目；
 - `project.infrastructure.json` 作为 GitHub/Cloudflare 期望状态清单，默认 private，并通过只读协调规划器比较实际状态；
 - Cloudflare Workers Static Assets 作为 Web delivery layer；
 - EPUB、PDF、DOCX、LaTeX 作为按需生成的 发布产物。
@@ -129,8 +129,8 @@ PPF v0.1 将定义：
 ```text
 Git canonical source
 -> repository-owned Web gate
--> GitHub Actions independent validation
--> Cloudflare Workers Builds
+-> GitHub Actions validation + authorized deployment
+-> project-scoped Cloudflare Worker Editor credential
 -> Cloudflare Workers Static Assets
 
 明确请求
@@ -144,7 +144,7 @@ Git canonical source
 
 **Working version: v0.1.0-draft**
 
-当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot，以及从该 pilot 提炼出的 Workers Builds ↔ GitHub 可复用集成范本。PPF 自身现已用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`，账户授权说明见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`。
+当前已完成初始规范、Quarto 参考实现、第一个真实 downstream runtime pilot、经过验证的 Workers Builds native 路径，以及面向未来低人工新项目的 `agent-provisioned-external-ci` 参考 Profile。External-CI Profile 仍须完成一个全新项目端到端 pilot 后，才能标记为 production-accepted。PPF 自身用 root-level CI 持续验证 reference template。Pilot 结果见 `docs/FIRST_PILOT_LESSONS.zh-CN.md`；平台授权见 `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.zh-CN.md`；新 Profile 见 `docs/AGENT_PROVISIONED_EXTERNAL_CI.zh-CN.md`。
 
 
 可复用的 GitHub–Cloudflare 期望状态与协调契约见 [`docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.zh-CN.md)。
@@ -165,7 +165,7 @@ Cloudflare 参考实现 的 production credential 选择见：
 
 https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter
 
-Starter 只负责组合、版本锁定、检查与升级计划；本仓库继续是自身规范／模板的权威来源。
+Starter 负责组合、版本锁定、project provisioning intent、检查与升级计划；PPF 继续是可执行 publishing 与 provider-infrastructure 实现的权威来源。
 
 ## 许可
 
