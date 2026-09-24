@@ -27,7 +27,8 @@ def actual_state():
             "workerExists": True,
             "workerId": "sample-worker",
             "workerTag": "worker-tag-uuid",
-            "accountWideProtection": True,
+            "accountWideProtection": False,
+            "workerScopedProtection": True,
             "applicationVisibility": "private",
             "previewVisibility": "private",
             "controlPrivateWorkerAnonymousDenied": True,
@@ -36,7 +37,7 @@ def actual_state():
             "repositoryConnectionUuid": "repo-connection-uuid",
             "productionTriggerUuid": "production-trigger-uuid",
             "productionBranch": "main",
-            "previewTriggerUuid": "preview-trigger-uuid",
+            "previewTriggerUuid": None,
         },
     }
 
@@ -66,18 +67,18 @@ class ReconciliationPlanTests(unittest.TestCase):
 
     def test_public_app_does_not_publish_private_repository(self):
         desired = copy.deepcopy(self.desired)
-        desired["cloudflare"].update(applicationVisibility="public", publicBypass=True)
+        desired["cloudflare"].update(applicationVisibility="public", publicBypass=False)
         desired["release"]["state"] = "public"
         actual = actual_state()
         report = plan_reconciliation(desired, actual, GATE, GATE)
         self.assertEqual(report["status"], "PLAN_READY")
         self.assertEqual(report["repositoryVisibility"]["desired"], "private")
-        self.assertIn("add-worker-public-bypass", [op["operation"] for op in report["operations"]])
+        self.assertIn("remove-target-worker-access", [op["operation"] for op in report["operations"]])
         self.assertNotIn("make-repository-public", [op["operation"] for op in report["operations"]])
 
     def test_public_app_requires_control_private_worker_verification(self):
         desired = copy.deepcopy(self.desired)
-        desired["cloudflare"].update(applicationVisibility="public", publicBypass=True)
+        desired["cloudflare"].update(applicationVisibility="public", publicBypass=False)
         desired["release"]["state"] = "public"
         actual = actual_state()
         actual["cloudflare"]["controlPrivateWorkerAnonymousDenied"] = False
@@ -87,17 +88,24 @@ class ReconciliationPlanTests(unittest.TestCase):
 
     def test_public_app_uses_website_gate_without_changing_repo_visibility(self):
         desired = copy.deepcopy(self.desired)
-        desired["cloudflare"].update(applicationVisibility="public", publicBypass=True)
+        desired["cloudflare"].update(applicationVisibility="public", publicBypass=False)
         desired["release"]["state"] = "public"
         report = plan_reconciliation(desired, actual_state(), website_gate={"allowed": True, "approvalId": "web-approval-1"})
         self.assertEqual(report["status"], "PLAN_READY")
         self.assertEqual(report["repositoryVisibility"]["desired"], "private")
-        self.assertIn("add-worker-public-bypass", [op["operation"] for op in report["operations"]])
+        self.assertIn("remove-target-worker-access", [op["operation"] for op in report["operations"]])
 
     def test_external_ci_missing_project_secret_plans_secret_broker_operation(self):
+        desired = copy.deepcopy(self.desired)
+        desired["deployment"].update(
+            provider="github-actions-cloudflare-workers",
+            securityProfile="agent-provisioned-external-ci",
+            credentialStrategy="project-scoped-account-token",
+            secretBroker=True,
+        )
         actual = actual_state()
         actual["github"]["deploymentSecrets"]["CLOUDFLARE_API_TOKEN"] = False
-        report = plan_reconciliation(self.desired, actual)
+        report = plan_reconciliation(desired, actual)
         self.assertIn(
             "install-project-scoped-deployment-credential",
             [op["operation"] for op in report["operations"]],
@@ -107,10 +115,20 @@ class ReconciliationPlanTests(unittest.TestCase):
             [op["operation"] for op in report["operations"]],
         )
 
-    def test_account_wide_protection_failure_is_bootstrap_gate(self):
+    def test_missing_worker_scoped_access_is_project_gate(self):
+        actual = actual_state()
+        actual["cloudflare"]["workerScopedProtection"] = False
+        report = plan_reconciliation(self.desired, actual)
+        self.assertEqual(report["status"], "PERMISSION_REQUIRED")
+        self.assertTrue(any("PROJECT_ACCESS_REQUIRED" in item for item in report["blockers"]))
+        self.assertIn("protect-target-worker", [op["operation"] for op in report["operations"]])
+
+    def test_account_wide_profile_still_requires_account_baseline(self):
+        desired = copy.deepcopy(self.desired)
+        desired["cloudflare"]["accessMode"] = "account-wide-access"
         actual = actual_state()
         actual["cloudflare"]["accountWideProtection"] = False
-        report = plan_reconciliation(self.desired, actual)
+        report = plan_reconciliation(desired, actual)
         self.assertEqual(report["status"], "PERMISSION_REQUIRED")
         self.assertTrue(any("BOOTSTRAP_REQUIRED" in item for item in report["blockers"]))
 
