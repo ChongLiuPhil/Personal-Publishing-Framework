@@ -57,12 +57,13 @@ class ContractTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "account-wide private-by-default Access baseline"):
             provider.load_contract(self.root)
 
-    def test_reference_previews_are_private_and_require_access_verification(self):
+    def test_reference_previews_are_disabled_until_access_verification(self):
         contract = Path(__file__).parents[3] / "templates/quarto-book/cloudflare-builds.yaml"
         policy = provider.yaml.safe_load(contract.read_text(encoding="utf-8"))
-        self.assertTrue(policy["git"]["non_production_branch_builds"])
-        self.assertTrue(policy["preview"]["enabled_by_default"])
+        self.assertFalse(policy["git"]["non_production_branch_builds"])
+        self.assertFalse(policy["preview"]["enabled_by_default"])
         self.assertIn("account-wide-access-verified", policy["preview"]["enable_only_after"])
+        self.assertIn("preview-anonymous-denial-verified", policy["preview"]["enable_only_after"])
         self.assertNotIn("shared-password", policy["access_modes"])
 
     def test_application_password_mode_is_not_a_publishing_access_mode(self):
@@ -169,48 +170,72 @@ class ContractTests(unittest.TestCase):
                 self.assertEqual(provider.rollback(version, self.root), 2)
                 run.assert_not_called()
 
-    def test_verify_records_real_http_status(self):
-        class Response:
-            status = 200
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, *args):
-                return False
-
-            def geturl(self):
-                return "https://example.workers.dev/"
-
+    def test_verify_records_restricted_anonymous_denial_as_success(self):
+        probe = {
+            "status": 403,
+            "final_url": "https://example.workers.dev/",
+            "location": "",
+        }
         with patch.dict("os.environ", {}, clear=True):
-            with patch.object(provider.urllib.request, "urlopen", return_value=Response()):
+            with patch.object(provider, "_anonymous_probe", return_value=probe):
                 self.assertEqual(provider.verify("https://example.workers.dev/", self.root), 0)
         record = json.loads((self.root / ".ppf/cloudflare-deployment.json").read_text())
-        self.assertEqual(record["http_status"], 200)
+        self.assertEqual(record["http_status"], 403)
         self.assertEqual(record["result"], "PASS")
+        self.assertTrue(record["anonymous_denied"])
+        self.assertEqual(record["expected_anonymous_behavior"], "anonymous-denied-or-challenged")
+
+    def test_public_verify_requires_http_success(self):
+        (self.root / "publishing.yaml").write_text(
+            "publication:\n  web:\n    visibility: public\n    access:\n      mode: none\n"
+            "deployment:\n  web:\n    production_url: https://example.workers.dev/\n",
+            encoding="utf-8",
+        )
+        probe = {
+            "status": 200,
+            "final_url": "https://example.workers.dev/",
+            "location": "",
+        }
+        with patch.dict("os.environ", {}, clear=True):
+            with patch.object(provider, "_anonymous_probe", return_value=probe):
+                self.assertEqual(provider.verify("https://example.workers.dev/", self.root), 0)
+        record = json.loads((self.root / ".ppf/cloudflare-deployment.json").read_text())
+        self.assertFalse(record["anonymous_denied"])
+        self.assertEqual(record["expected_anonymous_behavior"], "anonymous-success")
+
 
     def test_verify_rejects_unrelated_origin_before_request(self):
-        with patch.object(provider.urllib.request, "urlopen") as open_url:
+        with patch.object(provider, "_anonymous_probe") as probe:
             self.assertEqual(provider.verify("https://attacker.example/health", self.root), 2)
-        open_url.assert_not_called()
+        probe.assert_not_called()
         self.assertFalse((self.root / ".ppf").exists())
 
-    def test_verify_rejects_cross_origin_redirect_without_recording_version(self):
-        class Response:
-            status = 200
-
-            def __enter__(self):
-                return self
-
-            def __exit__(self, *args):
-                return False
-
-            def geturl(self):
-                return "https://attacker.example/health"
-
-        with patch.object(provider.urllib.request, "urlopen", return_value=Response()):
+    def test_verify_rejects_cross_origin_public_redirect_without_recording_version(self):
+        (self.root / "publishing.yaml").write_text(
+            "publication:\n  web:\n    visibility: public\n    access:\n      mode: none\n"
+            "deployment:\n  web:\n    production_url: https://example.workers.dev/\n",
+            encoding="utf-8",
+        )
+        probe = {
+            "status": 200,
+            "final_url": "https://attacker.example/health",
+            "location": "",
+        }
+        with patch.object(provider, "_anonymous_probe", return_value=probe):
             self.assertEqual(provider.verify("https://example.workers.dev/", self.root), 1)
         self.assertFalse((self.root / ".ppf").exists())
+
+    def test_restricted_access_login_redirect_counts_as_denied(self):
+        probe = {
+            "status": 302,
+            "final_url": "https://example.workers.dev/",
+            "location": "https://example.cloudflareaccess.com/cdn-cgi/access/login/example",
+        }
+        with patch.object(provider, "_anonymous_probe", return_value=probe):
+            self.assertEqual(provider.verify("https://example.workers.dev/", self.root), 0)
+        record = json.loads((self.root / ".ppf/cloudflare-deployment.json").read_text())
+        self.assertTrue(record["anonymous_denied"])
+
 
 
 if __name__ == "__main__":
