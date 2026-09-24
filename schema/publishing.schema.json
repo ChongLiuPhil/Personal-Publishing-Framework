@@ -128,9 +128,9 @@
                 "enum": [
                   "none",
                   "authenticated",
-                "selected-audience",
-                "shared-password",
-                "other"
+                  "selected-audience",
+                  "shared-password",
+                  "other"
                 ]
               },
               "implementation": {
@@ -186,6 +186,7 @@
               "enum": [
                 "workers-builds-git",
                 "github-actions-wrangler",
+                "github-actions-external-ci",
                 "other"
               ]
             },
