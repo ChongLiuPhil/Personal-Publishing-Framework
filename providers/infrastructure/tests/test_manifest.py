@@ -84,7 +84,9 @@ class ManifestTests(unittest.TestCase):
 
     def test_worker_scoped_access_rejects_account_wide_public_bypass(self):
         item = copy.deepcopy(self.base)
+        item["cloudflare"]["applicationVisibility"] = "public"
         item["cloudflare"]["publicBypass"] = True
+        item["release"]["state"] = "public"
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "project.infrastructure.json"
             path.write_text(json.dumps(item), encoding="utf-8")
