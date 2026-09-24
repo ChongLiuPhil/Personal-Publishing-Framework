@@ -21,9 +21,9 @@ class FakeGitHub:
     def read_repository(self, owner, repository):
         return self.repo
 
-    def ensure_repository(self, owner, repository, visibility, approval=None):
+    def ensure_repository(self, owner, repository, visibility, approval=None, owner_type="user"):
         self.created += 1
-        self.repo = {"id": 123, "private": True, "name": repository}
+        self.repo = {"id": 123, "private": True, "name": repository, "owner_type": owner_type}
         return self.repo
 
     def deployment_secret_status(self, owner, repository):
