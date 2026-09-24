@@ -31,20 +31,21 @@ The desired steady state uses two long-lived trust relationships.
 
 ### GitHub provisioning principal
 
-Prefer a dedicated GitHub organization or otherwise bounded account scope. The provisioning GitHub App should request only the capabilities needed for project creation and maintenance. Depending on the exact implementation these normally include repository Administration write, Contents write, Workflows write, Actions write, Secrets write, Pull requests write, and Metadata read.
+Use a clearly bounded GitHub account/organization scope. The provisioning GitHub App should request only the capabilities needed for project creation and maintenance. Depending on the exact implementation these normally include repository Administration write, Contents write, Workflows write, Actions write, Secrets write, Pull requests write, and Metadata read.
 
-The App installation is platform authorization. A new project must not ask the human to reinstall or reauthorize the App merely because another repository is created within the already approved scope.
+Repository creation differs by owner type:
+- for a **personal user account**, GitHub's authenticated-user repository-creation endpoint accepts a GitHub App **user access token** (or another supported user-authorized fine-grained token), not an installation token;
+- for an **organization**, the organization repository-creation endpoint accepts GitHub App installation access tokens as well as user access tokens.
+
+The manifest therefore records `github.ownerType`. The platform provisioning principal must match that owner type.
+
+The App/user authorization is platform authorization. A new project must not ask the human to reauthorize merely because another repository is created within the already approved scope.
 
 ### Cloudflare provisioning principal
 
-Create one narrowly controlled platform credential or OAuth/MCP authorization that can:
+Create one narrowly controlled platform credential or OAuth/MCP authorization that can inspect the account, verify the account-wide Access baseline, create a Worker, read deployment/observability state, and perform only separately authorized Access changes.
 
-- inspect the account;
-- verify the account-wide Access baseline;
-- create a Worker;
-- create account-owned API tokens;
-- read deployment/observability state;
-- create or update Access applications when separately authorized.
+**Token minting is a separate high-privilege boundary.** Cloudflare's account-owned token API currently requires Super Administrator authority for creating/updating account-owned tokens. Do not put that authority in the ordinary project Agent or CI credential. Isolate it inside the trusted Secret Broker / provisioning service.
 
 Creating new Workers requires product-level Workers Admin. Routine project deployments do not.
 
@@ -97,7 +98,7 @@ The provisioner emits only a non-secret request:
 }
 ```
 
-A trusted tool or service executes the atomic secret path:
+A trusted tool or service with the isolated token-minting authority executes the atomic secret path:
 
 ```text
 Cloudflare token creation
