@@ -41,6 +41,22 @@ class GitHubAdapter:
         self.client.request("PATCH", path, {"private": visibility == "private"})
         return self.read_repository(owner, repository) or {}
 
+    def repository_secret_names(self, owner: str, repository: str) -> set[str]:
+        path = f"/repos/{quote(owner, safe='')}/{quote(repository, safe='')}/actions/secrets?per_page=100"
+        result = self.client.request("GET", path)
+        if isinstance(result, dict):
+            rows = result.get("secrets", [])
+        else:
+            rows = []
+        return {str(item.get("name")) for item in rows if isinstance(item, dict) and item.get("name")}
+
+    def deployment_secret_status(self, owner: str, repository: str) -> dict[str, bool]:
+        names = self.repository_secret_names(owner, repository)
+        return {
+            "CLOUDFLARE_API_TOKEN": "CLOUDFLARE_API_TOKEN" in names,
+            "CLOUDFLARE_ACCOUNT_ID": "CLOUDFLARE_ACCOUNT_ID" in names,
+        }
+
     def rollback_visibility(self, owner: str, repository: str, previous_visibility: str) -> dict[str, Any]:
         if previous_visibility not in {"private", "public"}:
             raise ValueError("rollback requires a recorded previous visibility")
