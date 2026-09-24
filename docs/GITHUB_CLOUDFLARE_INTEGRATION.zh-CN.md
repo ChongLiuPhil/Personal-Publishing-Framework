@@ -152,7 +152,7 @@ Repository CI 和模拟测试不能替代真实新项目 live acceptance。
 
 ## 当前实现边界
 
-External-CI 实现现已进入 schema、Quarto template、GitHub Actions workflow、provider adapter、Provisioner、reconciliation planner 与测试。
+External-CI 实现现已进入 schema、Quarto template、GitHub Actions workflow、provider adapter、Provisioner、reconciliation planner、原子 Secret Broker 编排、安全 Broker result schema 与测试。Provider-specific Cloudflare granular-token issuer adapter 仍是 live-acceptance-pending，因为 PPF 不会硬编码未经验证的 Specified-Worker policy-resource encoding。
 
 现有真实 pilot 证明的是 Workers Builds Native 路线。新的 External-CI 路线仍需一个全新项目端到端 pilot，之后才能标记为 production-accepted。
 

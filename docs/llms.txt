@@ -37,7 +37,9 @@ GitHub–Cloudflare infrastructure integration standard:
 https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/GITHUB_CLOUDFLARE_INTEGRATION.md
 Agent-provisioned external CI profile:
 https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/AGENT_PROVISIONED_EXTERNAL_CI.md
-For new Agent-provisioned projects after platform bootstrap, prefer agent-provisioned-external-ci: private GitHub repository, account-wide Access-protected Worker, trusted secret broker, GitHub Actions deployment, project-scoped account-owned individual-Worker Editor token. Public release remains an explicit human gate.
+Trusted Secret Broker contract:
+https://github.com/ChongLiuPhil/Personal-Publishing-Framework/blob/main/docs/TRUSTED_SECRET_BROKER.md
+For new Agent-provisioned projects after platform bootstrap, prefer agent-provisioned-external-ci: private GitHub repository, account-wide Access-protected Worker, trusted secret broker, GitHub Actions deployment, project-scoped account-owned individual-Worker Editor token. Secret-broker orchestration is implemented and must never return token plaintext; the Cloudflare granular-token issuer adapter remains live-acceptance-pending until the exact current Specified-Worker policy encoding is verified. Public release remains an explicit human gate.
 
 Public delivery migration:
 For future Agent-provisioned new projects, Cloudflare Workers Static Assets deployed by GitHub Actions with a project-scoped Worker credential is preferred. Workers Builds Native remains the provider-native operational profile with real pilot evidence. Cloudflare Pages remains supported for existing projects and is not migrated automatically. The four framework sections now use the verified canonical Worker at https://inquirystack.philohub.workers.dev/; the former framework GitHub Pages sites have been retired.

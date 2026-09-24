@@ -152,6 +152,8 @@ class ProjectProvisioner:
                         "plaintextMustNotEnterModelContext": True,
                         "plaintextMustNotEnterGit": True,
                         "discardPlaintextAfterEncryptedWrite": True,
+                        "existingSecretsMustNotBeOverwritten": True,
+                        "rollbackMustRevokeMintedToken": True,
                     },
                 },
             }

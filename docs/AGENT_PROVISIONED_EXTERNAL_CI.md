@@ -109,6 +109,10 @@ Cloudflare token creation
 
 The model receives only installation status and non-secret identifiers.
 
+The reference broker orchestration is now executable in `providers/infrastructure/secret_broker.py`. It refuses to overwrite existing target Secrets, verifies the minted scope returned by its issuer adapter, rolls back Secrets written during the current transaction when a later write fails, revokes the newly minted token on rollback, best-effort wipes the mutable token buffer, and returns only `ppf/secret-broker-result/v1`. See [`TRUSTED_SECRET_BROKER.md`](TRUSTED_SECRET_BROKER.md).
+
+The Cloudflare granular-token **issuer adapter** remains a separate live-acceptance item. PPF deliberately does not hard-code a guessed “Specified Workers + Editor” policy-resource JSON representation; the first authorized pilot must discover and verify the current provider shape before that adapter is frozen.
+
 ## 6. Repository deployment workflow
 
 The reference template contains `.github/workflows/deploy-cloudflare.yml`.
@@ -166,7 +170,7 @@ The external-CI profile is preferred for agent-provisioned projects because the 
 
 ## 10. Current evidence boundary
 
-Repository implementation and offline/CI tests can establish that the contracts are internally consistent. They do **not** establish a live end-to-end new-project deployment.
+Repository implementation and offline/CI tests can establish that the contracts are internally consistent. The project provisioner and atomic Secret Broker orchestration are implemented and testable, but the Cloudflare granular-token issuer adapter still requires live provider acceptance. These facts do **not** establish a live end-to-end new-project deployment.
 
 Before changing this profile from “implemented reference profile” to “verified default”, run one clean pilot from an empty project request through:
 

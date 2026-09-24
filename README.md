@@ -148,7 +148,7 @@ The reference implementation is intentionally separate from the normative specif
 
 **Working version: v0.1.0-draft**
 
-The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, the verified Workers Builds native path, and an implemented `agent-provisioned-external-ci` reference profile for future low-touch project creation. The external-CI profile still requires one clean end-to-end new-project pilot before it may be called production-accepted. PPF continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md`, `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`, and `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`.
+The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, the verified Workers Builds native path, an implemented `agent-provisioned-external-ci` reference profile, and an executable atomic Trusted Secret Broker orchestration state machine. The Cloudflare granular-token issuer adapter and the full external-CI route still require one clean end-to-end new-project pilot before the profile may be called production-accepted. PPF continuously validates the reference template with root-level CI. See `docs/FIRST_PILOT_LESSONS.md`, `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`, `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`, and `docs/TRUSTED_SECRET_BROKER.md`.
 
 
 For the reusable GitHub–Cloudflare desired-state and reconciliation contract, see [`docs/GITHUB_CLOUDFLARE_INTEGRATION.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.md).

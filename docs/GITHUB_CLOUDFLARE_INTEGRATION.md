@@ -152,7 +152,7 @@ Simulation and repository CI do not count as a live new-project acceptance.
 
 ## Current implementation boundary
 
-The external-CI implementation is now present in the schema, Quarto template, GitHub Actions workflow, provider adapters, provisioner, reconciliation planner, and tests.
+The external-CI implementation is now present in the schema, Quarto template, GitHub Actions workflow, provider adapters, provisioner, reconciliation planner, atomic Secret Broker orchestration, safe broker result schema, and tests. The Provider-specific Cloudflare granular-token issuer adapter remains live-acceptance-pending because PPF does not hard-code an unverified Specified-Worker policy-resource encoding.
 
 The existing real pilot proves the Workers Builds Native route. The new external-CI route still requires one clean end-to-end project pilot before it may be marked production-accepted.
 
