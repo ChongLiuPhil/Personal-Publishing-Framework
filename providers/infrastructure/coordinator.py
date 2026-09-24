@@ -1,7 +1,7 @@
 """Provider-backed doctor/plan/apply/verify/rollback orchestration.
 
-The account-wide Access baseline is intentionally an owner-operated UI gate. Per-project
-operations refuse to run until the baseline is discovered and verified.
+Private projects may use Worker-scoped Access or an account-wide Access baseline.
+Access changes that broaden publication remain owner-operated human gates.
 """
 from __future__ import annotations
 import argparse
@@ -143,6 +143,9 @@ class Coordinator:
         if access_mode == "worker-scoped-access" and worker.get("workerExists") and worker.get("workerScopedProtection") is not True:
             return {"status": "BLOCKED", "completed": [], "report": report,
                     "blocker": "WORKER_ACCESS_REQUIRED"}
+        if access_mode == "worker-scoped-access" and manifest["cloudflare"]["applicationVisibility"] == "public":
+            return {"status": "BLOCKED", "completed": [], "report": report,
+                    "blocker": "WORKER_ACCESS_PUBLICATION_UI_REQUIRED"}
         if not worker.get("workerExists"):
             return {"status": "BLOCKED", "completed": [], "report": report,
                     "blocker": "WORKER_DEPLOYMENT_REQUIRED"}
