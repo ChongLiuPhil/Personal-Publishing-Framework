@@ -6,7 +6,7 @@ Before configuring or publishing a project, read:
 2. [`ecosystem.yaml`](ecosystem.yaml)
 3. the [canonical cross-repository agent retrieval contract](https://github.com/ChongLiuPhil/Inquiry-Publishing-Project-Starter/blob/main/docs/AGENT_RETRIEVAL_CONTRACT.md)
 4. when Continuous Web or Cloudflare is in scope, [`docs/CONTINUOUS_WEB_CLOUDFLARE.md`](docs/CONTINUOUS_WEB_CLOUDFLARE.md), the Starter minimal-human/Work handoff, then the applicable provider-specific PPF runbooks
-5. for a **new project**, [`docs/AGENT_PROVISIONED_EXTERNAL_CI.md`](docs/AGENT_PROVISIONED_EXTERNAL_CI.md), [`docs/TRUSTED_SECRET_BROKER.md`](docs/TRUSTED_SECRET_BROKER.md), and the Starter Project Provisioning Contract; use `agent-provisioned-external-ci` as the preferred provisioning profile after platform bootstrap
+5. for a **new project**, [`docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md`](docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md), [`docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`](docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md), and the Starter Project Provisioning Contract; use `workers-builds-native` as the default guided per-project profile, and read the external-CI / Secret Broker contracts only when that advanced profile is explicitly selected
 6. the project's AHICP entrypoint and selected Starter profile when this PPF layer participates in the full stack
 
 For web-agent GitHub-to-Cloudflare onboarding, also follow [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.md) (Chinese: [`docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md`](docs/WEB_AGENT_GITHUB_CLOUDFLARE_ONBOARDING.zh-CN.md)).
