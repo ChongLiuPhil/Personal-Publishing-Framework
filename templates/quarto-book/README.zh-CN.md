@@ -7,8 +7,11 @@
 ```text
 QMD / Markdown / BibTeX
         |
+        +--> Agent-side preflight
+        |
         +--> GitHub Actions
-        |      validation -> make web-publish-check
+        |      配置 PR -> 轻量 contract check
+        |      heavy validation -> 手动
         |
         +--> Cloudflare Workers Builds
         |      连接 private GitHub repository
@@ -34,20 +37,23 @@ QMD / Markdown / BibTeX
 2. Quarto Web render；
 3. rendered Web artifact validation。
 
-GitHub Actions 与 Cloudflare Workers Builds 都调用这一 gate，避免维护两套容易漂移的验证逻辑。
+Cloudflare Workers Builds 在 production 中调用完整 Web gate。GitHub Actions 仍保留同一 gate 供手动 heavy validation，但 private-project quota-saver 不会在每个 PR/main push 上自动重复完整 build。
 
 ## GitHub Actions 的职责
 
-`.github/workflows/web.yml` 负责独立 validation：
+Private downstream 项目默认使用 `ci-cost-policy.yaml` 中的 `private-project-quota-saver`。
 
-- checkout；
-- Python；
-- Quarto；
-- `make web-publish-check`。
+`.github/workflows/project-check.yml` 是唯一自动 runner workflow：只在配置/基础设施 PR 时运行，hard timeout 为 5 分钟，只做轻量 contract check，不安装 Quarto、Wrangler、Chromium、Node dependencies 或 TeX。Content-only 变化不会触发它。
 
-`.github/workflows/deploy-cloudflare.yml` 继续保留给可选的高级 External-CI Profile，但不再是默认 production 路径。默认路径是在每个项目完成一次 repository connection 后使用 Cloudflare Workers Builds。
+`.github/workflows/web.yml` 改为手动完整 Web validation。
 
-`.github/workflows/cloudflare-contract-ci.yml` 从干净 runner 验证锁定的 Cloudflare/Wrangler build contract，但不会部署。
+`.github/workflows/cloudflare-contract-ci.yml` 改为手动锁定 Cloudflare/Wrangler contract validation。
+
+`.github/workflows/deploy-cloudflare.yml` 默认手动，只保留给高级 External-CI Profile，不是普通项目 production 路径。
+
+`.github/workflows/build-publication.yml` 仍是明确请求才运行的 artifact build。
+
+默认 production 由 Cloudflare Workers Builds 负责，因此 main push 不会在 GitHub Actions 再重复一次 Web build。
 
 ## Cloudflare integration 机器契约
 
@@ -170,9 +176,9 @@ python scripts/verify_public_site.py https://example.invalid \
 
 这些 gate 应由 downstream 项目根据实际结构补充。
 
-## Workers Builds Native 是新项目默认
+## Workers Builds Native + quota-saver CI 是新项目默认
 
-Installable template 现在为普通新项目默认使用 Workers Builds 原生 Git integration。使用者可以完成一次短的项目连接与 Access 配置；之后普通 push 应自动部署。
+Installable template 现在为普通新项目默认使用 Workers Builds 原生 Git integration + `private-project-quota-saver`。使用者完成一次短的项目连接与 Access 配置后，普通 main push 由 Cloudflare 自动部署，不再自动启动 GitHub Actions Web build。详见 `../../docs/CI_COST_POLICY.zh-CN.md`。
 
 需要更强 credential isolation 时，仍可显式选择高级 External-CI Profile。
 
@@ -210,7 +216,7 @@ Cloudflare build wrapper 不假设 provider 预装 Quarto。它下载固定 rele
 4. 替换 `wrangler.jsonc` 中的 Worker name；
 5. 根据项目增加 source/output validation；
 6. 替换示例 QMD、bibliography 与 assets；
-7. 运行 GitHub reference contract CI；
+7. 先完成 Agent-side preflight；配置类变更在 Actions quota 可用时再运行轻量 GitHub project check；
 8. 把 private repository 连接到 Cloudflare Workers Builds，并在提示时授权当前 repository；
 9. 给 Worker 启用 Worker-scoped Access，或验证已有 account-wide Access 确实覆盖它；
 10. 完成第一次 restricted deployment，并在启用 Preview 前验证匿名拒绝；
