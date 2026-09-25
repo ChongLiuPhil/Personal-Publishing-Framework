@@ -255,8 +255,10 @@ jobs:
           grep -q "GitHub Free / paid Pages product limitations" ../../docs/PUBLICATION_VISIBILITY_ACCESS_MIGRATION.md
       - name: Validate pilot evidence reconciliation markers
         run: |
+          grep -q "Current reconciled pilot evidence status" ../../docs/FIRST_PILOT_LESSONS.md
           grep -q "Current reconciled pilot state" ../../docs/FIRST_PILOT_LESSONS.md
           grep -q "not production-tested" ../../docs/FIRST_PILOT_LESSONS.md
+          ! grep -q "canonical production remains GitHub Pages" ../../docs/FIRST_PILOT_LESSONS.md
           grep -q "Current Cloudflare staging/runtime evidence" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
           grep -q "Cloudflare workers.dev = current canonical production" ../../docs/REFERENCE_IMPLEMENTATION_AUDIT.md
       - name: Compile runtime verification helper
