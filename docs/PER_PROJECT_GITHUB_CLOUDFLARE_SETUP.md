@@ -51,6 +51,8 @@ No Cloudflare API token needs to be copied into the repository or chat for this 
 
 The default Web state is restricted.
 
+Cloudflare Access requires Zero Trust to be enabled on the account. If this is the first protected Worker and Zero Trust is not yet enabled, complete Cloudflare's Zero Trust setup once, then return to the Worker. This is an account prerequisite that later projects reuse; it is not a per-project authorization.
+
 After the Worker exists:
 
 1. Open **Workers & Pages**.
@@ -58,7 +60,7 @@ After the Worker exists:
 3. Open the **Access** tab.
 4. Select **Protect this Worker behind Access**.
 5. Choose **All traffic** so production and previews are covered.
-6. Select or create the approved authentication policy.
+6. Select the already-approved reusable authentication policy when available; create/configure it only if this account does not yet have the intended policy.
 7. Apply Access.
 
 If account-wide **Protect all Workers** is already enabled and verified, this per-Worker step may be skipped. The project should record which Access mode is actually in force:
