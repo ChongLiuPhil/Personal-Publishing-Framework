@@ -32,8 +32,8 @@ Default branch: main
 1. 打开 **Workers & Pages**。
 2. 选择 **Create application**。
 3. 在 **Import a repository** 下选择 **Get started**。
-4. 选择 GitHub 账号。
-5. 如果 Cloudflare 要求 GitHub 授权，批准 Cloudflare Git integration，并允许它访问当前项目仓库；条件允许时优先只授权选定仓库。
+4. 选择 GitHub 账号。如果这个 Git account 已经连接到 Cloudflare，直接复用；Cloudflare 当前文档明确说明，初次连接后的 Git account 可以继续用于未来项目。
+5. 如果目标 private repository 还不可见，只为该 repository 批准或扩大 Cloudflare GitHub App 的 repository access；条件允许时优先 selected-repository access。已有 Git account connection 正常时，不要仅因为这是新项目就重复 OAuth。
 6. 选择刚创建的 private 项目仓库。
 7. 配置项目：
    - production branch：`main`
@@ -43,7 +43,7 @@ Default branch: main
    - 非 production branch build / preview：默认关闭
 8. 选择 **Save and Deploy**。
 
-如果看不到仓库，可在 Worker 的 **Settings > Builds > Git Repository > Manage** 管理 Cloudflare Git installation，或者去 GitHub 的 Installed GitHub Apps 设置，为 Cloudflare App 增加该仓库访问权，然后重试。
+如果看不到仓库，可在 Worker 的 **Settings > Builds > Git Repository > Manage** 管理 Cloudflare Git installation，或者去 GitHub 的 Installed GitHub Apps 设置，为 Cloudflare App 增加该仓库访问权，然后重试。这属于 repository access 扩展，不意味着需要重建已经正常工作的 Git-account connection。
 
 默认 Profile 不需要把 Cloudflare API token 复制进仓库或聊天。Workers Builds 使用 Provider 管理的 build credential。
 
@@ -103,7 +103,7 @@ Git push
 -> Access 继续有效
 ```
 
-第二次部署不应再要求使用者重新连接 GitHub 或重新授权 Cloudflare。
+第二次部署不应再要求使用者重新连接 Git account、重新授权 Cloudflare GitHub App，或重新连接同一个 repository。
 
 这一项通过以后，该项目后续普通 source change 可以持续复用同一条连接。
 
