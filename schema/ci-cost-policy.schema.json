@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/ChongLiuPhil/Personal-Publishing-Framework/main/schema/ci-cost-policy.schema.json",
+  "title": "PPF private-project CI cost policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "profile",
+    "repository_class",
+    "goals",
+    "agent",
+    "github_actions",
+    "cloudflare",
+    "heavy_validation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "ppf-ci-cost-policy/v1"
+    },
+    "profile": {
+      "enum": [
+        "private-project-quota-saver",
+        "full-validation"
+      ]
+    },
+    "repository_class": {
+      "enum": [
+        "private-downstream",
+        "public-framework"
+      ]
+    },
+    "goals": {
+      "type": "object"
+    },
+    "agent": {
+      "type": "object"
+    },
+    "github_actions": {
+      "type": "object"
+    },
+    "cloudflare": {
+      "type": "object"
+    },
+    "heavy_validation": {
+      "type": "object"
+    }
+  }
+}
