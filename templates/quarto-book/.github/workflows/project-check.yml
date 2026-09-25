@@ -1,0 +1,37 @@
+name: Private Project Light Check
+
+on:
+  pull_request:
+    paths:
+      - "_quarto.yml"
+      - "publishing.yaml"
+      - "cloudflare-builds.yaml"
+      - "ci-cost-policy.yaml"
+      - "project.infrastructure.json"
+      - "wrangler.jsonc"
+      - "package.json"
+      - "package-lock.json"
+      - ".nvmrc"
+      - "Makefile"
+      - "scripts/**"
+      - ".github/workflows/**"
+      - "template-manifest.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Validate installable template contract
+        run: python3 scripts/check_template_manifest.py
+      - name: Validate publication/provider contract
+        run: make check
