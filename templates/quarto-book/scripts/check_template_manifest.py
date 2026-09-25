@@ -28,6 +28,7 @@ for path in (
     "scripts/cloudflare_build.sh","scripts/ensure_quarto.sh",
     ".github/workflows/project-check.yml",
     ".github/workflows/web.yml",".github/workflows/cloudflare-contract-ci.yml",
+    ".github/workflows/build-publication.yml",
     ".github/workflows/deploy-cloudflare.yml",
 ):
     if not (ROOT/path).is_file():
