@@ -1,8 +1,6 @@
-name: Deploy restricted Continuous Web
+name: Manual Advanced External-CI Deploy
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -15,7 +13,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6
@@ -27,7 +25,7 @@ jobs:
           python-version: "3.12"
       - name: Install publication-contract parser
         run: python -m pip install "PyYAML==6.0.3"
-      - name: Check durable publication authorization
+      - name: Check advanced External-CI authorization
         id: gate
         shell: bash
         run: |
@@ -38,7 +36,8 @@ jobs:
           web = data.get("publication", {}).get("web", {})
           deployment = data.get("deployment", {}).get("web", {})
           allowed = (
-              web.get("authorization_state") == "authorized"
+              deployment.get("integration_mode") == "github-actions-external-ci"
+              and web.get("authorization_state") == "authorized"
               and web.get("visibility") == "restricted"
               and web.get("access", {}).get("mode") == "authenticated"
               and deployment.get("enabled") is True
@@ -46,7 +45,7 @@ jobs:
           print("deploy=" + ("true" if allowed else "false"))
           PY
           if ! grep -q '^deploy=true$' "$GITHUB_OUTPUT"; then
-            echo "Continuous Web remains staged; no restricted deployment is authorized."
+            echo "Advanced External-CI is not selected and authorized; no deployment will run."
           fi
       - name: Install locked deployment toolchain
         if: steps.gate.outputs.deploy == 'true'
