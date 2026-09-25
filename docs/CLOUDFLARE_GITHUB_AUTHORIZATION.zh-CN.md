@@ -48,9 +48,11 @@ repositoryVisibility: private
 
 Native 路线里，Cloudflare Git integration 就是部署连接。
 
-第一次连接 repository，或者 Cloudflare GitHub App 尚未获得该项目 repository 的访问权限时，GitHub 可能要求使用者授权或扩大 repository access。
+Cloudflare 当前文档明确说明，Git account 初次连接后可以继续用于未来项目。因此，新项目在 Git account 已经连接时应直接复用，不要机械地重新 OAuth。
 
-这是允许存在的**每项目人工 Gate**。
+只有目标 repository 尚未建立 connection，或 Cloudflare GitHub App 还没有该 private repository 的访问权时，才需要人类批准或扩大 repository access，然后继续当前项目 connection。
+
+这是允许存在的**每项目人工 Gate**，但它不等于每个项目都必须重新做一次 OAuth。
 
 条件允许时优先只给 Cloudflare App 当前目标 repository 的权限。
 
