@@ -27,7 +27,8 @@
     "previewProtection": true,
     "securityProfile": "workers-builds-native",
     "credentialStrategy": "provider-managed-user-token",
-    "secretBroker": false
+    "secretBroker": false,
+    "ciCostProfile": "private-project-quota-saver"
   },
   "release": {
     "state": "private",
