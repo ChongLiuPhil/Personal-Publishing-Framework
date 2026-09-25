@@ -30,7 +30,7 @@ git:
 commands:
   build: "bash scripts/cloudflare_build.sh"
   deploy: "npx wrangler deploy"
-  preview_deploy: "npx wrangler versions upload"
+  preview_deploy: "npx wrangler preview"
 
 toolchain:
   node: "24"
