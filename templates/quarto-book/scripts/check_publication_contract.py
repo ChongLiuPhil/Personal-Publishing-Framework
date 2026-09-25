@@ -44,6 +44,16 @@ def main() -> None:
     require("cloudflare-builds.yaml", "enabled_by_default: false")
     require("cloudflare-builds.yaml", "workers_builds_native:")
     require("cloudflare-builds.yaml", "status: preferred-guided-project-setup")
+    require("cloudflare-builds.yaml", "profile: private-project-quota-saver")
+    require("cloudflare-builds.yaml", "automatic_main_push: false")
+    require("cloudflare-builds.yaml", "duplicate_web_build_across_github_and_cloudflare: false")
+    require("ci-cost-policy.yaml", "profile: private-project-quota-saver")
+    require("ci-cost-policy.yaml", "github_actions_as_iterative_debugger: prohibited")
+    require("ci-cost-policy.yaml", "content_only_changes: none")
+    require("ci-cost-policy.yaml", "heavy_validation:")
+    require("ci-cost-policy.yaml", "trigger: workflow_dispatch")
+    require(".github/workflows/project-check.yml", "timeout-minutes: 5")
+    require(".github/workflows/project-check.yml", "cancel-in-progress: true")
 
     # Hardened external CI remains available, but explicitly optional.
     require("cloudflare-builds.yaml", "external_ci:")
