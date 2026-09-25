@@ -36,6 +36,7 @@ In the Cloudflare dashboard:
 5. If the intended private repository is not yet visible, approve or expand the Cloudflare GitHub App's repository access for that repository. Prefer selected-repository access when practical. Do not repeat OAuth merely because this is a new project when the existing connection already works.
 6. Select the new private project repository.
 7. Configure the project:
+   - Worker/application name: exactly the same value as `name` in `wrangler.jsonc` (and the project's declared Cloudflare Worker target)
    - production branch: `main`
    - root directory: `/`
    - build command: `bash scripts/cloudflare_build.sh`
@@ -81,6 +82,7 @@ Verify all of the following:
 
 - the GitHub repository is still private;
 - the Worker is connected to the intended repository;
+- the Cloudflare Worker/application name matches `wrangler.jsonc.name`;
 - the production branch is `main`;
 - the intended source revision was deployed;
 - an anonymous request is challenged or denied by Cloudflare Access;
