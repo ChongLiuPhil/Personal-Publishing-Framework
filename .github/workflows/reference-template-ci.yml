@@ -15,6 +15,7 @@ on:
       - "docs/CLOUDFLARE_OBSERVED_UI_MAPPING*.md"
       - "docs/CLOUDFLARE_GITHUB_AUTHORIZATION*.md"
       - "docs/CLOUDFLARE_SECURITY_PROFILES*.md"
+      - "docs/CI_COST_POLICY*.md"
       - "docs/AGENT_PROVISIONED_EXTERNAL_CI*.md"
       - "docs/TRUSTED_SECRET_BROKER*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
@@ -36,6 +37,7 @@ on:
       - "docs/CLOUDFLARE_OBSERVED_UI_MAPPING*.md"
       - "docs/CLOUDFLARE_GITHUB_AUTHORIZATION*.md"
       - "docs/CLOUDFLARE_SECURITY_PROFILES*.md"
+      - "docs/CI_COST_POLICY*.md"
       - "docs/AGENT_PROVISIONED_EXTERNAL_CI*.md"
       - "docs/TRUSTED_SECRET_BROKER*.md"
       - "docs/FIRST_PILOT_LESSONS*.md"
@@ -77,7 +79,7 @@ jobs:
         run: python ../../providers/infrastructure/manifest.py project.infrastructure.json
       - name: Test infrastructure manifest safety and visibility matrix
         run: cd ../.. && python -m unittest discover -s providers/infrastructure/tests -v
-      - name: Validate project-provisioning contracts
+      - name: Validate project-provisioning and CI-cost contracts
         run: |
           python -m py_compile ../../providers/infrastructure/provisioning.py
           python - <<'PY'
@@ -85,8 +87,19 @@ jobs:
           from pathlib import Path
           import yaml
           from jsonschema import Draft202012Validator
+
           broker_schema = json.loads(Path("../../schema/secret-broker-request.schema.json").read_text(encoding="utf-8"))
           Draft202012Validator.check_schema(broker_schema)
+
+          ci_schema = json.loads(Path("../../schema/ci-cost-policy.schema.json").read_text(encoding="utf-8"))
+          Draft202012Validator.check_schema(ci_schema)
+          ci_policy = yaml.safe_load(Path("ci-cost-policy.yaml").read_text(encoding="utf-8"))
+          ci_errors = list(Draft202012Validator(ci_schema).iter_errors(ci_policy))
+          if ci_errors:
+              raise SystemExit("ci-cost-policy.yaml does not validate: " + ci_errors[0].message)
+          if ci_policy.get("profile") != "private-project-quota-saver":
+              raise SystemExit("reference template must use private-project-quota-saver")
+
           infra = json.loads(Path("project.infrastructure.json").read_text(encoding="utf-8"))
           if infra["deployment"]["provider"] != "cloudflare-workers-builds":
               raise SystemExit("reference template must use Workers Builds native by default")
@@ -96,38 +109,67 @@ jobs:
               raise SystemExit("reference template has wrong default credential strategy")
           if infra["deployment"]["secretBroker"] is not False:
               raise SystemExit("native default must not require the Secret Broker")
+          if infra["deployment"]["ciCostProfile"] != "private-project-quota-saver":
+              raise SystemExit("reference template has wrong CI cost profile")
           if infra["cloudflare"]["accessMode"] != "worker-scoped-access":
               raise SystemExit("reference template must default to per-project Worker Access")
+
           contract = yaml.safe_load(Path("cloudflare-builds.yaml").read_text(encoding="utf-8"))
           if contract.get("mode") != "workers-builds-git":
               raise SystemExit("Cloudflare integration contract must default to Workers Builds Git")
           if contract.get("git", {}).get("non_production_branch_builds") is not False:
               raise SystemExit("default native profile must keep non-production builds disabled")
+          ci_cost = contract.get("ci_cost", {})
+          if ci_cost.get("profile") != "private-project-quota-saver":
+              raise SystemExit("Cloudflare integration contract is missing quota-saver CI ownership")
+          if ci_cost.get("github_actions", {}).get("automatic_main_push") is not False:
+              raise SystemExit("quota-saver template must not auto-run GitHub Actions on main pushes")
+          if ci_cost.get("duplicate_web_build_across_github_and_cloudflare") is not False:
+              raise SystemExit("quota-saver template must not duplicate Web builds across providers")
+
           external = contract.get("external_ci", {})
           if external.get("status") != "optional-advanced":
               raise SystemExit("external CI must remain an optional advanced profile")
           if external.get("workflow") != ".github/workflows/deploy-cloudflare.yml":
               raise SystemExit("optional external CI workflow path drifted")
-          workflow = Path(".github/workflows/deploy-cloudflare.yml").read_text(encoding="utf-8")
-          try:
-              parsed = yaml.safe_load(workflow)
-          except yaml.YAMLError as exc:
-              raise SystemExit("deployment workflow is not valid YAML: " + str(exc))
-          if not isinstance(parsed, dict) or not isinstance(parsed.get("jobs"), dict):
-              raise SystemExit("deployment workflow does not contain a jobs mapping")
-          steps = parsed.get("jobs", {}).get("deploy", {}).get("steps", [])
-          if not isinstance(steps, list):
-              raise SystemExit("deployment workflow deploy.steps is not a list")
-          names = [step.get("name") for step in steps if isinstance(step, dict) and step.get("name")]
-          for name in (
-              "Check durable publication authorization",
-              "Install locked deployment toolchain",
-              "Build canonical Web output",
-              "Deploy existing project Worker",
+
+          def workflow(path):
+              try:
+                  value = yaml.load(Path(path).read_text(encoding="utf-8"), Loader=yaml.BaseLoader)
+              except yaml.YAMLError as exc:
+                  raise SystemExit(path + " is not valid YAML: " + str(exc))
+              if not isinstance(value, dict) or not isinstance(value.get("jobs"), dict):
+                  raise SystemExit(path + " does not contain a jobs mapping")
+              return value
+
+          light = workflow(".github/workflows/project-check.yml")
+          light_on = light.get("on", {})
+          if set(light_on) != {"pull_request", "workflow_dispatch"}:
+              raise SystemExit("project-check.yml must run only on pull_request and workflow_dispatch")
+          light_job = light.get("jobs", {}).get("validate-contracts", {})
+          if int(light_job.get("timeout-minutes", "999")) > 5:
+              raise SystemExit("project-check.yml timeout must be <= 5 minutes")
+          concurrency = light.get("concurrency", {})
+          if concurrency.get("cancel-in-progress") != "true":
+              raise SystemExit("project-check.yml must cancel superseded runs")
+          pull_paths = set(light_on.get("pull_request", {}).get("paths", []))
+          for required_path in ("publishing.yaml", "cloudflare-builds.yaml", "ci-cost-policy.yaml", ".github/workflows/**"):
+              if required_path not in pull_paths:
+                  raise SystemExit("project-check.yml is missing configuration path " + required_path)
+
+          for heavy_path in (
+              ".github/workflows/web.yml",
+              ".github/workflows/cloudflare-contract-ci.yml",
+              ".github/workflows/deploy-cloudflare.yml",
+              ".github/workflows/build-publication.yml",
           ):
-              if names.count(name) != 1:
-                  raise SystemExit("deployment workflow step must appear exactly once: " + name)
+              heavy = workflow(heavy_path)
+              if set(heavy.get("on", {})) != {"workflow_dispatch"}:
+                  raise SystemExit(heavy_path + " must be workflow_dispatch-only in the quota-saver template")
+
+          deploy_text = Path(".github/workflows/deploy-cloudflare.yml").read_text(encoding="utf-8")
           for required in (
+              "github-actions-external-ci",
               "CLOUDFLARE_API_TOKEN",
               "CLOUDFLARE_ACCOUNT_ID",
               "authorization_state",
@@ -135,9 +177,21 @@ jobs:
               "authenticated",
               "wrangler deploy",
           ):
-              if required not in workflow:
-                  raise SystemExit("deployment workflow missing " + required)
-          print("Project-provisioning contracts and deployment workflow are internally consistent.")
+              if required not in deploy_text:
+                  raise SystemExit("advanced deployment workflow missing " + required)
+
+          publication = workflow(".github/workflows/build-publication.yml")
+          upload_steps = [
+              item for item in publication.get("jobs", {}).get("build", {}).get("steps", [])
+              if isinstance(item, dict) and str(item.get("uses", "")).startswith("actions/upload-artifact@")
+          ]
+          if not upload_steps:
+              raise SystemExit("manual publication workflow is missing artifact upload")
+          retention = int(upload_steps[0].get("with", {}).get("retention-days", "999"))
+          if retention > 3:
+              raise SystemExit("manual publication artifact retention must be <= 3 days")
+
+          print("Project-provisioning and CI-cost contracts are internally consistent.")
           PY
       - name: Validate private integration state schema
         run: |
