@@ -7,8 +7,11 @@ It demonstrates:
 ```text
 QMD / Markdown / BibTeX
         |
+        +--> Agent-side preflight
+        |
         +--> GitHub Actions
-        |      validate -> make web-publish-check
+        |      config PR -> lightweight contract check only
+        |      heavy validation -> manual
         |
         +--> Cloudflare Workers Builds
         |      connected private GitHub repository
@@ -34,20 +37,23 @@ It performs:
 2. Quarto Web rendering;
 3. rendered Web-artifact validation.
 
-GitHub Actions and Cloudflare Workers Builds both call the same gate so validation logic does not drift across CI providers.
+Cloudflare Workers Builds calls the full Web gate for production. GitHub Actions keeps the same gate available for manual heavy validation, but the private-project quota-saver profile deliberately avoids running the full gate automatically on every PR/main push.
 
 ## GitHub Actions responsibility
 
-`.github/workflows/web.yml` performs independent validation:
+Private downstream projects default to the `private-project-quota-saver` policy in `ci-cost-policy.yaml`.
 
-- checkout;
-- Python;
-- Quarto;
-- `make web-publish-check`.
+`.github/workflows/project-check.yml` is the only automatic runner workflow. It runs only for configuration/infrastructure pull requests, has a 5-minute timeout, and performs lightweight contract checks without installing Quarto, Wrangler, Chromium, Node dependencies, or TeX. Content-only changes do not trigger it.
 
-`.github/workflows/deploy-cloudflare.yml` is retained for the optional advanced external-CI profile. It is not the default production path. The default path uses Cloudflare Workers Builds after the project repository has been connected once.
+`.github/workflows/web.yml` is manual heavy Web validation.
 
-`.github/workflows/cloudflare-contract-ci.yml` validates the locked Cloudflare/Wrangler build contract from a clean runner. It does **not** deploy.
+`.github/workflows/cloudflare-contract-ci.yml` is manual locked Cloudflare/Wrangler contract validation.
+
+`.github/workflows/deploy-cloudflare.yml` is manual and retained only for the optional advanced external-CI profile. It is not the default production path.
+
+`.github/workflows/build-publication.yml` remains an explicit manual artifact build.
+
+The default production path uses Cloudflare Workers Builds after the repository has been connected once, so main pushes do not duplicate the Web build in GitHub Actions.
 
 ## Cloudflare integration machine contract
 
@@ -170,9 +176,9 @@ It does **not** replace:
 
 Downstream projects should add those gates for their actual structure.
 
-## Workers Builds Native is the new-project default
+## Workers Builds Native + quota-saver CI is the new-project default
 
-The installable template now uses the native Workers Builds Git integration for ordinary new projects. The user may complete one short project connection and Access setup; after that, normal pushes should deploy automatically.
+The installable template now uses native Workers Builds Git integration plus `private-project-quota-saver` for ordinary new projects. The user may complete one short project connection and Access setup; after that, normal main pushes should deploy automatically in Cloudflare without an automatic GitHub Actions Web build. See `../../docs/CI_COST_POLICY.md`.
 
 The advanced external-CI profile remains available when stronger credential isolation is worth the additional infrastructure.
 
@@ -212,7 +218,7 @@ Before adopting the template:
 4. replace the Worker name in `wrangler.jsonc`;
 5. add project-specific source/output validation;
 6. replace sample QMD, bibliography, and assets;
-7. pass the GitHub reference contract CI;
+7. pass Agent-side preflight and, for configuration changes, the lightweight GitHub project check when Actions quota is available;
 8. connect the private repository to Cloudflare Workers Builds and authorize that repository if prompted;
 9. protect the Worker with Worker-scoped Access, or verify an already-existing account-wide Access policy;
 10. run the first restricted deployment and verify anonymous denial before enabling previews;
