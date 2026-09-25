@@ -2,6 +2,7 @@ name: Private Project Light Check
 
 on:
   pull_request:
+    branches: [main]
     paths:
       - "_quarto.yml"
       - "publishing.yaml"

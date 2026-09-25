@@ -19,6 +19,7 @@ github_actions:
   automatic:
     content_only_changes: none
     configuration_pull_request:
+      branches: [main]
       workflow: .github/workflows/project-check.yml
       class: light-contract-check
       timeout_minutes: 5
@@ -35,7 +36,7 @@ github_actions:
     rerun_all: discouraged
   artifacts:
     automatic_success_upload: false
-    manual_publication_retention_days: 3
+    manual_publication_retention_days: 1
     diagnostic_retention_days: 1
 
 cloudflare:
