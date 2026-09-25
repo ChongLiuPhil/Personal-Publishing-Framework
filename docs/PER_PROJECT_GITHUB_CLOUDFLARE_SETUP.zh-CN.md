@@ -3,11 +3,32 @@
 **状态：** 个人 GitHub 项目新建后的默认接入流程  
 **默认交付 Profile：** `workers-builds-native`  
 **默认源仓库：** private GitHub repository  
-**默认网页：** restricted / authenticated Cloudflare Worker
+**默认网页：** restricted / authenticated Cloudflare Worker  
+**UI 复核日期：** 2026-09-25
 
 本指南**不再假定账户级零人工 Provisioning 已经完成**。每个项目允许一次少量人工配置；该项目完成 bootstrap 后，正常的源文件 push 应自动构建并部署。
 
 `agent-provisioned-external-ci` + Trusted Secret Broker 仍作为可选的高级强化/自动化方案保留，但不再是普通新项目的默认前置条件。
+
+## 人工操作与 Write-Back 规则
+
+如果项目采用完整 Starter 栈，人工配置状态由 `project-bootstrap-state.yaml` 与 AHICP Working Memory 持久记录。
+
+Agent 在要求人类打开 Provider UI 前，必须先把对应步骤写成 `waiting-human`；人类返回后，Agent 先验证 actual Provider state，再把步骤写成 completed。
+
+| 人工步骤 | 当前 UI 路径 | 完成证据 | Bootstrap State 写回 |
+| --- | --- | --- | --- |
+| 创建 private repo | GitHub → **+** → **New repository** | `ChongLiuPhil` 下目标 repo 存在、Private、工作默认分支为 `main` | `source.repository_state: verified-private` |
+| 连接 / Import repo | Cloudflare → **Workers & Pages** → **Create application** → import existing Git repository | 目标 repo 已选中并创建/连接 Worker | `cloudflare.git_connection: verified` |
+| 修复 Git repo access | Worker → **Settings > Builds** → **Git Repository > Manage** → GitHub App settings | 目标 private repo 可以被 Cloudflare 选择 | `human_steps.authorize_repository_access: completed` |
+| 首次启用 Zero Trust（如需要） | Cloudflare → **Zero Trust** onboarding | Zero Trust organization 已存在 | `cloudflare.zero_trust: verified` |
+| 保护 Worker | **Workers & Pages** → Worker → **Access** → **Protect this Worker behind Access** → **All traffic** | Access 显示启用，匿名请求被 challenge / deny | `cloudflare.access_state: verified-private` |
+| 第一次部署验证 | Cloudflare build/deployment + Git revision 核验 | 预期 revision 已部署且保持 private | `cloudflare.first_deployment: verified` |
+| 第二次 push 验证 | 对 `main` push 无害改动 | 自动新 build/deploy，且无需重新授权 | `cloudflare.second_push_auto_deploy: verified` |
+
+Bootstrap State、Git 与聊天中都不得保存 password、token value、OAuth code、OTP、recovery code、private key、cookie 或 reader credential。
+
+当前 UI 路径的官方参考：[GitHub 新建仓库](https://docs.github.com/zh/repositories/creating-and-managing-repositories/creating-a-new-repository)、[Cloudflare Git integration](https://developers.cloudflare.com/workers/ci-cd/builds/git-integration/)、[Cloudflare Worker Access](https://developers.cloudflare.com/workers/configuration/cloudflare-access/)。
 
 ## Private 项目 CI 成本默认
 
@@ -30,6 +51,18 @@ Agent 必须先批量编辑并完成可用 preflight，再创建 PR / push。不
 
 在个人 GitHub 账号下创建项目仓库。
 
+当前 GitHub UI 的人工创建步骤：
+
+1. 登录 GitHub。
+2. 右上角选择 **+** → **New repository**。
+3. **Owner** 选择 `ChongLiuPhil`。
+4. Repository name 填写 `project-provisioning.yaml` 声明的准确项目仓库名。
+5. **Visibility** 选择 **Private**。
+6. 如果后续由 Agent / Starter 写入完整项目文件，除非项目已经另有决定，先不要勾选 README / .gitignore / license 初始化，避免产生不必要的初始 merge conflict。
+7. 选择 **Create repository**。
+8. 在仓库页确认准确 identity 为 `ChongLiuPhil/<repository>`，并显示 **Private**。
+9. 项目文件 push 后，确认实际工作默认分支为 `main`。
+
 当前体系默认：
 
 ```text
@@ -38,7 +71,7 @@ Visibility: Private
 Default branch: main
 ```
 
-仓库可以由使用者在 GitHub 界面手动创建，也可以由已经获得授权的 Agent / connector 创建。关键约束是：**新项目起始状态必须 private**。
+验证后，把 `source.repository_state: verified-private` 与非秘密 repository URL 写回项目状态。不要记录 GitHub session credential。
 
 然后把 Starter / PPF 项目文件写入该仓库，并先通过 repository contract 检查，再连接 Cloudflare。
 
@@ -61,7 +94,7 @@ Default branch: main
    - 非 production branch build / preview：默认关闭
 8. 选择 **Save and Deploy**。
 
-如果看不到仓库，可在 Worker 的 **Settings > Builds > Git Repository > Manage** 管理 Cloudflare Git installation，或者去 GitHub 的 Installed GitHub Apps 设置，为 Cloudflare App 增加该仓库访问权，然后重试。这属于 repository access 扩展，不意味着需要重建已经正常工作的 Git-account connection。
+如果看不到仓库：打开目标 Worker → **Settings > Builds**；在 **Git Repository** 下选择 **Manage**。GitHub 应打开 **Cloudflare Workers and Pages** App installation 设置；把 repository access 调整为包含这个准确的 private repository，保存后回到 Cloudflare 再次选择。该动作属于 repository-access 扩展，不意味着重建已经正常工作的 Git-account connection。Repository 可见后，把 repository-access 步骤写回 completed；不要保存 OAuth/session material。
 
 默认 Profile 不需要把 Cloudflare API token 复制进仓库或聊天。Workers Builds 使用 Provider 管理的 build credential。
 
@@ -69,7 +102,7 @@ Default branch: main
 
 默认 Web 状态是 restricted。
 
-Cloudflare Access 要求账户先启用 Zero Trust。如果这是第一个受保护 Worker，而账户尚未启用 Zero Trust，先完成一次 Cloudflare Zero Trust setup，再回到当前 Worker。这个账户级前置条件以后项目可以复用，不是每项目都要重新授权。
+Cloudflare Access 要求账户先启用 Zero Trust。如果这是第一个受保护 Worker，而账户尚未启用，进入 Cloudflare Dashboard → **Zero Trust** 完成一次 onboarding。如果项目政策是继续使用 Free plan，在接受任何 billing 变化以前先确认界面仍明确显示预期的 Free / $0 计划；如果实际界面要求付费升级或其他实质 billing 决定，停止并把决定交还人类。Zero Trust 启用后写回 `cloudflare.zero_trust: verified`。这个账户级前置条件后续项目可以复用，不是每项目授权。
 
 Worker 创建后：
 
@@ -153,7 +186,21 @@ agent-provisioned-external-ci
 
 绝不能要求使用者把 deployment token 粘贴到聊天里。
 
-## 8. 完成状态
+## 8. 持久项目记忆 Write-Back
+
+对完整 Starter / AHICP 项目，人类交接结束后不能只留一句聊天消息。
+
+每个步骤验证后：
+
+- 更新 `project-bootstrap-state.yaml`；
+- blocker / next action 变化时更新 AHICP Task Plan / Current Focus；
+- Bootstrap 有实质推进时在 Work Log 追加里程碑；
+- Working Memory 与已验证 Bootstrap State 尚未同步时，`memory_writeback.last_sync` 保持 `pending`；
+- 只有仓库记忆同步完成后才改为 `synchronized`。
+
+Provider 已经工作但仓库记忆仍 stale 时，项目不算 operationally complete。
+
+## 9. 完成状态
 
 默认项目 bootstrap 完成时，应能真实报告：
 
