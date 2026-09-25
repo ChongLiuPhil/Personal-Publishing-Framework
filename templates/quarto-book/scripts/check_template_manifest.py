@@ -6,7 +6,7 @@ ROOT=Path(__file__).resolve().parents[1]
 manifest=ROOT/"template-manifest.yaml"
 body=manifest.read_text(encoding="utf-8")
 for marker in (
-    "template_version: 0.1.2-draft",
+    "template_version: 0.1.3-draft",
     "upstream_managed:",
     "merge_managed:",
     "project_owned:",
@@ -21,10 +21,12 @@ for marker in (
         raise SystemExit(1)
 for path in (
     "project.infrastructure.json",
+    "ci-cost-policy.yaml",
     ".gitignore",
     "publishing.yaml","cloudflare-builds.yaml","wrangler.jsonc","Makefile",
     "package.json","package-lock.json",
     "scripts/cloudflare_build.sh","scripts/ensure_quarto.sh",
+    ".github/workflows/project-check.yml",
     ".github/workflows/web.yml",".github/workflows/cloudflare-contract-ci.yml",
     ".github/workflows/deploy-cloudflare.yml",
 ):
