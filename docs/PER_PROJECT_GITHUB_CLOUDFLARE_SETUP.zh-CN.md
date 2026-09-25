@@ -36,6 +36,7 @@ Default branch: main
 5. 如果目标 private repository 还不可见，只为该 repository 批准或扩大 Cloudflare GitHub App 的 repository access；条件允许时优先 selected-repository access。已有 Git account connection 正常时，不要仅因为这是新项目就重复 OAuth。
 6. 选择刚创建的 private 项目仓库。
 7. 配置项目：
+   - Worker / application name：必须与 `wrangler.jsonc` 中的 `name`（以及项目声明的 Cloudflare Worker target）完全一致
    - production branch：`main`
    - root directory：`/`
    - build command：`bash scripts/cloudflare_build.sh`
@@ -81,6 +82,7 @@ Cloudflare 显示 deployment success 还不够。
 
 - GitHub repository 仍为 private；
 - Worker 连接的是正确的 repository；
+- Cloudflare Worker / application name 与 `wrangler.jsonc.name` 一致；
 - production branch 为 `main`；
 - 部署的是预期 source revision；
 - 匿名访问会被 Cloudflare Access challenge / deny；
