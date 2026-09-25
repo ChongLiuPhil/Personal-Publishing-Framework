@@ -9,6 +9,23 @@ This guide intentionally does **not** assume account-wide zero-touch provisionin
 
 The advanced `agent-provisioned-external-ci` + Trusted Secret Broker path remains supported as an optional hardening/automation profile, but it is not the default prerequisite.
 
+## CI cost default for private projects
+
+This setup uses the `private-project-quota-saver` policy in [CI_COST_POLICY.md](CI_COST_POLICY.md).
+
+Before connecting Cloudflare, preserve these defaults:
+
+- content-only changes: no automatic GitHub Actions;
+- configuration pull requests: one lightweight contract check only;
+- push to `main`: no automatic GitHub Actions Web build;
+- heavy Web / Cloudflare contract validation: manual;
+- Cloudflare Workers Builds: the only automatic production Web build;
+- non-production Cloudflare builds and previews: disabled.
+
+The Agent must batch edits and run available preflight checks before creating a PR/push. GitHub Actions must not be used as the iterative debugging loop.
+
+If the private-repository Actions allowance is exhausted, leave optional GitHub heavy workflows unrun; do not create repeated blocked workflow attempts. Ordinary Web deployment may continue through Workers Builds.
+
 ## 1. Create the project repository
 
 Create the repository under the personal GitHub account that owns the project.
