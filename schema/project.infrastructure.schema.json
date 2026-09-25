@@ -162,6 +162,13 @@
         },
         "secretBroker": {
           "type": "boolean"
+        },
+        "ciCostProfile": {
+          "enum": [
+            "private-project-quota-saver",
+            "full-validation",
+            "external-ci-required"
+          ]
         }
       },
       "additionalProperties": false
@@ -231,7 +238,8 @@
               "previewProtection",
               "securityProfile",
               "credentialStrategy",
-              "secretBroker"
+              "secretBroker",
+              "ciCostProfile"
             ]
           },
           "github": {
@@ -266,6 +274,12 @@
               },
               "credentialStrategy": {
                 "const": "provider-managed-user-token"
+              },
+              "ciCostProfile": {
+                "enum": [
+                  "private-project-quota-saver",
+                  "full-validation"
+                ]
               }
             }
           }
@@ -299,6 +313,9 @@
               },
               "secretBroker": {
                 "const": true
+              },
+              "ciCostProfile": {
+                "const": "external-ci-required"
               }
             }
           }
