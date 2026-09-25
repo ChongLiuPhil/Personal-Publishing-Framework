@@ -22,8 +22,8 @@ Agent-side preflight
 
 截至 reviewed 日期：
 
-- GitHub Free 的 private repository 每月包含 2,000 GitHub Actions 分钟；
-- public repository 使用标准 GitHub-hosted runner 当前免费；
+- GitHub Free 的 private repository 每月包含 2,000 GitHub Actions 分钟，并包含 500 MB Actions artifact storage（与 GitHub Packages storage 共享）；
+- public repository 使用标准 GitHub-hosted runner 当前免费；larger runner 仍会计费；
 - Cloudflare Workers Builds Free 当前包含每月 3,000 build minutes。
 
 Provider 限制可能变化。涉及付费或 quota-sensitive 决策前必须重新查阅当前官方文档。
@@ -67,7 +67,7 @@ Installable Quarto template 只保留一条自动 runner 路径：
 
 `.github/workflows/project-check.yml`
 
-而且只有 PR 修改这些基础设施/配置文件时才运行：
+而且只有**目标分支为 `main`**、并修改这些基础设施/配置文件的 PR 才运行：
 
 - `_quarto.yml`；
 - `publishing.yaml`；
@@ -158,7 +158,7 @@ Cloudflare Builds：
 
 自动 workflow 不上传成功 artifact。
 
-手动 publication artifact 默认只保留 **3 天**。
+手动 publication artifact 默认只保留 **1 天**。
 
 Downstream 如增加 diagnostic artifact，应：
 
@@ -176,7 +176,17 @@ Private Actions allowance 已用完时：
 4. 可选/手动 GitHub heavy validation 延后到 quota reset，除非使用者明确接受付费 usage；
 5. 不自动添加 payment method、提高 budget 或升级套餐。
 
-## 10. Public Framework Repository
+## 10. CI Profile 分层
+
+Stack 使用三种明确区分的 CI / 成本层，而不是把同一套 workflow 复制到所有仓库：
+
+- 普通 private downstream project：`workers-builds-native` + `private-project-quota-saver`；
+- hardened External-CI project：`agent-provisioned-external-ci` + `external-ci-required`；
+- public framework repository：`full-validation`（本 Stack 的 full-CI 等价 Profile）。
+
+高级 External-CI Profile 继续保留；节省配额不会删除其 Trusted Secret Broker 或 least-privilege credential model。
+
+## 11. Public Framework Repository
 
 AHICP、PPF、Vault Interface、Starter 是 public framework repo，当前标准 GitHub-hosted runner 免费，因此可以保留更完整的 CI。
 
@@ -184,7 +194,7 @@ AHICP、PPF、Vault Interface、Starter 是 public framework repo，当前标准
 
 框架仓库负责把可复用机制测透；private downstream 只保留薄验证层。
 
-## 11. Machine Contract
+## 12. Machine Contract
 
 Installable template 用：
 

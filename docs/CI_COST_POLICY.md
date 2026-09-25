@@ -22,8 +22,8 @@ GitHub Actions is not the default Web build/deploy provider for this profile.
 
 At the reviewed date:
 
-- GitHub Free includes 2,000 GitHub Actions minutes per month for private repositories.
-- Standard GitHub-hosted runners in public repositories are free.
+- GitHub Free includes 2,000 GitHub Actions minutes per month for private repositories and 500 MB of Actions artifact storage (shared with GitHub Packages storage).
+- Standard GitHub-hosted runners in public repositories are free; larger runners remain billable.
 - Cloudflare Workers Builds Free includes 3,000 build minutes per month.
 
 Provider limits can change. Re-check current official billing/limits before making a paid-plan or quota-sensitive decision.
@@ -67,7 +67,7 @@ The installable Quarto template has one automatic runner path:
 
 `.github/workflows/project-check.yml`
 
-It runs only for pull requests that change project/configuration infrastructure such as:
+It runs only for pull requests **targeting `main`** that change project/configuration infrastructure such as:
 
 - `_quarto.yml`;
 - `publishing.yaml`;
@@ -158,7 +158,7 @@ For Cloudflare Builds:
 
 Automatic workflows do not upload successful artifacts.
 
-Manual publication artifact builds retain outputs for **3 days** by default.
+Manual publication artifact builds retain outputs for **1 day** by default.
 
 Diagnostic artifacts, if added by a downstream project, SHOULD:
 
@@ -176,7 +176,17 @@ If the private-repository Actions allowance is exhausted:
 4. defer optional/manual GitHub heavy validation until quota resets unless the user explicitly accepts paid usage;
 5. do not automatically add a payment method, raise a budget, or change plan.
 
-## 10. Public framework repositories
+## 10. CI profile tiers
+
+The stack uses three distinct CI/cost tiers rather than copying one workflow footprint everywhere:
+
+- ordinary private downstream project: `workers-builds-native` + `private-project-quota-saver`;
+- hardened External-CI project: `agent-provisioned-external-ci` + `external-ci-required`;
+- public framework repository: `full-validation` (the stack's full-CI equivalent).
+
+The advanced External-CI profile is retained; quota saving does not remove its Trusted Secret Broker or least-privilege credential model.
+
+## 11. Public framework repositories
 
 AHICP, PPF, Vault Interface, and Starter are public framework repositories. Their standard GitHub-hosted runner usage is currently free, so they may retain more exhaustive CI.
 
@@ -184,7 +194,7 @@ Do not copy that full framework CI footprint into private downstream projects.
 
 The framework should test the reusable machinery; downstream private projects should consume the tested machinery with a thin validation layer.
 
-## 11. Machine contract
+## 12. Machine contract
 
 The installable template records this policy in:
 

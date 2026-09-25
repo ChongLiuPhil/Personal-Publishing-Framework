@@ -99,6 +99,11 @@ jobs:
               raise SystemExit("ci-cost-policy.yaml does not validate: " + ci_errors[0].message)
           if ci_policy.get("profile") != "private-project-quota-saver":
               raise SystemExit("reference template must use private-project-quota-saver")
+          light_pr = ci_policy.get("github_actions", {}).get("automatic", {}).get("configuration_pull_request", {})
+          if light_pr.get("branches") != ["main"]:
+              raise SystemExit("ci-cost-policy must restrict automatic configuration PR checks to main")
+          if ci_policy.get("github_actions", {}).get("artifacts", {}).get("manual_publication_retention_days") != "1":
+              raise SystemExit("ci-cost-policy manual publication retention must be 1 day")
 
           infra = json.loads(Path("project.infrastructure.json").read_text(encoding="utf-8"))
           if infra["deployment"]["provider"] != "cloudflare-workers-builds":
@@ -146,6 +151,8 @@ jobs:
           light_on = light.get("on", {})
           if set(light_on) != {"pull_request", "workflow_dispatch"}:
               raise SystemExit("project-check.yml must run only on pull_request and workflow_dispatch")
+          if light_on.get("pull_request", {}).get("branches") != ["main"]:
+              raise SystemExit("project-check.yml pull_request trigger must target main only")
           light_job = light.get("jobs", {}).get("validate-contracts", {})
           if int(light_job.get("timeout-minutes", "999")) > 5:
               raise SystemExit("project-check.yml timeout must be <= 5 minutes")
@@ -188,8 +195,8 @@ jobs:
           if not upload_steps:
               raise SystemExit("manual publication workflow is missing artifact upload")
           retention = int(upload_steps[0].get("with", {}).get("retention-days", "999"))
-          if retention > 3:
-              raise SystemExit("manual publication artifact retention must be <= 3 days")
+          if retention > 1:
+              raise SystemExit("manual publication artifact retention must be <= 1 day")
 
           print("Project-provisioning and CI-cost contracts are internally consistent.")
           PY
