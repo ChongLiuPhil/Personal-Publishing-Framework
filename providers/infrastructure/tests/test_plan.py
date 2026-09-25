@@ -102,6 +102,7 @@ class ReconciliationPlanTests(unittest.TestCase):
             securityProfile="agent-provisioned-external-ci",
             credentialStrategy="project-scoped-account-token",
             secretBroker=True,
+            ciCostProfile="external-ci-required",
         )
         actual = actual_state()
         actual["github"]["deploymentSecrets"]["CLOUDFLARE_API_TOKEN"] = False
