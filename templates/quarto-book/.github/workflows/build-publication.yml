@@ -46,4 +46,4 @@ jobs:
           name: "publication-${{ inputs.format }}-${{ github.sha }}"
           path: "_publication/${{ inputs.format }}/"
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 3
