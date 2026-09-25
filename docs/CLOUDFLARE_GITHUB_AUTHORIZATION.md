@@ -48,9 +48,11 @@ If an authorized connector can create the private repository safely, it may do s
 
 For the native route, Cloudflare's Git integration is the deployment identity.
 
-When connecting a repository for the first time, or when the Cloudflare GitHub App does not yet have access to the project repository, GitHub may require the user to authorize or expand repository access.
+Cloudflare documents the Git-account connection as reusable for future projects after the initial connection. Therefore, a new project should reuse the existing Git account whenever it is already connected.
 
-This is an accepted per-project human gate.
+Human action is needed only when the target repository has not yet been connected or the Cloudflare GitHub App does not yet have access to that private repository. In that case, authorize or expand repository access and then continue with the project connection.
+
+This is an accepted per-project human gate, but it is not necessarily a new OAuth authorization.
 
 Prefer access limited to the intended repository where practical.
 

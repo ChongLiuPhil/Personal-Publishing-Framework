@@ -32,8 +32,8 @@ In the Cloudflare dashboard:
 1. Go to **Workers & Pages**.
 2. Select **Create application**.
 3. Under **Import a repository**, select **Get started**.
-4. Choose the GitHub account.
-5. If Cloudflare asks for GitHub authorization, approve the Cloudflare Git integration and give it access to the intended repository. Prefer selected-repository access when practical.
+4. Choose the GitHub account. If this Git account was already connected to Cloudflare, reuse that connection; Cloudflare documents that the connected Git account can be used for future projects.
+5. If the intended private repository is not yet visible, approve or expand the Cloudflare GitHub App's repository access for that repository. Prefer selected-repository access when practical. Do not repeat OAuth merely because this is a new project when the existing connection already works.
 6. Select the new private project repository.
 7. Configure the project:
    - production branch: `main`
@@ -43,7 +43,7 @@ In the Cloudflare dashboard:
    - non-production branch builds / previews: disabled by default
 8. Select **Save and Deploy**.
 
-If the repository does not appear, manage the Cloudflare Git installation from the Worker's **Settings > Builds > Git Repository > Manage** or from GitHub's installed-app settings, then grant access to this repository and retry.
+If the repository does not appear, manage the Cloudflare Git installation from the Worker's **Settings > Builds > Git Repository > Manage** or from GitHub's installed-app settings, then grant access to this repository and retry. This is repository-access expansion, not a reason to recreate an already-working Git-account connection.
 
 No Cloudflare API token needs to be copied into the repository or chat for this default profile. Workers Builds uses the provider-managed build credential.
 
@@ -103,7 +103,7 @@ Git push
 -> Access remains enforced
 ```
 
-This second deployment should not require the user to reconnect GitHub or reauthorize Cloudflare.
+This second deployment should not require the user to reconnect the Git account, reauthorize the Cloudflare GitHub App, or reconnect the same repository.
 
 Once this succeeds, ordinary future source changes may use the same connection.
 
