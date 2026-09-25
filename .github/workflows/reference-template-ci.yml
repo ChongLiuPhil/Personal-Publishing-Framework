@@ -102,7 +102,7 @@ jobs:
           light_pr = ci_policy.get("github_actions", {}).get("automatic", {}).get("configuration_pull_request", {})
           if light_pr.get("branches") != ["main"]:
               raise SystemExit("ci-cost-policy must restrict automatic configuration PR checks to main")
-          if ci_policy.get("github_actions", {}).get("artifacts", {}).get("manual_publication_retention_days") != "1":
+          if ci_policy.get("github_actions", {}).get("artifacts", {}).get("manual_publication_retention_days") != 1:
               raise SystemExit("ci-cost-policy manual publication retention must be 1 day")
 
           infra = json.loads(Path("project.infrastructure.json").read_text(encoding="utf-8"))
