@@ -3,7 +3,7 @@
 **Date:** 2026-09-19  
 **Pilot:** `ChongLiuPhil/epistemology-textbook`  
 **PPF base:** v0.1.0-draft @ `9326920e1920d18f0a71eac26d4068da9d6bdffe`  
-**Current pilot evidence status:** Cloudflare staging/runtime VERIFIED; canonical production remains GitHub Pages; production cutover is not complete.
+**Current reconciled pilot evidence status:** Cloudflare Workers Builds production VERIFIED; workers.dev is canonical production; the legacy GitHub Pages site was retired after owner-confirmed unpublish. Earlier historical-stage statements below are retained only as chronology and are superseded by sections 11–12.
 
 ## 1. Purpose
 
