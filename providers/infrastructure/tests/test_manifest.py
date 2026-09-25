@@ -28,6 +28,7 @@ class ManifestTests(unittest.TestCase):
         self.assertEqual(manifest["deployment"]["credentialStrategy"], "provider-managed-user-token")
         self.assertFalse(manifest["deployment"]["secretBroker"])
         self.assertFalse(manifest["deployment"]["previewDeployments"])
+        self.assertEqual(manifest["deployment"]["ciCostProfile"], "private-project-quota-saver")
 
     def test_external_ci_rejects_broader_or_mismatched_credential_profile(self):
         item = copy.deepcopy(self.base)
@@ -36,6 +37,7 @@ class ManifestTests(unittest.TestCase):
             securityProfile="agent-provisioned-external-ci",
             credentialStrategy="provider-managed-user-token",
             secretBroker=True,
+            ciCostProfile="external-ci-required",
         )
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "project.infrastructure.json"

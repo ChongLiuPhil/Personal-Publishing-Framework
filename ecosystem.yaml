@@ -38,6 +38,7 @@ baseline:
   web_visibility: restricted-by-default-for-unpublished-work
   cloudflare_access: required-for-private-or-transitional-publications
   reduced_profiles: explicit-human-selection-only
+  private_project_ci_cost_profile: private-project-quota-saver
 components:
   ahicp:
     homepage: https://inquirystack.philohub.workers.dev/ahicp/
@@ -59,3 +60,4 @@ cloudflare:
   security_profiles: docs/CLOUDFLARE_SECURITY_PROFILES.md
   access_profile: docs/CLOUDFLARE_ACCESS_PROFILE.md
   integration_standard: docs/GITHUB_CLOUDFLARE_INTEGRATION.md
+  ci_cost_policy: docs/CI_COST_POLICY.md

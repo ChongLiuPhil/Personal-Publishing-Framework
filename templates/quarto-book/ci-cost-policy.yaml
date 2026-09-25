@@ -1,0 +1,58 @@
+schema: ppf-ci-cost-policy/v1
+profile: private-project-quota-saver
+repository_class: private-downstream
+
+goals:
+  minimize_github_actions_minutes: true
+  avoid_duplicate_builds_across_providers: true
+  preserve_cloudflare_native_main_builds: true
+
+agent:
+  github_actions_as_iterative_debugger: prohibited
+  batch_related_changes_before_push: true
+  preflight_before_pull_request: required
+  inspect_complete_failure_before_retry: true
+  batch_fixes_before_retry: true
+  expected_automatic_runner_jobs_per_change: 0-or-1
+
+github_actions:
+  automatic:
+    content_only_changes: none
+    configuration_pull_request:
+      workflow: .github/workflows/project-check.yml
+      class: light-contract-check
+      timeout_minutes: 5
+    main_push: none
+  manual:
+    web_validation: .github/workflows/web.yml
+    cloudflare_contract_validation: .github/workflows/cloudflare-contract-ci.yml
+    publication_artifact: .github/workflows/build-publication.yml
+    external_ci_deploy: .github/workflows/deploy-cloudflare.yml
+  concurrency:
+    cancel_superseded_pull_request_runs: true
+  retry:
+    default: failed-job-or-workflow-only
+    rerun_all: discouraged
+  artifacts:
+    automatic_success_upload: false
+    manual_publication_retention_days: 3
+    diagnostic_retention_days: 1
+
+cloudflare:
+  workers_builds:
+    production_branch: main
+    production_builds: true
+    non_production_branch_builds: false
+    previews: false
+    canonical_web_gate: make cloudflare-build
+    duplicate_github_actions_web_build: false
+
+heavy_validation:
+  automatic: false
+  trigger: workflow_dispatch
+  recommended_when:
+    - publishing-contract-change
+    - cloudflare-contract-change
+    - workflow-or-toolchain-change
+    - framework-upgrade
+    - public-release-preparation

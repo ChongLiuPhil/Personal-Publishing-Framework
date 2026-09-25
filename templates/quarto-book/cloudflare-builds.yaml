@@ -37,6 +37,20 @@ toolchain:
   wrangler: "4.135.0"
   quarto: "1.10.18"
 
+ci_cost:
+  profile: private-project-quota-saver
+  policy_ref: ci-cost-policy.yaml
+  github_actions:
+    automatic_pull_request: light-config-only
+    automatic_main_push: false
+    automatic_content_change: false
+    heavy_validation: workflow-dispatch-only
+  cloudflare_workers_builds:
+    production_branch_build: true
+    non_production_branch_builds: false
+    previews: false
+  duplicate_web_build_across_github_and_cloudflare: false
+
 worker:
   name: replace-with-worker-name
   config: wrangler.jsonc

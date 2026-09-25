@@ -1,14 +1,14 @@
-name: Continuous Web Validation
+name: Manual Continuous Web Validation
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate-web:

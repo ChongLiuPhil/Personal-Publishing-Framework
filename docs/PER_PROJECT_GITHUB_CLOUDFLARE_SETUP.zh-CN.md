@@ -9,6 +9,23 @@
 
 `agent-provisioned-external-ci` + Trusted Secret Broker 仍作为可选的高级强化/自动化方案保留，但不再是普通新项目的默认前置条件。
 
+## Private 项目 CI 成本默认
+
+本接入流程采用 [CI_COST_POLICY.zh-CN.md](CI_COST_POLICY.zh-CN.md) 中的 `private-project-quota-saver`。
+
+连接 Cloudflare 前保持：
+
+- content-only 改动：不自动启动 GitHub Actions；
+- 配置类 Pull Request：只运行一个轻量 contract check；
+- push 到 `main`：不自动启动 GitHub Actions Web build；
+- heavy Web / Cloudflare contract validation：手动；
+- Cloudflare Workers Builds：唯一自动 production Web build；
+- Cloudflare 非 production build 与 Preview：默认关闭。
+
+Agent 必须先批量编辑并完成可用 preflight，再创建 PR / push。不得把 GitHub Actions 当作迭代调试器。
+
+如果 private repository 的 Actions allowance 已耗尽，可选 GitHub heavy workflow 保持未运行；不要持续制造会被 blocked 的 workflow。普通 Web deployment 可以继续通过 Workers Builds。
+
 ## 1. 创建项目仓库
 
 在个人 GitHub 账号下创建项目仓库。
