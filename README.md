@@ -91,9 +91,9 @@ The first reference implementation is expected to use:
 - Git as the canonical versioned source
 - Quarto / Pandoc for source-to-format transformation
 - HTML as the default continuously published format
-- GitHub Actions as an independent validation gate
+- a thin GitHub Actions contract gate for private downstream projects, with heavy validation manual by default
 - a repository-owned `make web-publish-check` as the canonical Web publication gate
-- Workers Builds + the Cloudflare GitHub integration as the preferred delivery path for ordinary **new personal-account projects**, using one documented per-project setup and provider-managed credentials; GitHub Actions + a project-scoped Cloudflare token remains an optional advanced profile, and Cloudflare Pages remains supported for existing projects
+- Workers Builds + the Cloudflare GitHub integration as the preferred delivery path for ordinary **new personal-account projects**, using one documented per-project setup and provider-managed credentials; the default private-project CI cost profile is `private-project-quota-saver`, so Cloudflare owns the automatic main-branch Web build and GitHub Actions does not duplicate it; GitHub Actions + a project-scoped Cloudflare token remains an optional advanced profile, and Cloudflare Pages remains supported for existing projects
 - `project.infrastructure.json` as the machine-readable GitHub/Cloudflare desired-state manifest, with private-by-default visibility and a read-only reconciliation planner
 - Cloudflare Workers Static Assets as a Web delivery layer
 - EPUB, PDF, DOCX, and LaTeX as on-demand publication artifacts
@@ -132,9 +132,10 @@ It implements the PPF model as:
 
 ```text
 Git canonical source
+-> Agent-side preflight
+-> optional lightweight GitHub PR contract check
 -> repository-owned Web gate
--> GitHub Actions validation + authorized deployment
--> project-scoped Cloudflare Worker Editor credential
+-> Cloudflare Workers Builds on main
 -> Cloudflare Workers Static Assets
 
 explicit request
@@ -148,7 +149,7 @@ The reference implementation is intentionally separate from the normative specif
 
 **Working version: v0.1.0-draft**
 
-The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, and a verified Workers Builds Native route that is now the default guided per-project onboarding path. The implemented `agent-provisioned-external-ci` profile and atomic Trusted Secret Broker remain available as optional advanced infrastructure; the Cloudflare granular-token issuer still requires live Provider acceptance before that advanced profile may be called production-accepted. See `docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md`, `docs/FIRST_PILOT_LESSONS.md`, `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`, `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`, and `docs/TRUSTED_SECRET_BROKER.md`.
+The project now includes the initial specification, an executable Quarto reference implementation, the first real downstream runtime pilot, and a verified Workers Builds Native route that is now the default guided per-project onboarding path. Private downstream projects now default to the `private-project-quota-saver` CI profile: content-only changes do not start GitHub Actions, configuration PRs get at most one lightweight contract job, heavy GitHub validation is manual, and Cloudflare Workers Builds owns the automatic main-branch Web build. The implemented `agent-provisioned-external-ci` profile and atomic Trusted Secret Broker remain available as optional advanced infrastructure; the Cloudflare granular-token issuer still requires live Provider acceptance before that advanced profile may be called production-accepted. See `docs/PER_PROJECT_GITHUB_CLOUDFLARE_SETUP.md`, `docs/CI_COST_POLICY.md`, `docs/FIRST_PILOT_LESSONS.md`, `docs/CLOUDFLARE_GITHUB_AUTHORIZATION.md`, `docs/AGENT_PROVISIONED_EXTERNAL_CI.md`, and `docs/TRUSTED_SECRET_BROKER.md`.
 
 
 For the reusable GitHub–Cloudflare desired-state and reconciliation contract, see [`docs/GITHUB_CLOUDFLARE_INTEGRATION.md`](docs/GITHUB_CLOUDFLARE_INTEGRATION.md).
