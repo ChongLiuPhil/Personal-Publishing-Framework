@@ -51,6 +51,8 @@ Default branch: main
 
 默认 Web 状态是 restricted。
 
+Cloudflare Access 要求账户先启用 Zero Trust。如果这是第一个受保护 Worker，而账户尚未启用 Zero Trust，先完成一次 Cloudflare Zero Trust setup，再回到当前 Worker。这个账户级前置条件以后项目可以复用，不是每项目都要重新授权。
+
 Worker 创建后：
 
 1. 打开 **Workers & Pages**。
@@ -58,7 +60,7 @@ Worker 创建后：
 3. 打开 **Access** 标签。
 4. 选择 **Protect this Worker behind Access**。
 5. 选择 **All traffic**，使 production 与 preview 都受保护。
-6. 选择或创建已经批准的认证策略。
+6. 已有批准的 reusable authentication policy 时直接选择；只有账户还没有目标 policy 时才新建/配置。
 7. Apply Access。
 
 如果账户已经启用并验证了 **Protect all Workers**，可以跳过逐 Worker 的这一步。项目应记录实际采用的 Access 模式：
