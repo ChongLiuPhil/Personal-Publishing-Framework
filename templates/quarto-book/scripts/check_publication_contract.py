@@ -57,7 +57,7 @@ def main() -> None:
     # Both profiles share the same repository-owned build gate and pinned toolchain.
     require("cloudflare-builds.yaml", 'build: "bash scripts/cloudflare_build.sh"')
     require("cloudflare-builds.yaml", 'deploy: "npx wrangler deploy"')
-    require("cloudflare-builds.yaml", 'preview_deploy: "npx wrangler versions upload"')
+    require("cloudflare-builds.yaml", 'preview_deploy: "npx wrangler preview"')
     require("Makefile", "web-publish-check:")
     require("Makefile", "$(QUARTO) render --profile web")
     require("Makefile", "python3 scripts/verify_web_output.py")
