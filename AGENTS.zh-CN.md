@@ -15,8 +15,8 @@
 
 从任意 PPF 公共入口进入时，在跨组件配置前恢复四组件生态。公共链接只授权读取公共信息，绝不授权私人状态访问。
 
-执行 Cloudflare 操作前，必须说明准确目标、受影响层、数据流、凭据范围、人类批准边界、验证项目和回滚路径。需要人类操作 UI 时，必须给出编号的操作者级步骤，包括当前 Dashboard 路径、应填写的非秘密值、完成证据，以及随后要验证的状态。绝不要求人类把密码、token、私钥、恢复码或其他秘密粘贴到聊天中。External-CI Profile 的 Cloudflare deployment token 必须经 trusted Secret Broker 直接写入 GitHub Actions secrets；模型只能接收非秘密安装状态。Reference Broker 状态机必须拒绝覆盖已有目标 Secret，并在本轮 transaction rollback 时 revoke 新 mint 的 token。
+执行 Cloudflare 操作前，必须说明准确目标、受影响层、数据流、凭据范围、人类批准边界、验证项目和回滚路径。需要人类操作 UI 时，必须给出编号的操作者级步骤，包括当前 Dashboard 路径、应填写的非秘密值、完成证据，以及随后要验证的状态。如果完整 Starter / AHICP 项目存在 `project-bootstrap-state.yaml`，handoff **以前**必须把 pending human step 写入该文件与 Working Memory；人类返回后先验证 Provider actual state，再写回完成状态。绝不要求人类把密码、token、私钥、恢复码或其他秘密粘贴到聊天中。External-CI Profile 的 Cloudflare deployment token 必须经 trusted Secret Broker 直接写入 GitHub Actions secrets；模型只能接收非秘密安装状态。Reference Broker 状态机必须拒绝覆盖已有目标 Secret，并在本轮 transaction rollback 时 revoke 新 mint 的 token。
 
 把人工关卡当作可续办的检查点，不要因此暂停整项任务。继续执行其他已获授权且互不依赖的工作；某一步确实受关卡阻塞时，给出对应服务的直达链接、准确导航步骤、需要选择/填写的非秘密内容、秘密输入边界、完成证据，以及我随后会读取验证的具体状态。只等待这一个关卡；用户完成后重新读取提供商状态并自动续办，不要要求重复已完成步骤。
 
-始终区分 proposal、authorization、execution、verification 与 durable write-back。
+始终区分 proposal、authorization、execution、verification 与 durable write-back。Provider actual state 在外部系统中；仓库保存最近 verified 的非秘密投影，聊天记忆不是权威状态。
